@@ -1,0 +1,30 @@
+{
+    "version": 5,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 30,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "MacNinja",
+            "displayName": "MacNinja",
+            "description": "MacNinja",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/i686-elf-mac.cmake"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "MacNinja",
+            "displayName": "MacNinja",
+            "description": "MacNinja",
+            "configurePreset": "MacNinja",
+            "configuration": "Release",
+            "jobs": 16
+        }
+    ]
+}

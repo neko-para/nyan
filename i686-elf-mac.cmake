@@ -1,0 +1,19 @@
+set(CMAKE_SYSTEM_NAME Generic)
+set(CMAKE_SYSTEM_PROCESSOR x86)
+
+set(TOOL_PREFIX /opt/llvm-22)
+
+set(CMAKE_C_COMPILER_TARGET i686-elf)
+set(CMAKE_C_COMPILER ${TOOL_PREFIX}/bin/clang)
+set(CMAKE_CXX_COMPILER_TARGET i686-elf)
+set(CMAKE_CXX_COMPILER ${TOOL_PREFIX}/bin/clang++)
+set(CMAKE_ASM_COMPILER_TARGET i686-elf)
+set(CMAKE_ASM_COMPILER ${TOOL_PREFIX}/bin/clang)
+set(CMAKE_LINKER ${TOOL_PREFIX}/bin/ld.lld)
+set(CMAKE_CXX_LINK_EXECUTABLE
+    "<CMAKE_LINKER> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
+
+set(CMAKE_C_FLAGS "-ffreestanding -nostdlib")
+set(CMAKE_CXX_FLAGS "-ffreestanding -nostdlib -fno-rtti -fno-exceptions")
+
+set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
