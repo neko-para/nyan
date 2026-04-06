@@ -15,6 +15,16 @@
             "cacheVariables": {
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/i686-elf-mac.cmake"
             }
+        },
+        {
+            "name": "WinNinja",
+            "displayName": "WinNinja",
+            "description": "WinNinja",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/i686-elf-win.cmake"
+            }
         }
     ],
     "buildPresets": [
@@ -23,6 +33,14 @@
             "displayName": "MacNinja",
             "description": "MacNinja",
             "configurePreset": "MacNinja",
+            "configuration": "Release",
+            "jobs": 16
+        },
+        {
+            "name": "WinNinja",
+            "displayName": "WinNinja",
+            "description": "WinNinja",
+            "configurePreset": "WinNinja",
             "configuration": "Release",
             "jobs": 16
         }
