@@ -1,0 +1,8 @@
+BasedOnStyle: Chromium
+Language: Cpp
+Standard: c++20
+
+UseTab: Never
+TabWidth: 4
+IndentWidth: 4
+ColumnLimit: 120

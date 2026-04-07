@@ -40,4 +40,8 @@ SECTIONS
     }
 
     _kernel_end = .;
+
+    .vga_buffer 0xC03FF000 (NOLOAD) : {
+        vga_buffer = .;
+    }
 }

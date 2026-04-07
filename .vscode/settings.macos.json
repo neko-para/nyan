@@ -1,0 +1,9 @@
+{
+  "clangd.arguments": [
+    "--header-insertion=never",
+    "--compile-commands-dir=build"
+  ],
+  "editor.tabSize": 4,
+
+  "clangd.path": "/opt/llvm-22/bin/clangd"
+}
