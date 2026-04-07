@@ -1,6 +1,7 @@
 #include "print.hpp"
 
-#include "../lib/algorithm.hpp"
+#include <algorithm>
+
 #include "buffer.hpp"
 
 namespace nyan::vga {
@@ -15,7 +16,7 @@ static inline volatile Entry& at(int row, int col) {
 }
 
 void clear() {
-    lib::fill_n(buffer, width * height, Entry{0, currentAttr});
+    std::fill_n(buffer, width * height, Entry{0, currentAttr});
 }
 
 void putc(char ch) {

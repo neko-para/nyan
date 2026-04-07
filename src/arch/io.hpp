@@ -56,4 +56,12 @@ inline void kputs(const char* str) {
     }
 }
 
+[[noreturn]] inline void kfatal(const char* str) {
+    kputs(str);
+    cli();
+    for (;;) {
+        hlt();
+    }
+}
+
 }  // namespace nyan::arch

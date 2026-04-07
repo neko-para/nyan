@@ -1,5 +1,6 @@
 #include <string.h>
 
+#include "arch/io.hpp"
 #include "setup/paging.hpp"
 #include "setup/sse.hpp"
 #include "vga/print.hpp"

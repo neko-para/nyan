@@ -1,6 +1,8 @@
-#include <stddef.h>
+#include "paging.hpp"
 
-#include "../lib/algorithm.hpp"
+#include <stddef.h>
+#include <algorithm>
+
 #include "../paging/convert.hpp"
 #include "../paging/entry.hpp"
 
@@ -13,7 +15,7 @@ extern "C" void preparePaging() {
     uint32_t* pageDirectoryPtr = paging::virtualToPhysical(pageDirectory);
     uint32_t* pageTablePtr = paging::virtualToPhysical(pageTable);
 
-    lib::fill_n(pageDirectoryPtr, 1 << 10, 0);
+    std::fill_n(pageDirectoryPtr, 1 << 10, 0);
 
     for (size_t i = 0; i < ((1 << 10) - 1); i++) {
         pageTablePtr[i] = (i << 12) | paging::PTE_Present | paging::PTE_ReadWrite;
