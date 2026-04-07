@@ -15,7 +15,7 @@ stack_bottom:
 stack_top:
 
 .section .multiboot.text, "a"
-.global _start
+.global _start, enableSse
 .type _start, @function
 _start:
     movl $(stack_top - 0xC0000000), %esp

@@ -40,6 +40,10 @@ SECTIONS
     }
 
     _kernel_end = .;
+    _end = .;
+
+    . = 0xC0400000;
+    __llvm_libc_heap_limit = .;
 
     .vga_buffer 0xC03FF000 (NOLOAD) : {
         vga_buffer = .;
