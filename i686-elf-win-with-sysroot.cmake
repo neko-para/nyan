@@ -15,7 +15,10 @@ set(CMAKE_C_LINK_EXECUTABLE
 set(CMAKE_CXX_LINK_EXECUTABLE
     "<CMAKE_LINKER> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
 
+set(CMAKE_SYSROOT ${CMAKE_CURRENT_LIST_DIR}/sysroot)
+
 set(CMAKE_C_FLAGS "-ffreestanding -nostdlib")
-set(CMAKE_CXX_FLAGS "-ffreestanding -nostdlib -fno-rtti -fno-exceptions")
+set(CMAKE_CXX_FLAGS
+    "-ffreestanding -nostdlib -fno-rtti -fno-exceptions -stdlib=libc++")
 
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)

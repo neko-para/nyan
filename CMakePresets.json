@@ -23,7 +23,7 @@
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build",
             "cacheVariables": {
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/i686-elf-win.cmake"
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/i686-elf-win-with-sysroot.cmake"
             }
         }
     ],
