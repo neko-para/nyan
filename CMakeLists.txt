@@ -12,5 +12,6 @@ target_link_options(kernel PRIVATE -T ${CMAKE_CURRENT_LIST_DIR}/src/linker.ld)
 
 target_compile_options(kernel PRIVATE -g)
 
-target_link_directories(kernel PRIVATE sysroot/usr/lib/i686-none-elf)
-target_link_libraries(kernel PRIVATE c)
+target_link_directories(kernel PRIVATE sysroot/usr/lib/generic
+                        sysroot/usr/lib/i686-none-elf)
+target_link_libraries(kernel PRIVATE c clang_rt.builtins-i386)
