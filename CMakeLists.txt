@@ -9,14 +9,15 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_executable(
   kernel
   src/main.cpp
-  src/setup/paging.cpp
-  src/vga/print.cpp
+  src/allocator/pool.cpp
   src/gdt/load.cpp
-  src/interrupt/load.cpp
   src/interrupt/isr.cpp
-  src/timer/load.cpp
+  src/interrupt/load.cpp
   src/keyboard/load.cpp
   src/keyboard/message.cpp
+  src/setup/paging.cpp
+  src/timer/load.cpp
+  src/vga/print.cpp
   src/boot.s
   src/lib/libcxx.cpp
   src/lib/libc.cpp)

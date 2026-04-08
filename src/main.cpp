@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "allocator/pool.hpp"
 #include "arch/io.hpp"
 #include "boot/entry.hpp"
 #include "gdt/load.hpp"
@@ -38,8 +39,25 @@ extern "C" void kmain(boot::BootInfo* info) {
 
     for (size_t i = 0; i < mmap_count; i++) {
         auto& entry = info->mmap_addr[i];
-        printf("%08lx ~ %08lx, %lu, %lu\n", entry.addr_lo, entry.addr_lo + entry.len_lo, entry.len_lo, entry.type);
+        if (entry.type != boot::MMT_Available) {
+            continue;
+        }
+        if (entry.addr_lo == 0) {
+            continue;
+        }
+
+        uint32_t upper = entry.addr_lo + entry.len_lo;
+        allocator::manager = new allocator::PoolManager(upper - allocator::base);
+        break;
     }
+
+    auto page1 = allocator::manager->alloc();
+    auto page2 = allocator::manager->alloc();
+    auto page3 = allocator::manager->alloc();
+    allocator::manager->free(page2);
+    auto page4 = allocator::manager->alloc();
+    auto page5 = allocator::manager->alloc();
+    printf("%lu %lu %lu %lu %lu\n", page1, page2, page3, page4, page5);
 
     char* msg = new char[20];
     strcpy(msg, "Hello world!");
