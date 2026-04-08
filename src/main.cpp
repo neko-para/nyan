@@ -1,6 +1,6 @@
 #include <string.h>
 
-#include "arch/io.hpp"
+#include "gdt/load.hpp"
 #include "setup/paging.hpp"
 #include "setup/sse.hpp"
 #include "vga/print.hpp"
@@ -16,6 +16,8 @@ extern "C" void kmain() {
     vga::clear();
 
     __libc_init_array();
+
+    gdt::load();
 
     char* msg = new char[20];
     strcpy(msg, "Hello world!");
