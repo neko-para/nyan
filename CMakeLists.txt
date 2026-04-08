@@ -15,6 +15,8 @@ add_executable(
   src/interrupt/load.cpp
   src/interrupt/isr.cpp
   src/timer/load.cpp
+  src/keyboard/load.cpp
+  src/keyboard/message.cpp
   src/boot.s
   src/lib/libcxx.cpp
   src/lib/libc.cpp)

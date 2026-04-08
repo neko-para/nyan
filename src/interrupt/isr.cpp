@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "../arch/io.hpp"
+#include "../keyboard/load.hpp"
 #include "../timer/load.hpp"
 #include "entry.hpp"
 #include "load.hpp"
@@ -26,6 +27,12 @@ __attribute__((interrupt)) void defaultHandlerNe(Frame*) {
 __attribute__((interrupt)) void timerHandler(Frame*) {
     end(0);
     timer::hit();
+}
+
+__attribute__((interrupt)) void keyboardHandler(Frame*) {
+    end(1);
+    uint8_t ch = arch::inb(0x60);
+    keyboard::push(ch);
 }
 
 template <typename F>
@@ -68,6 +75,7 @@ void fillEntries(Entry* entry) {
     setEntry(entry[31], defaultHandlerNe<31>);
 
     setEntry(entry[32], timerHandler);
+    setEntry(entry[33], keyboardHandler);
 }
 
 }  // namespace nyan::interrupt

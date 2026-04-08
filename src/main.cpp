@@ -3,6 +3,7 @@
 #include "arch/io.hpp"
 #include "gdt/load.hpp"
 #include "interrupt/load.hpp"
+#include "keyboard/load.hpp"
 #include "setup/paging.hpp"
 #include "setup/sse.hpp"
 #include "timer/load.hpp"
@@ -24,6 +25,7 @@ extern "C" void kmain() {
     interrupt::load();
 
     timer::load();
+    keyboard::load();
 
     arch::sti();
 
