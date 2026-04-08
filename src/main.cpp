@@ -1,6 +1,7 @@
 #include <string.h>
 
 #include "gdt/load.hpp"
+#include "interrupt/load.hpp"
 #include "setup/paging.hpp"
 #include "setup/sse.hpp"
 #include "vga/print.hpp"
@@ -18,6 +19,7 @@ extern "C" void kmain() {
     __libc_init_array();
 
     gdt::load();
+    interrupt::load();
 
     char* msg = new char[20];
     strcpy(msg, "Hello world!");

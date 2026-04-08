@@ -4,7 +4,7 @@
 
 namespace nyan::gdt {
 
-alignas(8) constexpr static Segment entries[] = {
+alignas(16) constexpr static Segment entries[] = {
     makeSegment(0, 0, 0, 0),
     // 0x08 Code Ring0
     makeSegment(0,

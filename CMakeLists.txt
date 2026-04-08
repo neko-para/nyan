@@ -12,12 +12,16 @@ add_executable(
   src/setup/paging.cpp
   src/vga/print.cpp
   src/gdt/load.cpp
+  src/interrupt/load.cpp
+  src/interrupt/isr.cpp
   src/boot.s
   src/lib/libcxx.cpp
   src/lib/libc.cpp)
 target_link_options(kernel PRIVATE -T ${CMAKE_CURRENT_LIST_DIR}/src/linker.ld)
 
 target_compile_options(kernel PRIVATE -g -Wall -Wextra)
+set_source_files_properties(src/interrupt/isr.cpp
+                            PROPERTIES COMPILE_FLAGS "-mgeneral-regs-only")
 
 target_link_directories(kernel PRIVATE sysroot/usr/lib/generic
                         sysroot/usr/lib/i686-none-elf)
