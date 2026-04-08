@@ -20,9 +20,25 @@ void clear() {
 }
 
 void putc(char ch) {
+    if (ch == '\n') {
+        goto putLF;
+    } else if (ch == '\r') {
+        colPtr = 0;
+        return;
+    } else if (ch == '\b') {
+        if (colPtr > 0) {
+            colPtr -= 1;
+        }
+        return;
+    } else if (ch == '\t') {
+        colPtr += 4 - (colPtr & 3);
+        return;
+    }
+
     at(rowPtr, colPtr).ch = ch;
 
     if (++colPtr == width) {
+    putLF:
         colPtr = 0;
         if (++rowPtr == height) {
             // TODO: scroll
