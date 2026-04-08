@@ -71,7 +71,6 @@ void load() {
     fillEntries(entries);
 
     asm volatile("lidt %0" ::"m"(desc) : "memory");
-    arch::sti();
 }
 
 void mask(uint8_t irq) {

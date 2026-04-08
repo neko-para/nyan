@@ -1,9 +1,11 @@
 #include <string.h>
 
+#include "arch/io.hpp"
 #include "gdt/load.hpp"
 #include "interrupt/load.hpp"
 #include "setup/paging.hpp"
 #include "setup/sse.hpp"
+#include "timer/load.hpp"
 #include "vga/print.hpp"
 
 extern "C" void __libc_init_array();
@@ -21,10 +23,18 @@ extern "C" void kmain() {
     gdt::load();
     interrupt::load();
 
+    timer::load();
+
+    arch::sti();
+
     char* msg = new char[20];
     strcpy(msg, "Hello world!");
 
     vga::puts(msg);
+
+    for (;;) {
+        arch::hlt();
+    }
 }
 
 }  // namespace nyan

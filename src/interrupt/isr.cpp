@@ -3,7 +3,9 @@
 #include <stdio.h>
 
 #include "../arch/io.hpp"
+#include "../timer/load.hpp"
 #include "entry.hpp"
+#include "load.hpp"
 
 namespace nyan::interrupt {
 
@@ -19,6 +21,11 @@ __attribute__((interrupt)) void defaultHandlerNe(Frame*) {
     static char buf[256];
     sprintf(buf, "Exception %u", Id);
     arch::kfatal(buf);
+}
+
+__attribute__((interrupt)) void timerHandler(Frame*) {
+    end(0);
+    timer::hit();
 }
 
 template <typename F>
@@ -59,6 +66,8 @@ void fillEntries(Entry* entry) {
     setEntry(entry[29], defaultHandler<29>);
     setEntry(entry[30], defaultHandler<30>);
     setEntry(entry[31], defaultHandlerNe<31>);
+
+    setEntry(entry[32], timerHandler);
 }
 
 }  // namespace nyan::interrupt
