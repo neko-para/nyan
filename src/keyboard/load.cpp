@@ -9,6 +9,8 @@
 
 namespace nyan::keyboard {
 
+KeyboardCallback keyboardCallback;
+
 static void waitReady() {
     while (arch::inb(0x64) & 0x2) {
         ;
@@ -20,6 +22,8 @@ void load() {
     arch::outb(0x64, 0x60);
     waitReady();
     arch::outb(0x60, 0x47);
+
+    keyboardCallback = +[](const Message&) {};
 
     interrupt::unmask(1);
 }
@@ -36,17 +40,13 @@ bool push(uint8_t dat) {
                 return false;
             } else {
                 msg = merge(dat);
-                if (!(msg.flag & F_Release)) {
-                    vga::putc(msg.ch);
-                }
+                keyboardCallback(msg);
                 return true;
             }
         case 1:
             msg = merge(0xE000 | dat);
             state = 0;
-            if (!(msg.flag & F_Release)) {
-                vga::putc(msg.ch);
-            }
+            keyboardCallback(msg);
             return true;
         default:
             return false;

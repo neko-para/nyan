@@ -8,6 +8,7 @@
 #include "gdt/load.hpp"
 #include "interrupt/load.hpp"
 #include "keyboard/load.hpp"
+#include "keyboard/message.hpp"
 #include "paging/convert.hpp"
 #include "paging/kernel.hpp"
 #include "timer/load.hpp"
@@ -32,6 +33,15 @@ extern "C" void kmain(boot::BootInfo* info) {
 
     timer::load();
     keyboard::load();
+
+    keyboard::keyboardCallback = +[](const keyboard::Message& msg) {
+        if (!(msg.flag & keyboard::F_Release)) {
+            vga::putc(msg.ch);
+            if (msg.flag & keyboard::F_Ctrl && msg.code == keyboard::SC_C) {
+                arch::qemuQuit();
+            }
+        }
+    };
 
     arch::sti();
 

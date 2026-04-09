@@ -88,4 +88,8 @@ inline void enableSse() {
     asm volatile("movl %0, %%cr4" ::"a"(cr4));
 }
 
+inline void qemuQuit() {
+    outw(0x604, 0x2000);
+}
+
 }  // namespace nyan::arch
