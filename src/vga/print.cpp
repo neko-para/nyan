@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "buffer.hpp"
+#include "cursor.hpp"
 
 namespace nyan::vga {
 
@@ -19,7 +20,14 @@ void clear() {
     std::fill_n(buffer, width * height, Entry{0, currentAttr});
 }
 
-void putc(char ch) {
+void scroll(size_t row) {
+    size_t offset = row * width;
+    size_t count = height * width - offset;
+    std::copy_n(buffer + offset, count, buffer);
+    std::fill_n(buffer + count, offset, Entry{0, currentAttr});
+}
+
+void putcImpl(char ch) {
     if (ch == '\n') {
         goto putLF;
     } else if (ch == '\r') {
@@ -41,22 +49,29 @@ void putc(char ch) {
     putLF:
         colPtr = 0;
         if (++rowPtr == height) {
-            // TODO: scroll
-            rowPtr = 0;
+            scroll(1);
+            rowPtr = height - 1;
         }
     }
 }
 
+void putc(char ch) {
+    putcImpl(ch);
+    updateCursor(colPtr, rowPtr);
+}
+
 void puts(const char* str) {
     while (*str) {
-        putc(*str++);
+        putcImpl(*str++);
     }
+    updateCursor(colPtr, rowPtr);
 }
 
 void puts(const char* str, size_t len) {
     while (len-- > 0) {
-        putc(*str++);
+        putcImpl(*str++);
     }
+    updateCursor(colPtr, rowPtr);
 }
 
 }  // namespace nyan::vga

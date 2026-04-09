@@ -12,6 +12,7 @@ constexpr uint8_t makeAttr(uint8_t fg, uint8_t bg) {
 extern uint8_t currentAttr;
 
 void clear();
+void scroll(size_t row);
 void putc(char ch);
 void puts(const char* str);
 void puts(const char* str, size_t len);

@@ -12,6 +12,7 @@
 #include "setup/paging.hpp"
 #include "setup/sse.hpp"
 #include "timer/load.hpp"
+#include "vga/cursor.hpp"
 #include "vga/print.hpp"
 
 extern "C" void __libc_init_array();
@@ -23,6 +24,7 @@ extern "C" void kmain(boot::BootInfo* info) {
     setup::enableSse();
 
     vga::clear();
+    vga::showCursor();
 
     __libc_init_array();
 

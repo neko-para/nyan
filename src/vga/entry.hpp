@@ -31,11 +31,16 @@ struct Entry {
         value() = entry.value();
         return *this;
     }
+    volatile Entry& operator=(const volatile Entry& entry) volatile {
+        value() = entry.value();
+        return *this;
+    }
 
     const uint16_t& value() const& { return *reinterpret_cast<const uint16_t*>(this); }
     uint16_t& value() & { return *reinterpret_cast<uint16_t*>(this); }
     uint16_t value() const&& { return *reinterpret_cast<const uint16_t*>(this); }
 
+    const volatile uint16_t& value() const volatile& { return *reinterpret_cast<const volatile uint16_t*>(this); }
     volatile uint16_t& value() volatile& { return *reinterpret_cast<volatile uint16_t*>(this); }
 };
 

@@ -19,9 +19,7 @@ extern "C" void preparePaging() {
 
     std::fill_n(pageDirectoryPtr->data, 1 << 10, 0);
 
-    for (size_t i = 0; i < ((1 << 10) - 1); i++) {
-        pageTablePtr->data[i] = (i << 12) | paging::PTE_Present | paging::PTE_ReadWrite;
-    }
+    pageTablePtr->fillFlat(0, paging::PTE_Present | paging::PTE_ReadWrite);
     pageTablePtr->data[(1 << 10) - 1] = 0xB8000 | paging::PTE_Present | paging::PTE_ReadWrite;
 
     pageDirectoryPtr->set(pageTablePtr, 0, paging::PTE_Present | paging::PTE_ReadWrite);
