@@ -20,10 +20,10 @@ extern "C" void preparePaging() {
     std::fill_n(pageDirectoryPtr->data, 1 << 10, 0);
 
     pageTablePtr->fillFlat(0, paging::PTE_Present | paging::PTE_ReadWrite);
-    pageTablePtr->data[(1 << 10) - 1] = 0xB8000 | paging::PTE_Present | paging::PTE_ReadWrite;
+    pageTablePtr->map(0xB8000, 0xC03FF000, paging::PTE_Present | paging::PTE_ReadWrite);
 
-    pageDirectoryPtr->set(pageTablePtr, 0, paging::PTE_Present | paging::PTE_ReadWrite);
-    pageDirectoryPtr->set(pageTablePtr, (3 << 8), paging::PTE_Present | paging::PTE_ReadWrite);
+    pageDirectoryPtr->set(pageTablePtr, 0, paging::PDE_Present | paging::PDE_ReadWrite);
+    pageDirectoryPtr->set(pageTablePtr, (3 << 8), paging::PDE_Present | paging::PDE_ReadWrite);
 
     pageDirectoryPtr->load();
     asm volatile(

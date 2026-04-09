@@ -10,4 +10,6 @@ namespace nyan::paging {
 extern Directory kernelPageDirectory;
 extern Table kernelPageTable[256];
 
+void load();
+
 }  // namespace nyan::paging

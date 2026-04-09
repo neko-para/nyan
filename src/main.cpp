@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "allocator/frame.hpp"
 #include "allocator/pool.hpp"
+#include "allocator/utils.hpp"
 #include "arch/io.hpp"
 #include "boot/entry.hpp"
 #include "gdt/load.hpp"
@@ -36,6 +38,8 @@ extern "C" void kmain(boot::BootInfo* info) {
 
     arch::sti();
 
+    paging::load();
+
     info = paging::physicalToVirtual(info);
     auto mmap_count = info->mmap_length / sizeof(boot::MMapEntry);
     info->mmap_addr = paging::physicalToVirtual(info->mmap_addr);
@@ -53,8 +57,13 @@ extern "C" void kmain(boot::BootInfo* info) {
         allocator::poolManager = new allocator::PoolManager(upper - allocator::base);
         break;
     }
+    allocator::frameManager = new allocator::FrameManager;
 
-    printf("%p %p\n", &paging::kernelPageDirectory, paging::kernelPageTable);
+    auto frame = (uint8_t*)allocator::frameAlloc();
+    for (size_t i = 0; i < (1 << 12); i++) {
+        frame[i] = 0;
+    }
+    allocator::frameFree(frame);
 
     char* msg = new char[20];
     strcpy(msg, "Hello world!");

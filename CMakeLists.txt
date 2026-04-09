@@ -9,8 +9,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_executable(
   kernel
   src/main.cpp
+  src/allocator/frame.cpp
   src/allocator/pool.cpp
-  src/allocator/page.cpp
+  src/allocator/utils.cpp
   src/gdt/load.cpp
   src/interrupt/isr.cpp
   src/interrupt/load.cpp

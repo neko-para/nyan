@@ -1,6 +1,8 @@
 #pragma once
 
+#include <stdarg.h>
 #include <stdint.h>
+#include <stdio.h>
 
 namespace nyan::arch {
 
@@ -62,6 +64,16 @@ inline void kputs(const char* str) {
     for (;;) {
         hlt();
     }
+}
+
+[[noreturn]] __attribute__((__format__(__printf__, 1, 2))) inline void kfatalfmt(const char* fmt, ...) {
+    static char buf[256];
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(buf, 256, fmt, ap);
+    va_end(ap);
+
+    kfatal(buf);
 }
 
 }  // namespace nyan::arch

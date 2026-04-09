@@ -12,16 +12,12 @@ namespace nyan::interrupt {
 
 template <uint32_t Id>
 __attribute__((interrupt)) void defaultHandler(Frame*, uint32_t error) {
-    static char buf[256];
-    sprintf(buf, "Exception %u: code %u", Id, error);
-    arch::kfatal(buf);
+    arch::kfatalfmt("Exception %u: code %u", Id, error);
 }
 
 template <uint32_t Id>
 __attribute__((interrupt)) void defaultHandlerNe(Frame*) {
-    static char buf[256];
-    sprintf(buf, "Exception %u", Id);
-    arch::kfatal(buf);
+    arch::kfatalfmt("Exception %u", Id);
 }
 
 __attribute__((interrupt)) void timerHandler(Frame*) {
