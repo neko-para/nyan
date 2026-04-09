@@ -17,8 +17,6 @@ struct PoolManager {
         bitmap_size = (size >> 12) >> 5;
         bitmap = new uint32_t[bitmap_size];
         std::fill_n(bitmap, bitmap_size, 0);
-
-        printf("bitmap size %u\n", bitmap_size);
     }
     ~PoolManager() { delete[] bitmap; }
     PoolManager(const PoolManager&) = delete;

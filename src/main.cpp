@@ -17,15 +17,12 @@
 #include "vga/print.hpp"
 
 extern "C" void __libc_init_array();
+extern uint8_t _end;
 
 namespace nyan {
 
 void subTask(void*) {
-    vga::puts("inside task!");
-
-    for (;;) {
-        arch::hlt();
-    }
+    vga::puts("inside task!\n");
 }
 
 extern "C" void kmain(boot::BootInfo* info) {
@@ -54,6 +51,8 @@ extern "C" void kmain(boot::BootInfo* info) {
 
     arch::sti();
 
+    printf("kernel end %p\n", paging::virtualToPhysical(&_end));
+
     info = paging::physicalToVirtual(info);
     auto mmap_count = info->mmap_length / sizeof(boot::MMapEntry);
     info->mmap_addr = paging::physicalToVirtual(info->mmap_addr);
@@ -73,14 +72,17 @@ extern "C" void kmain(boot::BootInfo* info) {
     }
 
     char* msg = (char*)allocator::slabManager->alloc(20);
-    strcpy(msg, "Hello world!");
+    strcpy(msg, "Hello world!\n");
     vga::puts(msg);
 
     auto tcb = task::createTask(subTask, 0);
     task::initYield(tcb);
 
-    vga::puts("all tasks finished");
-    arch::qemuQuit();
+    vga::puts("all tasks finished.\n");
+
+    for (;;) {
+        arch::hlt();
+    }
 }
 
 }  // namespace nyan

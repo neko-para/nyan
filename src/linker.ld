@@ -39,7 +39,6 @@ SECTIONS
         *(.bss*)
     }
 
-    _kernel_end = .;
     _end = .;
 
     . = 0xC0400000;
