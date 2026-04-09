@@ -1,9 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "allocator/frame.hpp"
-#include "allocator/pool.hpp"
-#include "allocator/utils.hpp"
+#include "allocator/load.hpp"
+#include "allocator/slab.hpp"
 #include "arch/io.hpp"
 #include "boot/entry.hpp"
 #include "gdt/load.hpp"
@@ -50,18 +49,11 @@ extern "C" void kmain(boot::BootInfo* info) {
         }
 
         uint32_t upper = entry.addr_lo + entry.len_lo;
-        allocator::poolManager = new allocator::PoolManager(upper - allocator::base);
+        allocator::load(upper);
         break;
     }
-    allocator::frameManager = new allocator::FrameManager;
 
-    auto frame = (uint8_t*)allocator::frameAlloc();
-    for (size_t i = 0; i < (1 << 12); i++) {
-        frame[i] = 0;
-    }
-    allocator::frameFree(frame);
-
-    char* msg = new char[20];
+    char* msg = (char*)allocator::slabManager->alloc(20);
     strcpy(msg, "Hello world!");
 
     vga::puts(msg);

@@ -3,6 +3,7 @@
 #include "../paging/entry.hpp"
 #include "../paging/kernel.hpp"
 #include "frame.hpp"
+#include "load.hpp"
 #include "pool.hpp"
 
 namespace nyan::allocator {

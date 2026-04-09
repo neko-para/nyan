@@ -1,0 +1,15 @@
+{
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Attach",
+            "targetCreateCommands": [
+                "target create ${workspaceFolder}/build/kernel",
+            ],
+            "processCreateCommands": [
+                "gdb-remote localhost:1234"
+            ]
+        },
+    ]
+}

@@ -7,7 +7,7 @@
 
 namespace nyan::allocator {
 
-constexpr uint32_t base = 0x400000;  // 4M
+constexpr uint32_t poolBase = 0x400000;  // 4M
 
 struct PoolManager {
     uint32_t* bitmap;
@@ -25,9 +25,9 @@ struct PoolManager {
     PoolManager& operator=(const PoolManager&) = delete;
 
     // offset to physical
-    static uint32_t pageAt(uint32_t offset) noexcept { return base + (offset << 12); }
+    static uint32_t pageAt(uint32_t offset) noexcept { return poolBase + (offset << 12); }
     // physical to offset
-    static uint32_t pageFor(uint32_t addr) noexcept { return (addr - base) >> 12; }
+    static uint32_t pageFor(uint32_t addr) noexcept { return (addr - poolBase) >> 12; }
 
     uint32_t alloc() noexcept {
         for (size_t i = 0; i < bitmap_size; i++) {
@@ -41,7 +41,5 @@ struct PoolManager {
     }
     void free(uint32_t offset) noexcept { bitmap[offset >> 5] &= ~(1 << (offset & 31)); }
 };
-
-extern PoolManager* poolManager;
 
 }  // namespace nyan::allocator

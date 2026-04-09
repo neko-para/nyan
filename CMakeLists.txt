@@ -4,13 +4,14 @@ project(nyan CXX ASM)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_executable(
   kernel
   src/main.cpp
-  src/allocator/frame.cpp
-  src/allocator/pool.cpp
+  src/allocator/load.cpp
+  src/allocator/slab.cpp
   src/allocator/utils.cpp
   src/gdt/load.cpp
   src/interrupt/isr.cpp
@@ -29,6 +30,7 @@ target_compile_options(kernel PRIVATE -g -Wall -Wextra)
 
 target_compile_options(kernel PRIVATE -flto=thin -funified-lto -O2
                                       -fomit-frame-pointer)
+
 target_link_options(kernel PRIVATE --lto=thin)
 
 # 不能开启向量化, 会产生内存引用, 提前启用sse也不行

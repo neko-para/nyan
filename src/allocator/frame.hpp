@@ -40,6 +40,4 @@ struct FrameManager {
     void free(uint32_t offset) noexcept { bitmap[offset >> 5] &= ~(1 << (offset & 31)); }
 };
 
-extern FrameManager* frameManager;
-
 }  // namespace nyan::allocator
