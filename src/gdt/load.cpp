@@ -1,10 +1,11 @@
 #include "load.hpp"
 
 #include "entry.hpp"
+#include "tss.hpp"
 
 namespace nyan::gdt {
 
-alignas(16) constexpr static Segment entries[] = {
+alignas(16) static Segment entries[] = {
     makeSegment(0, 0, 0, 0),
     // 0x08 Code Ring0
     makeSegment(0,
@@ -20,12 +21,19 @@ alignas(16) constexpr static Segment entries[] = {
                 F_Granularity | F_Size),
     // 0x20 Data Ring3
     makeSegment(0, 0xFFFFF, A_Present | A_Ring3 | A_NotSystem | A_DataWritable | A_Accessed, F_Granularity | F_Size),
-    // TODO: tss
+    // 0x28 TSS
+    {},
 };
 
 static Descriptor desc;
 
+Tss tss asm("tss");
+
 void load() {
+    tss.ss0 = 0x10;
+
+    entries[5] = makeSegment(reinterpret_cast<uint32_t>(&tss), sizeof(tss), A_Present | A_Executable | A_Accessed, 0);
+
     desc.size = sizeof(entries) - 1;
     desc.offset = reinterpret_cast<uint32_t>(entries);
 
@@ -40,7 +48,12 @@ void load() {
         "    mov %%ax, %%fs;"
         "    mov %%ax, %%gs;"
         "    mov %%ax, %%ss;" ::
-            : "memory");
+            : "ax", "memory");
+
+    asm volatile(
+        "movw $0x28, %%ax;"
+        "ltr %%ax;" ::
+            : "ax");
 }
 
 }  // namespace nyan::gdt

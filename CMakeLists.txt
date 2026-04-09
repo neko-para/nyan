@@ -10,6 +10,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_executable(
   kernel
   src/main.cpp
+  src/boot.s
   src/allocator/load.cpp
   src/allocator/slab.cpp
   src/allocator/utils.cpp
@@ -19,9 +20,10 @@ add_executable(
   src/keyboard/load.cpp
   src/keyboard/message.cpp
   src/paging/kernel.cpp
+  src/task/switch.s
+  src/task/task.cpp
   src/timer/load.cpp
   src/vga/print.cpp
-  src/boot.s
   src/lib/libcxx.cpp
   src/lib/libc.cpp)
 target_link_options(kernel PRIVATE -T ${CMAKE_CURRENT_LIST_DIR}/src/linker.ld)

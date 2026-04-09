@@ -11,6 +11,7 @@
 #include "keyboard/message.hpp"
 #include "paging/convert.hpp"
 #include "paging/kernel.hpp"
+#include "task/task.hpp"
 #include "timer/load.hpp"
 #include "vga/cursor.hpp"
 #include "vga/print.hpp"
@@ -18,6 +19,14 @@
 extern "C" void __libc_init_array();
 
 namespace nyan {
+
+void subTask(void*) {
+    vga::puts("inside task!");
+
+    for (;;) {
+        arch::hlt();
+    }
+}
 
 extern "C" void kmain(boot::BootInfo* info) {
     arch::enableSse();
@@ -65,12 +74,13 @@ extern "C" void kmain(boot::BootInfo* info) {
 
     char* msg = (char*)allocator::slabManager->alloc(20);
     strcpy(msg, "Hello world!");
-
     vga::puts(msg);
 
-    for (;;) {
-        arch::hlt();
-    }
+    auto tcb = task::createTask(subTask, 0);
+    task::initYield(tcb);
+
+    vga::puts("all tasks finished");
+    arch::qemuQuit();
 }
 
 }  // namespace nyan

@@ -17,6 +17,7 @@ struct alignas(4096) Directory {
         data[location] = reinterpret_cast<uint32_t>(table) | attr;
     }
     Table* at(uint16_t location) const noexcept { return reinterpret_cast<Table*>(data[location] & (~0xFFF)); }
+    uint32_t cr3() const noexcept { return virtualToPhysical(reinterpret_cast<uint32_t>(this)); }
 
     void map(uint32_t physicalAddr, uint32_t virtualAddr, uint16_t attr) noexcept {
         auto table = at(virtualAddr >> 22);

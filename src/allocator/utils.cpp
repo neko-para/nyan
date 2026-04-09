@@ -5,6 +5,7 @@
 #include "frame.hpp"
 #include "load.hpp"
 #include "pool.hpp"
+#include "slab.hpp"
 
 namespace nyan::allocator {
 
@@ -27,6 +28,14 @@ void frameFree(void* frame) {
     auto physicalOffset = PoolManager::pageFor(physicalAddr);
     frameManager->free(virtualOffset);
     poolManager->free(physicalOffset);
+}
+
+void* alloc(size_t size) {
+    return slabManager->alloc(size);
+}
+
+void free(void* addr) {
+    slabManager->free(addr);
 }
 
 }  // namespace nyan::allocator
