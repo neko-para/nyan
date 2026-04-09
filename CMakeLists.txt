@@ -18,7 +18,6 @@ add_executable(
   src/keyboard/load.cpp
   src/keyboard/message.cpp
   src/paging/kernel.cpp
-  src/setup/paging.cpp
   src/timer/load.cpp
   src/vga/print.cpp
   src/boot.s
@@ -33,8 +32,8 @@ target_compile_options(kernel PRIVATE -flto=thin -funified-lto -O2
 target_link_options(kernel PRIVATE --lto=thin)
 
 # 不能开启向量化, 会产生内存引用, 提前启用sse也不行
-set_source_files_properties(src/setup/paging.cpp PROPERTIES COMPILE_FLAGS
-                                                            "-mno-sse")
+set_source_files_properties(src/paging/kernel.cpp PROPERTIES COMPILE_FLAGS
+                                                             "-mno-sse")
 set_source_files_properties(src/interrupt/isr.cpp
                             PROPERTIES COMPILE_FLAGS "-mgeneral-regs-only")
 

@@ -11,8 +11,6 @@
 #include "keyboard/load.hpp"
 #include "paging/convert.hpp"
 #include "paging/kernel.hpp"
-#include "setup/paging.hpp"
-#include "setup/sse.hpp"
 #include "timer/load.hpp"
 #include "vga/cursor.hpp"
 #include "vga/print.hpp"
@@ -22,8 +20,8 @@ extern "C" void __libc_init_array();
 namespace nyan {
 
 extern "C" void kmain(boot::BootInfo* info) {
-    setup::clearIdentityPaging();
-    setup::enableSse();
+    arch::enableSse();
+    paging::clearIdentityPaging();
 
     vga::clear();
     vga::showCursor();
@@ -37,8 +35,6 @@ extern "C" void kmain(boot::BootInfo* info) {
     keyboard::load();
 
     arch::sti();
-
-    paging::load();
 
     info = paging::physicalToVirtual(info);
     auto mmap_count = info->mmap_length / sizeof(boot::MMapEntry);
