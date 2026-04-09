@@ -4,28 +4,30 @@
 #include <algorithm>
 
 #include "../paging/convert.hpp"
+#include "../paging/directory.hpp"
 #include "../paging/entry.hpp"
+#include "../paging/table.hpp"
 
 namespace nyan::setup {
 
-alignas(4096) __attribute__((section(".bss"))) uint32_t pageDirectory[1 << 10];
-alignas(4096) __attribute__((section(".bss"))) uint32_t pageTable[1 << 10];
+paging::Directory pageDirectory;
+paging::Table pageTable;
 
 extern "C" void preparePaging() {
-    uint32_t* pageDirectoryPtr = paging::virtualToPhysical(pageDirectory);
-    uint32_t* pageTablePtr = paging::virtualToPhysical(pageTable);
+    auto pageDirectoryPtr = paging::virtualToPhysical(&pageDirectory);
+    auto pageTablePtr = paging::virtualToPhysical(&pageTable);
 
-    std::fill_n(pageDirectoryPtr, 1 << 10, 0);
+    std::fill_n(pageDirectoryPtr->data, 1 << 10, 0);
 
     for (size_t i = 0; i < ((1 << 10) - 1); i++) {
-        pageTablePtr[i] = (i << 12) | paging::PTE_Present | paging::PTE_ReadWrite;
+        pageTablePtr->data[i] = (i << 12) | paging::PTE_Present | paging::PTE_ReadWrite;
     }
-    pageTablePtr[(1 << 10) - 1] = 0xB8000 | paging::PTE_Present | paging::PTE_ReadWrite;
+    pageTablePtr->data[(1 << 10) - 1] = 0xB8000 | paging::PTE_Present | paging::PTE_ReadWrite;
 
-    pageDirectoryPtr[0] = reinterpret_cast<uint32_t>(pageTablePtr) | paging::PTE_Present | paging::PTE_ReadWrite;
-    pageDirectoryPtr[3 << 8] = reinterpret_cast<uint32_t>(pageTablePtr) | paging::PTE_Present | paging::PTE_ReadWrite;
+    pageDirectoryPtr->set(pageTablePtr, 0, paging::PTE_Present | paging::PTE_ReadWrite);
+    pageDirectoryPtr->set(pageTablePtr, (3 << 8), paging::PTE_Present | paging::PTE_ReadWrite);
 
-    asm volatile("movl %0, %%cr3" ::"r"(pageDirectoryPtr) : "memory");
+    pageDirectoryPtr->load();
     asm volatile(
         "movl %%cr0, %%eax;"
         "orl $0x80010000, %%eax;"
@@ -34,7 +36,7 @@ extern "C" void preparePaging() {
 }
 
 void clearIdentityPaging() {
-    pageDirectory[0] = 0;
+    pageDirectory.data[0] = 0;
 
     asm volatile(
         "movl %%cr3, %%eax;"

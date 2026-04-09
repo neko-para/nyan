@@ -8,6 +8,7 @@
 #include "interrupt/load.hpp"
 #include "keyboard/load.hpp"
 #include "paging/convert.hpp"
+#include "paging/kernel.hpp"
 #include "setup/paging.hpp"
 #include "setup/sse.hpp"
 #include "timer/load.hpp"
@@ -47,17 +48,11 @@ extern "C" void kmain(boot::BootInfo* info) {
         }
 
         uint32_t upper = entry.addr_lo + entry.len_lo;
-        allocator::manager = new allocator::PoolManager(upper - allocator::base);
+        allocator::poolManager = new allocator::PoolManager(upper - allocator::base);
         break;
     }
 
-    auto page1 = allocator::manager->alloc();
-    auto page2 = allocator::manager->alloc();
-    auto page3 = allocator::manager->alloc();
-    allocator::manager->free(page2);
-    auto page4 = allocator::manager->alloc();
-    auto page5 = allocator::manager->alloc();
-    printf("%lu %lu %lu %lu %lu\n", page1, page2, page3, page4, page5);
+    printf("%p %p\n", &paging::kernelPageDirectory, paging::kernelPageTable);
 
     char* msg = new char[20];
     strcpy(msg, "Hello world!");

@@ -2,6 +2,6 @@
 
 namespace nyan::allocator {
 
-PoolManager* manager;
+PoolManager* poolManager;
 
 }

@@ -10,11 +10,13 @@ add_executable(
   kernel
   src/main.cpp
   src/allocator/pool.cpp
+  src/allocator/page.cpp
   src/gdt/load.cpp
   src/interrupt/isr.cpp
   src/interrupt/load.cpp
   src/keyboard/load.cpp
   src/keyboard/message.cpp
+  src/paging/kernel.cpp
   src/setup/paging.cpp
   src/timer/load.cpp
   src/vga/print.cpp
@@ -24,8 +26,19 @@ add_executable(
 target_link_options(kernel PRIVATE -T ${CMAKE_CURRENT_LIST_DIR}/src/linker.ld)
 
 target_compile_options(kernel PRIVATE -g -Wall -Wextra)
+
+target_compile_options(kernel PRIVATE -flto=thin -funified-lto -O2
+                                      -fomit-frame-pointer)
+target_link_options(kernel PRIVATE --lto=thin)
+
+# 不能开启向量化, 会产生内存引用, 提前启用sse也不行
+set_source_files_properties(src/setup/paging.cpp PROPERTIES COMPILE_FLAGS
+                                                            "-mno-sse")
 set_source_files_properties(src/interrupt/isr.cpp
                             PROPERTIES COMPILE_FLAGS "-mgeneral-regs-only")
+
+set_target_properties(kernel PROPERTIES LINK_DEPENDS
+                                        ${CMAKE_CURRENT_LIST_DIR}/src/linker.ld)
 
 target_link_directories(kernel PRIVATE sysroot/usr/lib/generic
                         sysroot/usr/lib/i686-none-elf)

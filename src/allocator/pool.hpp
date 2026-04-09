@@ -21,7 +21,6 @@ struct PoolManager {
         printf("bitmap size %u\n", bitmap_size);
     }
     ~PoolManager() { delete[] bitmap; }
-
     PoolManager(const PoolManager&) = delete;
     PoolManager& operator=(const PoolManager&) = delete;
 
@@ -43,6 +42,6 @@ struct PoolManager {
     void free(uint32_t offset) noexcept { bitmap[offset >> 5] &= ~(1 << (offset & 31)); }
 };
 
-extern PoolManager* manager;
+extern PoolManager* poolManager;
 
 }  // namespace nyan::allocator
