@@ -2,16 +2,23 @@
 
 #include "../allocator/utils.hpp"
 #include "../paging/kernel.hpp"
+#include "../timer/load.hpp"
+#include "guard.hpp"
 
 namespace nyan::task {
 
 lib::List<TaskControlBlock> currentTask asm("currentTask");
 lib::TailList<TaskControlBlock> pendingTasks;
+lib::TailList<TaskControlBlock> sleepTasks;
 TaskControlBlock* initTask;
 
 void taskWrapper(void (*func)(void* param), void* param) {
+    currentTask->state = State::S_Running;
+    arch::sti();
+
     func(param);
 
+    currentTask->state = State::S_Exited;
     if (pendingTasks) {
         switchToTask(pendingTasks.popFront());
     } else {
@@ -27,10 +34,11 @@ uint32_t makeStack(void (*func)(void* param), void* param, uint32_t& stackBase) 
     *--stack = reinterpret_cast<uint32_t>(func);
     *--stack = 0x12345678;  // fake eip
     *--stack = reinterpret_cast<uint32_t>(taskWrapper);
-    *--stack = 0;  // ebp
-    *--stack = 0;  // edi
-    *--stack = 0;  // esi
-    *--stack = 0;  // ebx
+    *--stack = 0x2;  // flags
+    *--stack = 0;    // ebx
+    *--stack = 0;    // esi
+    *--stack = 0;    // edi
+    *--stack = 0;    // ebp
     return reinterpret_cast<uint32_t>(stack);
 }
 
@@ -40,6 +48,7 @@ TaskControlBlock* createTask(void (*func)(void* param), void* param) {
     tcb->userEsp = makeStack(func, param, stack);
     tcb->cr3 = paging::kernelPageDirectory.cr3();
     tcb->kernelEsp = stack + (1 << 10);
+    tcb->state = State::S_Ready;
     return tcb;
 }
 
@@ -55,6 +64,76 @@ void initYield() {
 
     auto task = pendingTasks.popFront();
     switchToTask(task);
+}
+
+void yield() {
+    InterruptGuard guard;
+    if (pendingTasks) {
+        auto next = pendingTasks.popFront();
+        if (currentTask->state == State::S_Running) {
+            currentTask->state = State::S_Ready;
+            pendingTasks.pushBack(currentTask.head);
+        }
+        switchToTask(next);
+        currentTask->state = State::S_Running;
+    }
+}
+
+void block(BlockReason reason) {
+    InterruptGuard guard;
+    currentTask->state = State::S_Blocked;
+    currentTask->blockReason = reason;
+    yield();
+}
+
+void unblock(TaskControlBlock* task) {
+    if (task->state != State::S_Blocked) {
+        return;
+    }
+    task->state = State::S_Ready;
+    task->blockReason = BlockReason::BR_Unknown;
+
+    {
+        InterruptGuard guard;
+        pendingTasks.pushBack(task);
+    }
+}
+
+void sleep(uint64_t ms) {
+    auto currTs = timer::msSinceBoot + ms;
+
+    InterruptGuard guard;
+    currentTask->state = State::S_Blocked;
+    currentTask->blockReason = BlockReason::BR_Sleep;
+    currentTask->sleepInfo.time = currTs;
+
+    if (!sleepTasks.head) {
+        sleepTasks.pushBack(currentTask.head);
+    } else if (currTs <= sleepTasks.head->sleepInfo.time) {
+        currentTask.pushFront(currentTask.head);
+    } else {
+        for (auto head = sleepTasks.head; head->ListNode<TaskControlBlockTag>::next;
+             head = head->ListNode<TaskControlBlockTag>::next) {
+            auto next = head->ListNode<TaskControlBlockTag>::next;
+            if (currTs <= next->sleepInfo.time) {
+                head->ListNode<TaskControlBlockTag>::next = currentTask.head;
+                currentTask->ListNode<TaskControlBlockTag>::next = next;
+                goto inserted;
+            }
+        }
+        sleepTasks.pushBack(currentTask.head);
+    inserted:;
+    }
+
+    yield();
+}
+
+void checkSleep() {
+    InterruptGuard guard;
+    while (sleepTasks && sleepTasks.head->sleepInfo.time < timer::msSinceBoot) {
+        auto task = sleepTasks.popFront();
+        pendingTasks.pushBack(task);
+    }
 }
 
 }  // namespace nyan::task

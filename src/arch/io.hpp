@@ -6,6 +6,22 @@
 
 namespace nyan::arch {
 
+inline uint32_t flags() {
+    uint32_t f;
+    asm volatile(
+        "pushfl;"
+        "popl %0;"
+        : "=r"(f)::"memory");
+    return f;
+}
+
+inline void setFlags(uint32_t f) {
+    asm volatile(
+        "pushl %0;"
+        "popfl;" ::"r"(f)
+        : "memory");
+}
+
 inline void cli() {
     asm volatile("cli");
 }

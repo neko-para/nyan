@@ -1,6 +1,7 @@
 .global switchToTask
 .type switchToTask, @function
 switchToTask:
+    pushfl
     push %ebx
     push %esi
     push %edi
@@ -12,7 +13,7 @@ switchToTask:
     movl %esp, (%edi)
 
     # esi = nextTask
-    movl 20(%esp), %esi
+    movl 24(%esp), %esi
     # currentTask = esi
     movl %esi, (currentTask)
 
@@ -36,4 +37,5 @@ switchToTask:
     popl %edi
     popl %esi
     popl %ebx
+    popfl
     ret

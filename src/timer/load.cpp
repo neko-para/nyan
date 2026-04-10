@@ -2,6 +2,7 @@
 
 #include "../arch/io.hpp"
 #include "../interrupt/load.hpp"
+#include "../task/task.hpp"
 #include "../vga/print.hpp"
 
 namespace nyan::timer {
@@ -21,6 +22,8 @@ void load(uint32_t hz) {
 
 void hit() {
     msSinceBoot += 1;
+
+    task::checkSleep();
 
     if (msSinceBoot % 1000 == 0) {
         vga::putc('.');

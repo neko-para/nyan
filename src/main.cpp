@@ -21,8 +21,20 @@ extern uint8_t _end;
 
 namespace nyan {
 
+void idleTask(void*) {
+    while (true) {
+        arch::hlt();
+        task::yield();
+    }
+}
+
+task::TaskControlBlock* tasks[5];
+
 void subTask(void* param) {
-    printf("inside task %p!\n", param);
+    uint32_t id = reinterpret_cast<uint32_t>(param);
+    printf("task %u: start\n", id);
+    task::sleep((id + 1) * 1000);
+    printf("task %u: awake\n", id);
 }
 
 extern "C" void kmain(boot::BootInfo* info) {
@@ -76,15 +88,20 @@ extern "C" void kmain(boot::BootInfo* info) {
     vga::puts(msg);
     allocator::slabManager->free(msg);
 
-    auto tcb1 = task::createTask(subTask, reinterpret_cast<void*>(1));
-    auto tcb2 = task::createTask(subTask, reinterpret_cast<void*>(2));
-    auto tcb3 = task::createTask(subTask, reinterpret_cast<void*>(3));
-    task::addTask(tcb1);
-    task::addTask(tcb2);
-    task::addTask(tcb3);
+    auto idle = task::createTask(idleTask, 0);
+    task::addTask(idle);
+
+    for (int i = 0; i < 5; i++) {
+        tasks[i] = task::createTask(subTask, reinterpret_cast<void*>(i));
+        task::addTask(tasks[i]);
+    }
     task::initYield();
 
     vga::puts("all tasks finished.\n");
+
+    for (int i = 0; i < 5; i++) {
+        printf("task %d: status %u\n", i, tasks[i]->state);
+    }
 
     for (;;) {
         arch::hlt();
