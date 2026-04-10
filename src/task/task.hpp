@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <vector>
 
 #include "../lib/list.hpp"
 #include "pid.hpp"
@@ -35,14 +36,22 @@ struct TaskControlBlockMetaInfo {
     pid_t pid;
 };
 
+struct ExitInfo {
+    int code;
+};
+
 struct BlockSleepInfo {
     uint64_t time;
 };
 
 struct TaskControlBlock : public TaskControlBlockMetaInfo, public lib::ListBase<TaskControlBlockTag> {
+    std::vector<uint32_t> pages;
     union {
+        ExitInfo exitInfo;
         BlockSleepInfo sleepInfo;
     };
+
+    void dump();
 };
 
 extern lib::List<TaskControlBlock> currentTask asm("currentTask");
@@ -51,9 +60,12 @@ void load();
 
 extern "C" void switchToTask(TaskControlBlock* nextTask);
 
-TaskControlBlock* createTask(void (*func)(void* param), void* param);
+TaskControlBlock* createTask(int (*func)(void* param), void* param = nullptr);
 pid_t addTask(TaskControlBlock* task);
 void initYield();
+
+pid_t runTask(int (*func)(void* param), void* param = nullptr);
+bool freeTask(pid_t pid, int* code);
 
 void yield();
 

@@ -20,11 +20,12 @@ extern uint8_t _end;
 
 namespace nyan {
 
-void subTask(void*) {
+static int subTask(void*) {
     auto pid = task::currentTask->pid;
     printf("task %u: start\n", pid);
     task::sleep((pid - 14) * 1000);
     printf("task %u: awake\n", pid);
+    return 0;
 }
 
 extern "C" void kmain(boot::BootInfo* info) {
@@ -76,7 +77,7 @@ extern "C" void kmain(boot::BootInfo* info) {
     task::load();
 
     for (int i = 0; i < 5; i++) {
-        auto task = task::createTask(subTask, 0);
+        auto task = task::createTask(subTask);
         task::addTask(task);
     }
     task::initYield();
@@ -84,22 +85,16 @@ extern "C" void kmain(boot::BootInfo* info) {
     vga::puts("all tasks finished.\n");
     for (int i = 0; i < task::MaxTaskCount; i++) {
         if (task::allTasks[i]) {
-            const char* status = "";
-            switch (task::allTasks[i]->state) {
-                case task::State::S_Ready:
-                    status = "ready";
-                    break;
-                case task::State::S_Running:
-                    status = "running";
-                    break;
-                case task::State::S_Exited:
-                    status = "exited";
-                    break;
-                case task::State::S_Blocked:
-                    status = "blocked";
-                    break;
+            task::allTasks[i]->dump();
+            if (task::allTasks[i]->state == task::State::S_Exited) {
+                task::freeTask(i, nullptr);
             }
-            printf("task %d: status %s\n", i, status);
+        }
+    }
+
+    for (int i = 0; i < task::MaxTaskCount; i++) {
+        if (task::allTasks[i]) {
+            task::allTasks[i]->dump();
         }
     }
 

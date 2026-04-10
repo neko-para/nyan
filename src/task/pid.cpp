@@ -10,11 +10,12 @@ namespace nyan::task {
 
 TaskControlBlock* allTasks[MaxTaskCount];
 
-static void idleTask(void*) {
+static int idleTask(void*) {
     while (true) {
         arch::hlt();
         task::yield();
     }
+    return 0;
 }
 
 pid_t allocPid(TaskControlBlock* task) {
@@ -32,7 +33,7 @@ pid_t allocPid(TaskControlBlock* task) {
 void setupKnownTasks() {
     std::fill_n(allTasks, MaxTaskCount, nullptr);
 
-    auto task = createTask(idleTask, 0);
+    auto task = createTask(idleTask);
     task->pid = KP_Idle;
     allTasks[KP_Idle] = task;
 }

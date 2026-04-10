@@ -31,7 +31,7 @@ struct alignas(4096) Directory {
         if (!table) {
             arch::kfatal("table not exists");
         }
-        return physicalToVirtual(table)->unmap(physicalAddr, virtualAddr);
+        return physicalToVirtual(table)->unmap(virtualAddr, physicalAddr);
     }
 };
 

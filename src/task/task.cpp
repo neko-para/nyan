@@ -7,6 +7,30 @@
 
 namespace nyan::task {
 
+void TaskControlBlock::dump() {
+    switch (state) {
+        case State::S_Ready:
+            printf("task %d ready\n", pid);
+            break;
+        case task::State::S_Running:
+            printf("task %d running\n", pid);
+            break;
+        case task::State::S_Exited:
+            printf("task %d exited with %d\n", pid, exitInfo.code);
+            break;
+        case task::State::S_Blocked:
+            switch (blockReason) {
+                case BlockReason::BR_Unknown:
+                    printf("task %d blocked\n", pid);
+                    break;
+                case BlockReason::BR_Sleep:
+                    printf("task %d sleeping, eta %llu\n", pid, sleepInfo.time - timer::msSinceBoot);
+                    break;
+            }
+            break;
+    }
+}
+
 lib::List<TaskControlBlock> currentTask asm("currentTask");
 lib::TailList<TaskControlBlock> pendingTasks;
 lib::TailList<TaskControlBlock> sleepTasks;
@@ -17,17 +41,18 @@ void load() {
     setupKnownTasks();
 }
 
-void taskWrapper(void (*func)(void* param), void* param) {
+void taskWrapper(int (*func)(void* param), void* param) {
     currentTask->state = State::S_Running;
     if (currentTask->pid != KP_Idle) {
         aliveTaskCount++;
     }
     arch::sti();
 
-    func(param);
+    auto code = func(param);
 
     arch::cli();
     currentTask->state = State::S_Exited;
+    currentTask->exitInfo.code = code;
     if (--aliveTaskCount == 0) {
         switchToTask(allTasks[KP_Init]);
     } else if (pendingTasks) {
@@ -37,7 +62,7 @@ void taskWrapper(void (*func)(void* param), void* param) {
     }
 }
 
-uint32_t makeStack(void (*func)(void* param), void* param, uint32_t& stackBase) {
+uint32_t makeStack(int (*func)(void* param), void* param, uint32_t& stackBase) {
     auto base = static_cast<uint32_t*>(allocator::frameAlloc());
     stackBase = reinterpret_cast<uint32_t>(base);
     auto stack = base + (1 << 10);  // +4K
@@ -53,7 +78,7 @@ uint32_t makeStack(void (*func)(void* param), void* param, uint32_t& stackBase) 
     return reinterpret_cast<uint32_t>(stack);
 }
 
-TaskControlBlock* createTask(void (*func)(void* param), void* param) {
+TaskControlBlock* createTask(int (*func)(void* param), void* param) {
     uint32_t stack;
     auto tcb = allocator::allocAs<TaskControlBlock>();
     tcb->userEsp = makeStack(func, param, stack);
@@ -61,10 +86,14 @@ TaskControlBlock* createTask(void (*func)(void* param), void* param) {
     tcb->kernelEsp = stack + (1 << 10);
     tcb->state = State::S_Ready;
     tcb->pid = KP_Invalid;
+
+    tcb->pages.push_back(stack);
+
     return tcb;
 }
 
 pid_t addTask(TaskControlBlock* task) {
+    InterruptGuard guard;
     pendingTasks.pushBack(task);
     if (task->pid == KP_Invalid) {
         return allocPid(task);
@@ -84,6 +113,34 @@ void initYield() {
     auto task = pendingTasks.popFront();
     switchToTask(task);
     self->state = State::S_Running;
+}
+
+pid_t runTask(int (*func)(void* param), void* param) {
+    auto task = createTask(func, param);
+    return addTask(task);
+}
+
+bool freeTask(pid_t pid, int* code) {
+    auto task = allTasks[pid];
+    if (!task) {
+        printf("Task %d not exists!\n", pid);
+        return false;
+    }
+    if (task->state != State::S_Exited) {
+        printf("Task %d not exited!\n", pid);
+        return false;
+    }
+    if (code) {
+        *code = task->exitInfo.code;
+    }
+
+    for (auto page : task->pages) {
+        allocator::frameFree(reinterpret_cast<void*>(page));
+    }
+    allocator::freeAs(task);
+    allTasks[pid] = nullptr;
+
+    return true;
 }
 
 void yield() {
