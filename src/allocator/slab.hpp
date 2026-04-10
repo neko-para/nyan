@@ -5,22 +5,30 @@
 #include <bit>
 
 #include "../arch/io.hpp"
+#include "../lib/list.hpp"
 
 namespace nyan::allocator {
 
+struct SlabChunk;
+struct SlabHeader;
 struct SlabCache;
 
-struct SlabChunk {
-    SlabChunk* next_chunk;
+struct SlabChunkTag {
+    using type = SlabChunk;
+};
+struct SlabHeaderTag {
+    using type = SlabHeader;
+    constexpr static bool bidi = true;
+};
 
+struct SlabChunk : public lib::ListBase<SlabChunkTag> {
     static SlabChunk* fromAddr(void* addr) noexcept { return static_cast<SlabChunk*>(addr); }
 };
 
-struct SlabHeader : public SlabChunk {
+struct SlabHeader : public lib::ListBase<SlabHeaderTag> {
+    lib::List<SlabChunk> first_chunk;
     uint16_t chunk_size;  // 1 << chunk_size
     uint16_t used_count;
-    SlabHeader* next_slab;
-    SlabHeader* prev_slab;
     SlabCache* cache;
 
     SlabHeader(size_t size, SlabCache* cache);
@@ -31,41 +39,17 @@ struct SlabHeader : public SlabChunk {
     void* alloc() noexcept;
     void free(void* addr) noexcept;
     bool full() const noexcept { return used_count == ((4096 >> chunk_size) - 1); }
+    bool aboutToFull() const noexcept { return used_count == ((4096 >> chunk_size) - 2); }
     bool empty() const noexcept { return used_count == 0; }
 
     static SlabHeader* fromAddr(void* addr) noexcept {
         return reinterpret_cast<SlabHeader*>(reinterpret_cast<uint32_t>(addr) & (~0x3FF));
     }
-
-    SlabHeader* pushAsFront(SlabHeader*& list) noexcept {
-        prev_slab = nullptr;
-        auto next = next_slab;
-        if (next) {
-            next->prev_slab = nullptr;
-        }
-        next_slab = list;
-        if (next_slab) {
-            next_slab->prev_slab = this;
-        }
-        list = this;
-        return next;
-    }
-    SlabHeader* take(SlabHeader*& list) noexcept {
-        if (next_slab) {
-            next_slab->prev_slab = prev_slab;
-        }
-        if (prev_slab) {
-            prev_slab->next_slab = next_slab;
-        } else {
-            list = next_slab;
-        }
-        return this;
-    }
 };
 
 struct SlabCache {
-    SlabHeader* full_slabs = 0;
-    SlabHeader* used_slabs = 0;
+    lib::List<SlabHeader> full_slabs;
+    lib::List<SlabHeader> used_slabs;
 };
 
 struct SlabManager {

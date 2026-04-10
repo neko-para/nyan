@@ -21,8 +21,8 @@ extern uint8_t _end;
 
 namespace nyan {
 
-void subTask(void*) {
-    vga::puts("inside task!\n");
+void subTask(void* param) {
+    printf("inside task %p!\n", param);
 }
 
 extern "C" void kmain(boot::BootInfo* info) {
@@ -74,9 +74,15 @@ extern "C" void kmain(boot::BootInfo* info) {
     char* msg = (char*)allocator::slabManager->alloc(20);
     strcpy(msg, "Hello world!\n");
     vga::puts(msg);
+    allocator::slabManager->free(msg);
 
-    auto tcb = task::createTask(subTask, 0);
-    task::initYield(tcb);
+    auto tcb1 = task::createTask(subTask, reinterpret_cast<void*>(1));
+    auto tcb2 = task::createTask(subTask, reinterpret_cast<void*>(2));
+    auto tcb3 = task::createTask(subTask, reinterpret_cast<void*>(3));
+    task::addTask(tcb1);
+    task::addTask(tcb2);
+    task::addTask(tcb3);
+    task::initYield();
 
     vga::puts("all tasks finished.\n");
 

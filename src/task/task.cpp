@@ -5,12 +5,18 @@
 
 namespace nyan::task {
 
-TaskControlBlock* currentTask asm("currentTask");
+lib::List<TaskControlBlock> currentTask asm("currentTask");
+lib::TailList<TaskControlBlock> pendingTasks;
 TaskControlBlock* initTask;
 
 void taskWrapper(void (*func)(void* param), void* param) {
     func(param);
-    switchToTask(initTask);
+
+    if (pendingTasks) {
+        switchToTask(pendingTasks.popFront());
+    } else {
+        switchToTask(initTask);
+    }
 }
 
 uint32_t makeStack(void (*func)(void* param), void* param, uint32_t& stackBase) {
@@ -37,12 +43,17 @@ TaskControlBlock* createTask(void (*func)(void* param), void* param) {
     return tcb;
 }
 
-void initYield(TaskControlBlock* task) {
+void addTask(TaskControlBlock* task) {
+    pendingTasks.pushBack(task);
+}
+
+void initYield() {
     TaskControlBlock self;
     self.cr3 = paging::kernelPageDirectory.cr3();
-    currentTask = &self;
+    currentTask.pushFront(&self);
     initTask = &self;
 
+    auto task = pendingTasks.popFront();
     switchToTask(task);
 }
 
