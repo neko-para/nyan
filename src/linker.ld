@@ -8,12 +8,12 @@ SECTIONS
 
     .multiboot.data : ALIGN(4K)
     {
-        *(.multiboot.data)
+        KEEP(*(.multiboot.data))
     }
 
     .multiboot.text : ALIGN(4K)
     {
-        *(.multiboot.text)
+        KEEP(*(.multiboot.text))
     }
 
     . += 0xC0000000;

@@ -41,7 +41,7 @@ void load() {
     setupKnownTasks();
 }
 
-void taskWrapper(int (*func)(void* param), void* param) {
+__attribute__((noinline)) void taskWrapper(int (*func)(void* param), void* param) {
     currentTask->state = State::S_Running;
     if (currentTask->pid != KP_Idle) {
         aliveTaskCount++;
@@ -102,7 +102,7 @@ pid_t addTask(TaskControlBlock* task) {
     }
 }
 
-void initYield() {
+__attribute__((noinline)) void initYield() {
     TaskControlBlock* self = allocator::allocAs<TaskControlBlock>();
     self->cr3 = paging::kernelPageDirectory.cr3();
     self->pid = KP_Init;
@@ -143,7 +143,7 @@ bool freeTask(pid_t pid, int* code) {
     return true;
 }
 
-void yield() {
+__attribute__((noinline)) void yield() {
     InterruptGuard guard;
     if (pendingTasks) {
         auto next = pendingTasks.popFront();
@@ -155,6 +155,7 @@ void yield() {
         currentTask->state = State::S_Running;
     } else if (currentTask->state != State::S_Running) {
         switchToTask(allTasks[KP_Idle]);
+        currentTask->state = State::S_Running;
     }
 }
 
@@ -212,6 +213,9 @@ void checkSleep() {
     while (sleepTasks && sleepTasks.head->sleepInfo.time < timer::msSinceBoot) {
         auto task = sleepTasks.popFront();
         pendingTasks.pushBack(task);
+    }
+    if (timer::msSinceBoot % 10 == 0 && currentTask) {
+        yield();
     }
 }
 

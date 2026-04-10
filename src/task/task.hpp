@@ -62,12 +62,12 @@ extern "C" void switchToTask(TaskControlBlock* nextTask);
 
 TaskControlBlock* createTask(int (*func)(void* param), void* param = nullptr);
 pid_t addTask(TaskControlBlock* task);
-void initYield();
+__attribute__((noinline)) void initYield();
 
 pid_t runTask(int (*func)(void* param), void* param = nullptr);
 bool freeTask(pid_t pid, int* code);
 
-void yield();
+__attribute__((noinline)) void yield();
 
 void block(BlockReason reason);
 void unblock(TaskControlBlock* task);

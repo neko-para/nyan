@@ -23,7 +23,7 @@ namespace nyan {
 static int subTask(void*) {
     auto pid = task::currentTask->pid;
     printf("task %u: start\n", pid);
-    task::sleep((pid - 14) * 1000);
+    task::sleep((pid - 14) * 500);
     printf("task %u: awake\n", pid);
     return 0;
 }
@@ -77,12 +77,12 @@ extern "C" void kmain(boot::BootInfo* info) {
     task::load();
 
     for (int i = 0; i < 5; i++) {
-        auto task = task::createTask(subTask);
-        task::addTask(task);
+        task::runTask(subTask);
     }
     task::initYield();
 
     vga::puts("all tasks finished.\n");
+
     for (int i = 0; i < task::MaxTaskCount; i++) {
         if (task::allTasks[i]) {
             task::allTasks[i]->dump();

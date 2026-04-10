@@ -31,10 +31,11 @@ target_link_options(kernel PRIVATE -T ${CMAKE_CURRENT_LIST_DIR}/src/linker.ld)
 
 target_compile_options(kernel PRIVATE -g -Wall -Wextra)
 
-target_compile_options(kernel PRIVATE -flto=thin -funified-lto -O2
-                                      -fomit-frame-pointer)
+target_compile_options(
+  kernel PRIVATE -flto=thin -funified-lto -O2 -fomit-frame-pointer
+                 -ffunction-sections -fdata-sections)
 
-target_link_options(kernel PRIVATE --lto=thin)
+target_link_options(kernel PRIVATE --lto=thin --gc-sections)
 
 # 不能开启向量化, 会产生内存引用, 提前启用sse也不行
 set_source_files_properties(src/paging/kernel.cpp PROPERTIES COMPILE_FLAGS

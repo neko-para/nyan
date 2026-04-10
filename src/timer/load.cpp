@@ -23,12 +23,12 @@ void load(uint32_t hz) {
 void hit() {
     msSinceBoot += 1;
 
-    task::checkSleep();
-
     if (msSinceBoot % 1000 == 0) {
         vga::putc('.');
         arch::kput('.');
     }
+
+    task::checkSleep();
 }
 
 }  // namespace nyan::timer

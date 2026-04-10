@@ -27,7 +27,7 @@ void scroll(size_t row) {
     std::fill_n(buffer + count, offset, Entry{0, currentAttr});
 }
 
-void putcImpl(char ch) {
+__attribute__((noinline)) void putcImpl(char ch) {
     if (ch == '\n') {
         goto putLF;
     } else if (ch == '\r') {

@@ -2,6 +2,7 @@
 
 #include "../paging/entry.hpp"
 #include "../paging/kernel.hpp"
+#include "../task/guard.hpp"
 #include "frame.hpp"
 #include "load.hpp"
 #include "pool.hpp"
@@ -10,6 +11,8 @@
 namespace nyan::allocator {
 
 void* frameAlloc() {
+    task::InterruptGuard guard;
+
     auto physicalOffset = poolManager->alloc();
     auto physicalAddr = PoolManager::pageAt(physicalOffset);
     auto virtualOffset = frameManager->alloc();
@@ -19,6 +22,8 @@ void* frameAlloc() {
 }
 
 void frameFree(void* frame) {
+    task::InterruptGuard guard;
+
     auto virtualAddr = reinterpret_cast<uint32_t>(frame);
     uint32_t physicalAddr;
     if (!paging::kernelPageDirectory.unmap(virtualAddr, physicalAddr)) {
@@ -31,10 +36,12 @@ void frameFree(void* frame) {
 }
 
 void* alloc(size_t size) {
+    task::InterruptGuard guard;
     return slabManager->alloc(size);
 }
 
 void free(void* addr) {
+    task::InterruptGuard guard;
     slabManager->free(addr);
 }
 
