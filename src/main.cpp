@@ -2,7 +2,6 @@
 #include <string.h>
 
 #include "allocator/load.hpp"
-#include "allocator/slab.hpp"
 #include "arch/io.hpp"
 #include "boot/entry.hpp"
 #include "gdt/load.hpp"

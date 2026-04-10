@@ -35,8 +35,6 @@ void setupKnownTasks() {
     auto task = createTask(idleTask, 0);
     task->pid = KP_Idle;
     allTasks[KP_Idle] = task;
-
-    addTask(task);
 }
 
 }  // namespace nyan::task

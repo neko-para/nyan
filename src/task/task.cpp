@@ -33,7 +33,7 @@ void taskWrapper(void (*func)(void* param), void* param) {
     } else if (pendingTasks) {
         switchToTask(pendingTasks.popFront());
     } else {
-        switchToTask(allTasks[KP_Init]);
+        switchToTask(allTasks[KP_Idle]);
     }
 }
 
@@ -96,6 +96,8 @@ void yield() {
         }
         switchToTask(next);
         currentTask->state = State::S_Running;
+    } else if (currentTask->state != State::S_Running) {
+        switchToTask(allTasks[KP_Idle]);
     }
 }
 
