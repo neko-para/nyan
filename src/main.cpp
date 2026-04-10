@@ -21,20 +21,11 @@ extern uint8_t _end;
 
 namespace nyan {
 
-void idleTask(void*) {
-    while (true) {
-        arch::hlt();
-        task::yield();
-    }
-}
-
-task::TaskControlBlock* tasks[5];
-
-void subTask(void* param) {
-    uint32_t id = reinterpret_cast<uint32_t>(param);
-    printf("task %u: start\n", id);
-    task::sleep((id + 1) * 1000);
-    printf("task %u: awake\n", id);
+void subTask(void*) {
+    auto pid = task::currentTask->pid;
+    printf("task %u: start\n", pid);
+    task::sleep((pid - 14) * 1000);
+    printf("task %u: awake\n", pid);
 }
 
 extern "C" void kmain(boot::BootInfo* info) {
@@ -61,8 +52,6 @@ extern "C" void kmain(boot::BootInfo* info) {
         }
     };
 
-    arch::sti();
-
     printf("kernel end %p\n", paging::virtualToPhysical(&_end));
 
     info = paging::physicalToVirtual(info);
@@ -83,24 +72,36 @@ extern "C" void kmain(boot::BootInfo* info) {
         break;
     }
 
-    char* msg = (char*)allocator::slabManager->alloc(20);
-    strcpy(msg, "Hello world!\n");
-    vga::puts(msg);
-    allocator::slabManager->free(msg);
+    arch::sti();
 
-    auto idle = task::createTask(idleTask, 0);
-    task::addTask(idle);
+    task::load();
 
     for (int i = 0; i < 5; i++) {
-        tasks[i] = task::createTask(subTask, reinterpret_cast<void*>(i));
-        task::addTask(tasks[i]);
+        auto task = task::createTask(subTask, 0);
+        task::addTask(task);
     }
     task::initYield();
 
     vga::puts("all tasks finished.\n");
-
-    for (int i = 0; i < 5; i++) {
-        printf("task %d: status %u\n", i, tasks[i]->state);
+    for (int i = 0; i < task::MaxTaskCount; i++) {
+        if (task::allTasks[i]) {
+            const char* status = "";
+            switch (task::allTasks[i]->state) {
+                case task::State::S_Ready:
+                    status = "ready";
+                    break;
+                case task::State::S_Running:
+                    status = "running";
+                    break;
+                case task::State::S_Exited:
+                    status = "exited";
+                    break;
+                case task::State::S_Blocked:
+                    status = "blocked";
+                    break;
+            }
+            printf("task %d: status %s\n", i, status);
+        }
     }
 
     for (;;) {

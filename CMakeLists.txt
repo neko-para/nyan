@@ -21,6 +21,7 @@ add_executable(
   src/keyboard/message.cpp
   src/paging/kernel.cpp
   src/task/switch.s
+  src/task/pid.cpp
   src/task/task.cpp
   src/timer/load.cpp
   src/vga/print.cpp

@@ -10,19 +10,30 @@ namespace nyan::task {
 lib::List<TaskControlBlock> currentTask asm("currentTask");
 lib::TailList<TaskControlBlock> pendingTasks;
 lib::TailList<TaskControlBlock> sleepTasks;
-TaskControlBlock* initTask;
+
+uint32_t aliveTaskCount = 0;
+
+void load() {
+    setupKnownTasks();
+}
 
 void taskWrapper(void (*func)(void* param), void* param) {
     currentTask->state = State::S_Running;
+    if (currentTask->pid != KP_Idle) {
+        aliveTaskCount++;
+    }
     arch::sti();
 
     func(param);
 
+    arch::cli();
     currentTask->state = State::S_Exited;
-    if (pendingTasks) {
+    if (--aliveTaskCount == 0) {
+        switchToTask(allTasks[KP_Init]);
+    } else if (pendingTasks) {
         switchToTask(pendingTasks.popFront());
     } else {
-        switchToTask(initTask);
+        switchToTask(allTasks[KP_Init]);
     }
 }
 
@@ -49,21 +60,30 @@ TaskControlBlock* createTask(void (*func)(void* param), void* param) {
     tcb->cr3 = paging::kernelPageDirectory.cr3();
     tcb->kernelEsp = stack + (1 << 10);
     tcb->state = State::S_Ready;
+    tcb->pid = KP_Invalid;
     return tcb;
 }
 
-void addTask(TaskControlBlock* task) {
+pid_t addTask(TaskControlBlock* task) {
     pendingTasks.pushBack(task);
+    if (task->pid == KP_Invalid) {
+        return allocPid(task);
+    } else {
+        return task->pid;
+    }
 }
 
 void initYield() {
-    TaskControlBlock self;
-    self.cr3 = paging::kernelPageDirectory.cr3();
-    currentTask.pushFront(&self);
-    initTask = &self;
+    TaskControlBlock* self = allocator::allocAs<TaskControlBlock>();
+    self->cr3 = paging::kernelPageDirectory.cr3();
+    self->pid = KP_Init;
+    self->state = State::S_Blocked;
+    currentTask.pushFront(self);
+    allTasks[KP_Init] = self;
 
     auto task = pendingTasks.popFront();
     switchToTask(task);
+    self->state = State::S_Running;
 }
 
 void yield() {

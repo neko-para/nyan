@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 #include "../lib/list.hpp"
+#include "pid.hpp"
 
 namespace nyan::task {
 
@@ -31,6 +32,7 @@ struct TaskControlBlockMetaInfo {
     uint32_t kernelEsp;
     State state;
     BlockReason blockReason;
+    pid_t pid;
 };
 
 struct BlockSleepInfo {
@@ -43,12 +45,14 @@ struct TaskControlBlock : public TaskControlBlockMetaInfo, public lib::ListBase<
     };
 };
 
-extern lib::List<TaskControlBlock> currentTask;
+extern lib::List<TaskControlBlock> currentTask asm("currentTask");
+
+void load();
 
 extern "C" void switchToTask(TaskControlBlock* nextTask);
 
 TaskControlBlock* createTask(void (*func)(void* param), void* param);
-void addTask(TaskControlBlock* task);
+pid_t addTask(TaskControlBlock* task);
 void initYield();
 
 void yield();

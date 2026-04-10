@@ -1,0 +1,42 @@
+#include "pid.hpp"
+
+#include <algorithm>
+
+#include "../arch/io.hpp"
+#include "guard.hpp"
+#include "task.hpp"
+
+namespace nyan::task {
+
+TaskControlBlock* allTasks[MaxTaskCount];
+
+static void idleTask(void*) {
+    while (true) {
+        arch::hlt();
+        task::yield();
+    }
+}
+
+pid_t allocPid(TaskControlBlock* task) {
+    InterruptGuard guard;
+    for (pid_t p = KP_FirstUser; p < MaxTaskCount; p++) {
+        if (!allTasks[p]) {
+            allTasks[p] = task;
+            task->pid = p;
+            return p;
+        }
+    }
+    return KP_Invalid;
+}
+
+void setupKnownTasks() {
+    std::fill_n(allTasks, MaxTaskCount, nullptr);
+
+    auto task = createTask(idleTask, 0);
+    task->pid = KP_Idle;
+    allTasks[KP_Idle] = task;
+
+    addTask(task);
+}
+
+}  // namespace nyan::task
