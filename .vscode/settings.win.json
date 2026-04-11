@@ -4,6 +4,9 @@
     "--compile-commands-dir=build"
   ],
   "editor.tabSize": 4,
+  "files.exclude": {
+    ".cache": true
+  },
 
   "clangd.path": "E:\\Programs\\llvm\\bin\\clangd.exe"
 }

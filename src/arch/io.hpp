@@ -22,6 +22,12 @@ inline void setFlags(uint32_t f) {
         : "memory");
 }
 
+inline uint32_t cr2() {
+    uint32_t reg;
+    asm volatile("movl %%cr2, %0;" : "=r"(reg)::"memory");
+    return reg;
+}
+
 inline void cli() {
     asm volatile("cli");
 }

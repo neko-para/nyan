@@ -8,6 +8,7 @@
 #include "interrupt/load.hpp"
 #include "keyboard/load.hpp"
 #include "keyboard/message.hpp"
+#include "lib/containers.hpp"
 #include "paging/convert.hpp"
 #include "paging/kernel.hpp"
 #include "task/task.hpp"
@@ -81,7 +82,8 @@ extern "C" void kmain(boot::BootInfo* info) {
     }
     task::initYield();
 
-    vga::puts("all tasks finished.\n");
+    lib::string str = "all tasks finished.\n";
+    vga::puts(str.c_str());
 
     for (int i = 0; i < task::MaxTaskCount; i++) {
         if (task::allTasks[i]) {

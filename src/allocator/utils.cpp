@@ -35,12 +35,15 @@ void frameFree(void* frame) {
     poolManager->free(physicalOffset);
 }
 
-void* alloc(size_t size) {
+void* alloc(size_t size, size_t align) {
     task::InterruptGuard guard;
-    return slabManager->alloc(size);
+    return slabManager->alloc(std::max(size, align));
 }
 
 void free(void* addr) {
+    if (!addr) {
+        return;
+    }
     task::InterruptGuard guard;
     slabManager->free(addr);
 }

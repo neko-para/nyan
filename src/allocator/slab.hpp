@@ -64,9 +64,10 @@ struct SlabManager {
     SlabCache* findSuitableCache(size_t size, size_t& chunk_size) noexcept {
         if (size > 512) {
             arch::kfatalfmt("%zu too large", size);
-        }
-        if (size == 0) {
+        } else if (size == 0) {
             arch::kfatal("alloc 0 size");
+        } else if (size < 16) {
+            size = 16;
         }
         chunk_size = std::bit_width(size - 1) + 1;
         return &caches[chunk_size - 4];

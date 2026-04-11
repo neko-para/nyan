@@ -7,7 +7,7 @@ namespace nyan::allocator {
 
 void* frameAlloc();
 void frameFree(void* frame);
-void* alloc(size_t size);
+void* alloc(size_t size, size_t align);
 void free(void* addr);
 
 template <typename T, typename... Args>
@@ -23,7 +23,7 @@ inline void frameFreeAs(T* frame) noexcept {
 
 template <typename T, typename... Args>
 inline T* allocAs(Args&&... args) noexcept {
-    return new (alloc(sizeof(T))) T(std::forward<Args>(args)...);
+    return new (alloc(sizeof(T), alignof(T))) T(std::forward<Args>(args)...);
 }
 
 template <typename T>
