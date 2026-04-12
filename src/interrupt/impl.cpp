@@ -10,7 +10,7 @@ void defaultHandlerImpl(Frame*, uint32_t error) {
     if constexpr (Id == E_PageFault) {
         auto addr = arch::cr2();
         char buf[12] = "0x";
-        lib::toCharsHex(buf + 2, addr);
+        lib::__format::toCharsHex(buf + 2, addr);
         arch::kputs("Page Fault: ");
         arch::kputs(buf);
         arch::kput('\n');

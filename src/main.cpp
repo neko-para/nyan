@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <format>
+
 #include "allocator/load.hpp"
 #include "arch/io.hpp"
 #include "boot/entry.hpp"
@@ -9,6 +11,7 @@
 #include "keyboard/load.hpp"
 #include "keyboard/message.hpp"
 #include "lib/containers.hpp"
+#include "lib/format.hpp"
 #include "paging/convert.hpp"
 #include "paging/kernel.hpp"
 #include "task/task.hpp"
@@ -53,8 +56,6 @@ extern "C" void kmain(boot::BootInfo* info) {
         }
     };
 
-    printf("kernel end %p\n", paging::virtualToPhysical(&_end));
-
     info = paging::physicalToVirtual(info);
     auto mmap_count = info->mmap_length / sizeof(boot::MMapEntry);
     info->mmap_addr = paging::physicalToVirtual(info->mmap_addr);
@@ -74,6 +75,9 @@ extern "C" void kmain(boot::BootInfo* info) {
     }
 
     arch::sti();
+
+    auto msg = lib::format("kernel end {}\n", paging::virtualToPhysical(&_end));
+    vga::puts(msg.c_str());
 
     task::load();
 
