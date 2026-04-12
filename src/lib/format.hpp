@@ -2,6 +2,8 @@
 
 #include <concepts>
 
+#include "containers.hpp"
+
 namespace nyan::lib {
 
 template <std::integral T>
@@ -42,5 +44,18 @@ char* toCharsHex(char* ptr, T val) {
     }
     return ptr;
 }
+
+template <typename... Args>
+struct format_string {
+    string_view fmt;
+
+    template <typename... SvArgs>
+        requires std::is_constructible_v<string_view, SvArgs...>
+    consteval format_string(SvArgs&&... args) : fmt(std::forward<SvArgs>(args)...) {
+        check();
+    }
+
+    void check() {}
+};
 
 }  // namespace nyan::lib

@@ -15,6 +15,7 @@ add_executable(
   src/allocator/slab.cpp
   src/allocator/utils.cpp
   src/gdt/load.cpp
+  src/interrupt/impl.cpp
   src/interrupt/isr.cpp
   src/interrupt/load.cpp
   src/keyboard/load.cpp

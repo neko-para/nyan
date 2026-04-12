@@ -4,7 +4,6 @@
 
 #include "../arch/io.hpp"
 #include "../keyboard/load.hpp"
-#include "../lib/format.hpp"
 #include "../timer/load.hpp"
 #include "entry.hpp"
 #include "load.hpp"
@@ -12,27 +11,8 @@
 namespace nyan::interrupt {
 
 template <uint32_t Id>
-__attribute__((interrupt)) void defaultHandler(Frame*, uint32_t error) {
-    if constexpr (Id == E_PageFault) {
-        auto addr = arch::cr2();
-        char buf[12] = "0x";
-        lib::toCharsHex(buf + 2, addr);
-        arch::kputs("Page Fault: ");
-        arch::kputs(buf);
-        arch::kput('\n');
-        if (error & PF_Present) {
-            arch::kputs("Present ");
-        }
-        if (error & PF_Write) {
-            arch::kputs("Write ");
-        }
-        if (error & PF_User) {
-            arch::kputs("User ");
-        }
-        arch::kfatal("");
-    } else {
-        arch::kfatalfmt("Exception %u: code %u", Id, error);
-    }
+__attribute__((interrupt)) void defaultHandler(Frame* frame, uint32_t error) {
+    defaultHandlerImpl<Id>(frame, error);
 }
 
 template <uint32_t Id>

@@ -60,6 +60,12 @@ __attribute__((interrupt)) void defaultHandler(Frame*, uint32_t error);
 template <uint32_t Id>
 __attribute__((interrupt)) void defaultHandlerNe(Frame*);
 
+template <uint32_t Id>
+void defaultHandlerImpl(Frame*, uint32_t error);
+
+template <uint32_t Id>
+void defaultHandlerImplNe(Frame*);
+
 void fillEntries(Entry* entry);
 
 }  // namespace nyan::interrupt
