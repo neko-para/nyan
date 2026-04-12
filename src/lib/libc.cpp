@@ -26,8 +26,8 @@ extern "C" ssize_t __llvm_libc_stdio_write(__llvm_libc_stdio_cookie* cookie, con
     return size;
 }
 
-static int errno;
+static int __errno;
 
 extern "C" int* __llvm_libc_errno() {
-    return &errno;
+    return &__errno;
 }

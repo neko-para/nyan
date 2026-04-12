@@ -26,9 +26,9 @@ namespace nyan {
 
 static int subTask(void*) {
     auto pid = task::currentTask->pid;
-    printf("task %u: start\n", pid);
+    vga::print("task {}: start\n", pid);
     task::sleep((pid - 14) * 500);
-    printf("task %u: awake\n", pid);
+    vga::print("task {}: awake\n", pid);
     return 0;
 }
 
@@ -76,8 +76,7 @@ extern "C" void kmain(boot::BootInfo* info) {
 
     arch::sti();
 
-    auto msg = lib::format("kernel end {}\n", paging::virtualToPhysical(&_end));
-    vga::puts(msg.c_str());
+    vga::print("kernel end {010p}\n", paging::virtualToPhysical(&_end));
 
     task::load();
 

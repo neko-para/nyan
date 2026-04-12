@@ -55,23 +55,27 @@ __attribute__((noinline)) void putcImpl(char ch) {
     }
 }
 
+void flushCursor() {
+    updateCursor(colPtr, rowPtr);
+}
+
 void putc(char ch) {
     putcImpl(ch);
-    updateCursor(colPtr, rowPtr);
+    flushCursor();
 }
 
 void puts(const char* str) {
     while (*str) {
         putcImpl(*str++);
     }
-    updateCursor(colPtr, rowPtr);
+    flushCursor();
 }
 
 void puts(const char* str, size_t len) {
     while (len-- > 0) {
         putcImpl(*str++);
     }
-    updateCursor(colPtr, rowPtr);
+    flushCursor();
 }
 
 }  // namespace nyan::vga

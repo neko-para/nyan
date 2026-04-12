@@ -1,15 +1,12 @@
 #pragma once
 
 #include <concepts>
-#include <functional>
 #include <iterator>
 
 #include "../containers.hpp"
+#include "concepts.hpp"
 
 namespace nyan::lib::__format {
-
-template <typename Iter>
-concept output_iterator = std::output_iterator<Iter, const char&>;
 
 template <std::integral T, output_iterator Iter>
 Iter toChars(Iter ptr, T val) {
