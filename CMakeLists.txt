@@ -33,7 +33,7 @@ target_link_options(kernel PRIVATE -T ${CMAKE_CURRENT_LIST_DIR}/src/linker.ld)
 target_compile_options(kernel PRIVATE -g -Wall -Wextra)
 
 target_compile_options(
-  kernel PRIVATE -flto=thin -funified-lto -Og -fomit-frame-pointer
+  kernel PRIVATE -flto=thin -funified-lto -O2 -fomit-frame-pointer
                  -ffunction-sections -fdata-sections)
 
 target_link_options(kernel PRIVATE --lto=thin --gc-sections)

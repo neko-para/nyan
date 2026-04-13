@@ -49,7 +49,7 @@ _LIBCPP_BEGIN_NAMESPACE_STD
                 fmt += 1;
         }
     }
-    nyan::arch::kfatal("");
+    nyan::arch::kfatal();
 }
 
 _LIBCPP_END_NAMESPACE_STD

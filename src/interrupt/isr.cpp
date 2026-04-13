@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-#include "../arch/io.hpp"
+#include "../arch/instr.hpp"
 #include "../keyboard/load.hpp"
 #include "../timer/load.hpp"
 #include "entry.hpp"
@@ -16,8 +16,8 @@ __attribute__((interrupt)) void defaultHandler(Frame* frame, uint32_t error) {
 }
 
 template <uint32_t Id>
-__attribute__((interrupt)) void defaultHandlerNe(Frame*) {
-    arch::kfatalfmt("Exception %u", Id);
+__attribute__((interrupt)) void defaultHandlerNe(Frame* frame) {
+    defaultHandlerImplNe<Id>(frame);
 }
 
 __attribute__((interrupt)) void timerHandler(Frame*) {

@@ -41,7 +41,7 @@ size_t mesure(const T& val, const format_spec& spec) {
     U uval;
     if constexpr (std::is_signed_v<T>) {
         if (val < 0) {
-            uval = U{0} - U{val};
+            uval = U{0} - static_cast<U>(val);
             len++;
         } else {
             uval = val;

@@ -91,17 +91,18 @@ struct format_string {
 template <__format::output_iterator Iter, typename... Args>
 Iter format_to(Iter out, format_string<std::type_identity_t<Args>...> fmt, Args&&... args) {
     auto&& data = std::forward_as_tuple(std::forward<Args>(args)...);
-    std::vector<function<void(string_view spec)>> formatters;
+    function<void(string_view spec)> formatters[sizeof...(Args)];
 
     [&]<size_t... Is>(std::index_sequence<Is...>) {
-        (formatters.push_back([&](string_view spec) {
-            using T = std::remove_cvref_t<std::tuple_element_t<Is, std::tuple<Args...>>>;
+        ((formatters[Is] =
+              [&](string_view spec) {
+                  using T = std::remove_cvref_t<std::tuple_element_t<Is, std::tuple<Args...>>>;
 
-            __format::formatter<T, string_view::iterator> fmt;
-            fmt.parse(spec);
-            __format::format_context ctx{out};
-            out = fmt.format(std::get<Is>(data), ctx);
-        }),
+                  __format::formatter<T, string_view::iterator> fmt;
+                  fmt.parse(spec);
+                  __format::format_context ctx{out};
+                  out = fmt.format(std::get<Is>(data), ctx);
+              }),
          ...);
     }(std::make_index_sequence<sizeof...(Args)>());
 

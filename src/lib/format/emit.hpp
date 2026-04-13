@@ -44,7 +44,7 @@ Iter emit(Iter out, const T& val, const format_spec& spec, size_t) {
     U uval;
     if constexpr (std::is_signed_v<T>) {
         if (val < 0) {
-            uval = U{0} - U{val};
+            uval = U{0} - static_cast<U>(val);
             len++;
             *out++ = '-';
         } else {

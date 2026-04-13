@@ -3,6 +3,7 @@
 #include "../allocator/utils.hpp"
 #include "../paging/kernel.hpp"
 #include "../timer/load.hpp"
+#include "../vga/print.hpp"
 #include "guard.hpp"
 
 namespace nyan::task {
@@ -10,21 +11,21 @@ namespace nyan::task {
 void TaskControlBlock::dump() {
     switch (state) {
         case State::S_Ready:
-            printf("task %d ready\n", pid);
+            vga::print("task {} ready\n", pid);
             break;
         case task::State::S_Running:
-            printf("task %d running\n", pid);
+            vga::print("task {} running\n", pid);
             break;
         case task::State::S_Exited:
-            printf("task %d exited with %d\n", pid, exitInfo.code);
+            vga::print("task {} exited with {}\n", pid, exitInfo.code);
             break;
         case task::State::S_Blocked:
             switch (blockReason) {
                 case BlockReason::BR_Unknown:
-                    printf("task %d blocked\n", pid);
+                    vga::print("task {} blocked\n", pid);
                     break;
                 case BlockReason::BR_Sleep:
-                    printf("task %d sleeping, eta %llu\n", pid, sleepInfo.time - timer::msSinceBoot);
+                    vga::print("task {} sleeping, eta {}\n", pid, sleepInfo.time - timer::msSinceBoot);
                     break;
             }
             break;
@@ -123,11 +124,11 @@ pid_t runTask(int (*func)(void* param), void* param) {
 bool freeTask(pid_t pid, int* code) {
     auto task = allTasks[pid];
     if (!task) {
-        printf("Task %d not exists!\n", pid);
+        vga::print("Task {} not exists!\n", pid);
         return false;
     }
     if (task->state != State::S_Exited) {
-        printf("Task %d not exited!\n", pid);
+        vga::print("Task {} not exited!\n", pid);
         return false;
     }
     if (code) {

@@ -3,7 +3,7 @@
 #include <string.h>
 #include <concepts>
 
-#include "../arch/io.hpp"
+#include "../arch/utils.hpp"
 
 namespace nyan::lib {
 
@@ -12,8 +12,13 @@ namespace __function {
 struct base_vtable {
     void (*destroy)(void* obj) = nullptr;
     void (*copy)(void* obj, const void* src) = nullptr;
-    void (*move)(void* obj, void* src) = nullptr;
+    void (*move)(void* obj, const void* src) = nullptr;
 };
+
+template <size_t N>
+inline void trivial_copy(void* obj, const void* src) {
+    memcpy(obj, src, N);
+}
 
 template <typename T>
 inline void fill_base_vtable(base_vtable& vt) {
@@ -23,14 +28,15 @@ inline void fill_base_vtable(base_vtable& vt) {
         vt.destroy = +[](void* obj) { reinterpret_cast<T*>(obj)->~T(); };
     }
     if constexpr (std::is_trivially_copy_constructible_v<T>) {
-        vt.copy = +[](void* obj, const void* src) { memcpy(obj, src, sizeof(T)); };
+        vt.copy = trivial_copy<sizeof(T)>;
     } else {
         vt.copy = +[](void* obj, const void* src) { new (obj) T(*reinterpret_cast<const T*>(src)); };
     }
     if constexpr (std::is_trivially_move_constructible_v<T>) {
-        vt.move = +[](void* obj, void* src) { memcpy(obj, src, sizeof(T)); };
+        vt.move = trivial_copy<sizeof(T)>;
     } else {
-        vt.move = +[](void* obj, void* src) { new (obj) T(std::move(*reinterpret_cast<T*>(src))); };
+        vt.move =
+            +[](void* obj, const void* src) { new (obj) T(std::move(*reinterpret_cast<T*>(const_cast<void*>(src)))); };
     }
 }
 
@@ -122,7 +128,8 @@ struct function<Ret(Args...), Size> {
         if (vt && vt->call) {
             return vt->call(func, std::forward<Args>(args)...);
         } else {
-            arch::kfatal("function is empty");
+            arch::kputs("function is empty");
+            arch::kfatal();
         }
     }
 
