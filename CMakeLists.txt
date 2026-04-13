@@ -23,6 +23,8 @@ add_executable(
   src/keyboard/message.cpp
   src/paging/kernel.cpp
   src/syscall/exit.cpp
+  src/syscall/getpid.cpp
+  src/syscall/nanosleep.cpp
   src/task/switch.s
   src/task/pid.cpp
   src/task/task.cpp

@@ -14,7 +14,7 @@ syscallHandler:
     movw %ax, %gs
 
     pushl %esp
-    call syscallHandlerImpl
+    call syscallHandlerImpl 
     addl $4, %esp
 
     popw %gs

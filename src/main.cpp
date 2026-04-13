@@ -25,12 +25,22 @@ extern uint8_t _end;
 
 namespace nyan {
 
+void sleep(uint64_t ms) {
+    timespec spec;
+    spec.tv_sec = ms / 1000;
+    spec.tv_nsec = (ms % 1000) * 1000000;
+    asm volatile("int $0x80;" ::"a"(162), "b"(&spec), "c"(0));
+}
+
 static int subTask(void*) {
-    auto pid = task::currentTask->pid;
+    task::pid_t pid = 0;
+    asm volatile("int $0x80;" : "=a"(pid) : "a"(20));
     vga::print("task {}: start\n", pid);
-    asm volatile("movl $1, %eax; movl $123, %ecx; int $0x80;");
-    task::sleep((pid - 14) * 500);
+
+    sleep((pid - 14) * 500);
     vga::print("task {}: awake\n", pid);
+
+    asm volatile("int $0x80;" ::"a"(1), "b"(123));
     return 0;
 }
 

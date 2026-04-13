@@ -3,6 +3,7 @@
 #include "../arch/io.hpp"
 #include "../lib/format.hpp"
 #include "../syscall/entry.hpp"
+#include "../task/task.hpp"
 #include "../vga/print.hpp"
 
 namespace nyan::interrupt {
@@ -65,12 +66,21 @@ template void defaultHandlerImpl<30>(Frame*, uint32_t);
 template void defaultHandlerImplNe<31>(Frame*);
 
 extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
-    vga::print("syscall eax={}\n", frame->eax);
+    arch::kprint("syscall eax={} from {}\n", frame->eax, task::currentTask->pid);
     switch (frame->eax) {
         case 1:
-            syscall::exit(frame->ecx);
-            break;
+            syscall::exit(frame->ebx);
+            frame->eax = 0;
+            return;
+        case 20:
+            frame->eax = syscall::getpid();
+            return;
+        case 162:
+            frame->eax =
+                syscall::nanosleep(reinterpret_cast<timespec*>(frame->ebx), reinterpret_cast<timespec*>(frame->ecx));
+            return;
     }
+    frame->eax = -ENOSYS;
 }
 
 }  // namespace nyan::interrupt
