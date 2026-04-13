@@ -72,6 +72,8 @@ void fillEntries(Entry* entry) {
 
     setEntry(entry[32], timerHandler);
     setEntry(entry[33], keyboardHandler);
+
+    entry[0x80] = makeEntry(reinterpret_cast<uint32_t>(syscallHandler), 0x08, A_GateTrap | A_Ring3 | A_Present);
 }
 
 }  // namespace nyan::interrupt

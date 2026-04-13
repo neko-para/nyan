@@ -28,6 +28,7 @@ namespace nyan {
 static int subTask(void*) {
     auto pid = task::currentTask->pid;
     vga::print("task {}: start\n", pid);
+    asm volatile("movl $1, %eax; movl $123, %ecx; int $0x80;");
     task::sleep((pid - 14) * 500);
     vga::print("task {}: awake\n", pid);
     return 0;

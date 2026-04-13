@@ -51,16 +51,7 @@ __attribute__((noinline)) void taskWrapper(int (*func)(void* param), void* param
 
     auto code = func(param);
 
-    arch::cli();
-    currentTask->state = State::S_Exited;
-    currentTask->exitInfo.code = code;
-    if (--aliveTaskCount == 0) {
-        switchToTask(allTasks[KP_Init]);
-    } else if (pendingTasks) {
-        switchToTask(pendingTasks.popFront());
-    } else {
-        switchToTask(allTasks[KP_Idle]);
-    }
+    exitTask(code);
 }
 
 uint32_t makeStack(int (*func)(void* param), void* param, uint32_t& stackBase) {
@@ -116,6 +107,21 @@ __attribute__((noinline)) void initYield() {
     self->state = State::S_Running;
 }
 
+[[noreturn]] void exitTask(int code) {
+    arch::cli();
+    currentTask->state = State::S_Exited;
+    currentTask->exitInfo.code = code;
+    aliveTaskCount--;
+    if (pendingTasks) {
+        switchToTask(pendingTasks.popFront());
+    } else if (aliveTaskCount == 0) {
+        switchToTask(allTasks[KP_Init]);
+    } else {
+        switchToTask(allTasks[KP_Idle]);
+    }
+    arch::kfatal("exited task rescheduled!");
+}
+
 pid_t runTask(int (*func)(void* param), void* param) {
     auto task = createTask(func, param);
     return addTask(task);
@@ -150,7 +156,9 @@ __attribute__((noinline)) void yield() {
         auto next = pendingTasks.popFront();
         if (currentTask->state == State::S_Running) {
             currentTask->state = State::S_Ready;
-            pendingTasks.pushBack(currentTask.head);
+            if (currentTask != KP_Idle) {
+                pendingTasks.pushBack(currentTask.head);
+            }
         }
         switchToTask(next);
         currentTask->state = State::S_Running;

@@ -2,6 +2,8 @@
 
 #include "../arch/io.hpp"
 #include "../lib/format.hpp"
+#include "../syscall/entry.hpp"
+#include "../vga/print.hpp"
 
 namespace nyan::interrupt {
 
@@ -61,5 +63,14 @@ template void defaultHandlerImplNe<28>(Frame*);
 template void defaultHandlerImpl<29>(Frame*, uint32_t);
 template void defaultHandlerImpl<30>(Frame*, uint32_t);
 template void defaultHandlerImplNe<31>(Frame*);
+
+extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
+    vga::print("syscall eax={}\n", frame->eax);
+    switch (frame->eax) {
+        case 1:
+            syscall::exit(frame->ecx);
+            break;
+    }
+}
 
 }  // namespace nyan::interrupt

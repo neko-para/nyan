@@ -64,6 +64,7 @@ extern "C" void switchToTask(TaskControlBlock* nextTask);
 TaskControlBlock* createTask(int (*func)(void* param), void* param = nullptr);
 pid_t addTask(TaskControlBlock* task);
 __attribute__((noinline)) void initYield();
+[[noreturn]] void exitTask(int code);
 
 pid_t runTask(int (*func)(void* param), void* param = nullptr);
 bool freeTask(pid_t pid, int* code);

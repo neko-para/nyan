@@ -18,9 +18,11 @@ add_executable(
   src/interrupt/impl.cpp
   src/interrupt/isr.cpp
   src/interrupt/load.cpp
+  src/interrupt/syscall.s
   src/keyboard/load.cpp
   src/keyboard/message.cpp
   src/paging/kernel.cpp
+  src/syscall/exit.cpp
   src/task/switch.s
   src/task/pid.cpp
   src/task/task.cpp

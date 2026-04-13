@@ -7,11 +7,31 @@ namespace nyan::interrupt {
 struct Entry;
 
 struct Frame {
-    uint32_t ip;
+    uint32_t eip;
     uint32_t cs;
     uint32_t flags;
-    uint32_t sp;
-    uint32_t ss;
+};
+
+struct SyscallFrame {
+    uint16_t user_gs;
+    uint16_t user_fs;
+    uint16_t user_es;
+    uint16_t user_ds;
+
+    uint32_t edi;
+    uint32_t esi;
+    uint32_t ebp;
+    uint32_t _esp;
+    uint32_t ebx;
+    uint32_t edx;
+    uint32_t ecx;
+    uint32_t eax;
+
+    uint32_t eip;
+    uint32_t cs;
+    uint32_t flags;
+    uint32_t user_esp;
+    uint32_t user_ss;
 };
 
 enum Exception {
@@ -65,6 +85,9 @@ void defaultHandlerImpl(Frame*, uint32_t error);
 
 template <uint32_t Id>
 void defaultHandlerImplNe(Frame*);
+
+extern "C" void syscallHandler();
+extern "C" void syscallHandlerImpl(SyscallFrame* frame);
 
 void fillEntries(Entry* entry);
 
