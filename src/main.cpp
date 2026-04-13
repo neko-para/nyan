@@ -4,6 +4,7 @@
 #include "allocator/load.hpp"
 #include "boot/entry.hpp"
 #include "data/embed.hpp"
+#include "elf/entry.hpp"
 #include "gdt/load.hpp"
 #include "interrupt/load.hpp"
 #include "keyboard/load.hpp"
@@ -95,6 +96,15 @@ extern "C" void kmain(boot::BootInfo* info) {
 
     vga::print("embed binary {010p} ~ {010p} size {#010x}\n", &_binary_prog_bin_start, &_binary_prog_bin_end,
                _binary_prog_bin_end - _binary_prog_bin_start);
+
+    auto header = new (&_binary_prog_bin_start) elf::Header;
+    auto offset = header->program_header_table_offset;
+    for (size_t i = 0; i < header->program_header_entry_count; i++) {
+        auto program_header = new (&_binary_prog_bin_start[offset]) elf::ProgramHeader;
+        vga::print("{} type {} flag {} offset {#010x} vaddr {#010x}\n", i, (uint32_t)program_header->type,
+                   program_header->flags, program_header->offset, program_header->vaddr);
+        offset += header->program_header_entry_size;
+    }
 
     task::load();
 
