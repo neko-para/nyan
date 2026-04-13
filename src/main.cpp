@@ -3,6 +3,7 @@
 
 #include "allocator/load.hpp"
 #include "boot/entry.hpp"
+#include "data/embed.hpp"
 #include "gdt/load.hpp"
 #include "interrupt/load.hpp"
 #include "keyboard/load.hpp"
@@ -91,6 +92,9 @@ extern "C" void kmain(boot::BootInfo* info) {
     arch::sti();
 
     vga::print("kernel end {010p}\n", paging::virtualToPhysical(&_end));
+
+    vga::print("embed binary {010p} ~ {010p} size {#010x}\n", &_binary_prog_bin_start, &_binary_prog_bin_end,
+               _binary_prog_bin_end - _binary_prog_bin_start);
 
     task::load();
 

@@ -7,6 +7,29 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# user program
+
+add_library(user STATIC src/user/lib/start.s src/user/lib/syscall.cpp)
+
+add_executable(prog src/user/entry/test.cpp)
+target_link_libraries(prog PRIVATE user)
+target_compile_options(prog PRIVATE -Wall -Wextra)
+
+add_custom_command(
+  OUTPUT ${CMAKE_BINARY_DIR}/prog.o
+  COMMAND ${CMAKE_COMMAND} ARGS -E copy $<TARGET_FILE:prog>
+          ${CMAKE_BINARY_DIR}/prog_bin
+  COMMAND
+    ${CMAKE_OBJCOPY} ARGS -I binary -O elf32-i386 -B i386 --rename-section
+    .data=.rodata,alloc,load,readonly,data,contents prog_bin
+    ${CMAKE_BINARY_DIR}/prog.o
+  DEPENDS prog
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+add_custom_target(prog_embed DEPENDS ${CMAKE_BINARY_DIR}/prog.o)
+
+# kernel
+
 add_executable(
   kernel
   src/main.cpp
@@ -52,6 +75,9 @@ set_source_files_properties(src/interrupt/isr.cpp
 set_target_properties(kernel PROPERTIES LINK_DEPENDS
                                         ${CMAKE_CURRENT_LIST_DIR}/src/linker.ld)
 
+add_dependencies(kernel prog_embed)
+
 target_link_directories(kernel PRIVATE sysroot/usr/lib/generic
                         sysroot/usr/lib/i686-none-elf)
-target_link_libraries(kernel PRIVATE c clang_rt.builtins-i386)
+target_link_libraries(kernel PRIVATE c clang_rt.builtins-i386
+                                     ${CMAKE_BINARY_DIR}/prog.o)
