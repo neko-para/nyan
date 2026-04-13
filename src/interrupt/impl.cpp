@@ -8,12 +8,7 @@ namespace nyan::interrupt {
 template <uint32_t Id>
 void defaultHandlerImpl(Frame*, uint32_t error) {
     if constexpr (Id == E_PageFault) {
-        auto addr = arch::cr2();
-        char buf[12] = "0x";
-        lib::__format::toCharsHex(buf + 2, addr);
-        arch::kputs("Page Fault: ");
-        arch::kputs(buf);
-        arch::kput('\n');
+        arch::kprint("Page Fault: {#010x}\n", arch::cr2());
         if (error & PF_Present) {
             arch::kputs("Present ");
         }

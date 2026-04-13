@@ -12,6 +12,7 @@
 #include "keyboard/message.hpp"
 #include "lib/containers.hpp"
 #include "lib/format.hpp"
+#include "lib/function.hpp"
 #include "paging/convert.hpp"
 #include "paging/kernel.hpp"
 #include "task/task.hpp"

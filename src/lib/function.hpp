@@ -3,7 +3,7 @@
 #include <string.h>
 #include <concepts>
 
-#include "../arch/utils.hpp"
+#include "../arch/io.hpp"
 
 namespace nyan::lib {
 
@@ -128,8 +128,7 @@ struct function<Ret(Args...), Size> {
         if (vt && vt->call) {
             return vt->call(func, std::forward<Args>(args)...);
         } else {
-            arch::kputs("function is empty");
-            arch::kfatal();
+            arch::kfatal("function is empty");
         }
     }
 
