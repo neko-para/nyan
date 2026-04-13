@@ -35,6 +35,7 @@ void sleep(uint64_t ms) {
 static int subTask(void*) {
     task::pid_t pid = 0;
     asm volatile("int $0x80;" : "=a"(pid) : "a"(20));
+    asm volatile("int $0x80;" ::"a"(4), "b"(1), "c"("hello!"), "d"(6));
     vga::print("task {}: start\n", pid);
 
     sleep((pid - 14) * 500);
