@@ -1,6 +1,9 @@
 #include "task.hpp"
 
+#include "../allocator/load.hpp"
+#include "../allocator/pool.hpp"
 #include "../allocator/utils.hpp"
+#include "../elf/entry.hpp"
 #include "../paging/kernel.hpp"
 #include "../timer/load.hpp"
 #include "../vga/print.hpp"
@@ -54,9 +57,8 @@ __attribute__((noinline)) void taskWrapper(int (*func)(void* param), void* param
     exitTask(code);
 }
 
-uint32_t makeStack(int (*func)(void* param), void* param, uint32_t& stackBase) {
-    auto base = static_cast<uint32_t*>(allocator::frameAlloc());
-    stackBase = reinterpret_cast<uint32_t>(base);
+uint32_t makeStack(int (*func)(void* param), void* param, uint32_t stackBase) {
+    auto base = reinterpret_cast<uint32_t*>(stackBase);
     auto stack = base + (1 << 10);  // +4K
     *--stack = reinterpret_cast<uint32_t>(param);
     *--stack = reinterpret_cast<uint32_t>(func);
@@ -71,7 +73,7 @@ uint32_t makeStack(int (*func)(void* param), void* param, uint32_t& stackBase) {
 }
 
 TaskControlBlock* createTask(int (*func)(void* param), void* param) {
-    uint32_t stack;
+    uint32_t stack = reinterpret_cast<uint32_t>(allocator::frameAlloc());
     auto tcb = allocator::allocAs<TaskControlBlock>();
     tcb->userEsp = makeStack(func, param, stack);
     tcb->cr3 = paging::kernelPageDirectory.cr3();
@@ -80,6 +82,81 @@ TaskControlBlock* createTask(int (*func)(void* param), void* param) {
     tcb->pid = KP_Invalid;
 
     tcb->pages.push_back(stack);
+
+    return tcb;
+}
+
+static int elfEntry(void* entry) {
+    jumpRing3(reinterpret_cast<void (*)()>(entry));
+    return 0;
+}
+
+TaskControlBlock* createElfTask(uint8_t* file, size_t) {
+    auto header = new (file) elf::Header;
+    // TODO: check if support
+
+    auto pageDir = paging::kernelPageDirectory.fork();
+
+    auto offset = header->program_header_table_offset;
+    for (size_t i = 0; i < header->program_header_entry_count; i++) {
+        auto program_header = new (file + offset) elf::ProgramHeader;
+        offset += header->program_header_entry_size;
+        if (program_header->type != elf::PHT_Load) {
+            continue;
+        }
+        if (program_header->align != 0x1000) {
+            continue;
+        }
+        uint32_t lower = program_header->vaddr;
+        uint32_t upper = program_header->vaddr + program_header->memsz;
+        uint32_t lowerPage = lower & (~0xFFF);
+        uint32_t upperPage = (upper + 0xFFF) & (~0xFFF);
+        for (uint32_t vaddr = lowerPage; vaddr != upperPage; vaddr += 0x1000) {
+            auto physicalOffset = allocator::poolManager->alloc();
+            auto physicalAddr = allocator::PoolManager::pageAt(physicalOffset);
+
+            auto tableLocation = vaddr >> 22;
+            if (!pageDir->at(tableLocation)) {
+                auto table = allocator::frameAllocAs<paging::Table>();
+                pageDir->set(virtualToPhysical(table), tableLocation,
+                             paging::PDE_Present | paging::PDE_ReadWrite | paging::PDE_User);
+            }
+            auto attr = paging::PTE_Present | paging::PTE_User;
+            if (program_header->flags & elf::PHF_Writable) {
+                attr |= paging::PTE_ReadWrite;
+            }
+            pageDir->map(physicalAddr, vaddr, attr);
+
+            // TODO: map to upper to fill data
+        }
+    }
+
+    uint32_t kernelStack = reinterpret_cast<uint32_t>(allocator::frameAlloc());
+    uint32_t userStack = 0xC0000000 - 0x1000;
+
+    {
+        auto physicalOffset = allocator::poolManager->alloc();
+        auto physicalAddr = allocator::PoolManager::pageAt(physicalOffset);
+
+        auto tableLocation = userStack >> 22;
+        if (!pageDir->at(tableLocation)) {
+            auto table = allocator::frameAllocAs<paging::Table>();
+            pageDir->set(virtualToPhysical(table), tableLocation,
+                         paging::PDE_Present | paging::PDE_ReadWrite | paging::PDE_User);
+        }
+        pageDir->map(physicalAddr, userStack, paging::PTE_Present | paging::PTE_ReadWrite | paging::PTE_User);
+    }
+
+    // TODO: fix page fault. stack should be map to upper to fill data
+
+    auto tcb = allocator::allocAs<TaskControlBlock>();
+    tcb->userEsp = makeStack(elfEntry, reinterpret_cast<void*>(header->entry_offset), userStack);
+    tcb->cr3 = pageDir->cr3();
+    tcb->kernelEsp = kernelStack + 0x1000;
+    tcb->state = State::S_Ready;
+    tcb->pid = KP_Invalid;
+
+    tcb->pages.push_back(kernelStack);
 
     return tcb;
 }

@@ -18,6 +18,7 @@ struct alignas(4096) Directory {
     }
     Table* at(uint16_t location) const noexcept { return reinterpret_cast<Table*>(data[location] & (~0xFFF)); }
     uint32_t cr3() const noexcept { return virtualToPhysical(reinterpret_cast<uint32_t>(this)); }
+    static Directory* fromCr3(uint32_t addr) noexcept { return physicalToVirtual(reinterpret_cast<Directory*>(addr)); }
 
     void map(uint32_t physicalAddr, uint32_t virtualAddr, uint16_t attr) noexcept {
         auto table = at(virtualAddr >> 22);
@@ -32,6 +33,13 @@ struct alignas(4096) Directory {
             arch::kfatal("table not exists");
         }
         return physicalToVirtual(table)->unmap(virtualAddr, physicalAddr);
+    }
+
+    Directory* fork() const noexcept {
+        Directory* other = allocator::frameAllocAs<Directory>();
+        std::fill_n(other->data, 768, 0);
+        std::copy_n(data + 768, 256, other->data + 768);
+        return other;
     }
 };
 

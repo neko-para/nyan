@@ -63,6 +63,7 @@ extern "C" void switchToTask(TaskControlBlock* nextTask);
 extern "C" void jumpRing3(void (*func)());
 
 TaskControlBlock* createTask(int (*func)(void* param), void* param = nullptr);
+TaskControlBlock* createElfTask(uint8_t* file, size_t size);
 pid_t addTask(TaskControlBlock* task);
 __attribute__((noinline)) void initYield();
 [[noreturn]] void exitTask(int code);
