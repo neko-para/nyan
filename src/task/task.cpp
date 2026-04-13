@@ -112,8 +112,7 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
         uint32_t lowerPage = lower & (~0xFFF);
         uint32_t upperPage = (upper + 0xFFF) & (~0xFFF);
         for (uint32_t vaddr = lowerPage; vaddr != upperPage; vaddr += 0x1000) {
-            auto physicalOffset = allocator::poolManager->alloc();
-            auto physicalAddr = allocator::PoolManager::pageAt(physicalOffset);
+            auto physicalAddr = allocator::physicalFrameAlloc();
 
             auto tableLocation = vaddr >> 22;
             if (!pageDir->at(tableLocation)) {
@@ -127,16 +126,25 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
             }
             pageDir->map(physicalAddr, vaddr, attr);
 
-            // TODO: map to upper to fill data
+            paging::MapperGuard mapper(physicalAddr);
+            auto frame = mapper.frame<uint8_t>();
+            std::fill_n(frame, 0x1000, 0);
+
+            uint32_t lower_bound = std::max(lower, vaddr);
+            uint32_t upper_bound = std::min(upper, vaddr + 0x1000);
+            if (lower_bound < upper_bound) {
+                std::copy_n(&file[program_header->offset + lower_bound - lower], upper_bound - lower_bound,
+                            &frame[lower_bound - vaddr]);
+            }
         }
     }
 
     uint32_t kernelStack = reinterpret_cast<uint32_t>(allocator::frameAlloc());
     uint32_t userStack = 0xC0000000 - 0x1000;
+    uint32_t userEsp;
 
     {
-        auto physicalOffset = allocator::poolManager->alloc();
-        auto physicalAddr = allocator::PoolManager::pageAt(physicalOffset);
+        auto physicalAddr = allocator::physicalFrameAlloc();
 
         auto tableLocation = userStack >> 22;
         if (!pageDir->at(tableLocation)) {
@@ -145,12 +153,18 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
                          paging::PDE_Present | paging::PDE_ReadWrite | paging::PDE_User);
         }
         pageDir->map(physicalAddr, userStack, paging::PTE_Present | paging::PTE_ReadWrite | paging::PTE_User);
+
+        paging::MapperGuard mapper(physicalAddr);
+        auto frame = mapper.frame<uint8_t>();
+        std::fill_n(frame, 0x1000, 0);
+        uint32_t esp = makeStack(elfEntry, reinterpret_cast<void*>(header->entry_offset), mapper.vaddr);
+        userEsp = userStack + (esp - mapper.vaddr);
     }
 
     // TODO: fix page fault. stack should be map to upper to fill data
 
     auto tcb = allocator::allocAs<TaskControlBlock>();
-    tcb->userEsp = makeStack(elfEntry, reinterpret_cast<void*>(header->entry_offset), userStack);
+    tcb->userEsp = userEsp;
     tcb->cr3 = pageDir->cr3();
     tcb->kernelEsp = kernelStack + 0x1000;
     tcb->state = State::S_Ready;

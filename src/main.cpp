@@ -102,9 +102,9 @@ extern "C" void kmain(boot::BootInfo* info) {
         task::addTask(tcb);
     }
 
-    for (int i = 0; i < 5; i++) {
-        task::runTask(jumpTask);
-    }
+    // for (int i = 0; i < 5; i++) {
+    //     task::runTask(jumpTask);
+    // }
     task::initYield();
 
     lib::string str = "all tasks finished.\n";

@@ -5,6 +5,12 @@
 
 namespace nyan::allocator {
 
+uint32_t physicalFrameAlloc();
+void physicalFrameFree(uint32_t addr);
+
+uint32_t virtualFrameAlloc();
+void virtualFrameFree(uint32_t addr);
+
 void* frameAlloc();
 void frameFree(void* frame);
 void* alloc(size_t size, size_t align);

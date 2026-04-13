@@ -10,13 +10,39 @@
 
 namespace nyan::allocator {
 
-void* frameAlloc() {
+uint32_t physicalFrameAlloc() {
     task::InterruptGuard guard;
 
     auto physicalOffset = poolManager->alloc();
-    auto physicalAddr = PoolManager::pageAt(physicalOffset);
+    return PoolManager::pageAt(physicalOffset);
+}
+
+void physicalFrameFree(uint32_t addr) {
+    task::InterruptGuard guard;
+
+    auto physicalOffset = PoolManager::pageFor(addr);
+    poolManager->free(physicalOffset);
+}
+
+uint32_t virtualFrameAlloc() {
+    task::InterruptGuard guard;
+
     auto virtualOffset = frameManager->alloc();
-    auto virtualAddr = FrameManager::frameAt(virtualOffset);
+    return FrameManager::frameAt(virtualOffset);
+}
+
+void virtualFrameFree(uint32_t addr) {
+    task::InterruptGuard guard;
+
+    auto virtualOffset = FrameManager::frameFor(addr);
+    frameManager->free(virtualOffset);
+}
+
+void* frameAlloc() {
+    task::InterruptGuard guard;
+
+    auto physicalAddr = physicalFrameAlloc();
+    auto virtualAddr = virtualFrameAlloc();
     paging::kernelPageDirectory.map(physicalAddr, virtualAddr,
                                     paging::PTE_Present | paging::PTE_ReadWrite | paging::PTE_User);
     return reinterpret_cast<void*>(virtualAddr);
@@ -30,10 +56,8 @@ void frameFree(void* frame) {
     if (!paging::kernelPageDirectory.unmap(virtualAddr, physicalAddr)) {
         arch::kfatal("frameFree unmap failed");
     }
-    auto virtualOffset = FrameManager::frameFor(virtualAddr);
-    auto physicalOffset = PoolManager::pageFor(physicalAddr);
-    frameManager->free(virtualOffset);
-    poolManager->free(physicalOffset);
+    virtualFrameFree(virtualAddr);
+    physicalFrameFree(physicalAddr);
 }
 
 void* alloc(size_t size, size_t align) {
