@@ -17,7 +17,8 @@ void* frameAlloc() {
     auto physicalAddr = PoolManager::pageAt(physicalOffset);
     auto virtualOffset = frameManager->alloc();
     auto virtualAddr = FrameManager::frameAt(virtualOffset);
-    paging::kernelPageDirectory.map(physicalAddr, virtualAddr, paging::PDE_Present | paging::PDE_ReadWrite);
+    paging::kernelPageDirectory.map(physicalAddr, virtualAddr,
+                                    paging::PDE_Present | paging::PDE_ReadWrite | paging::PDE_User);
     return reinterpret_cast<void*>(virtualAddr);
 }
 

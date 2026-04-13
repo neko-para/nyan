@@ -39,3 +39,20 @@ switchToTask:
     popl %ebx
     popfl
     ret
+
+.global jumpRing3
+.type jumpRing3, @function
+jumpRing3:
+    movw $((4 << 3) | 3), %ax
+    movw %ax, %ds
+    movw %ax, %es
+    movw %ax, %fs
+    movw %ax, %gs
+
+    movl %esp, %eax
+    pushl $((4 << 3) | 3)
+    pushl %eax
+    pushf
+    pushl $((3 << 3) | 3)
+    pushl 4(%eax)
+    iret

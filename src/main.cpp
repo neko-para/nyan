@@ -1,10 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <format>
-
 #include "allocator/load.hpp"
-#include "arch/io.hpp"
 #include "boot/entry.hpp"
 #include "gdt/load.hpp"
 #include "interrupt/load.hpp"
@@ -25,23 +22,27 @@ extern uint8_t _end;
 
 namespace nyan {
 
-void sleep(uint64_t ms) {
+static void sleep(uint64_t ms) {
     timespec spec;
     spec.tv_sec = ms / 1000;
     spec.tv_nsec = (ms % 1000) * 1000000;
     asm volatile("int $0x80;" ::"a"(162), "b"(&spec), "c"(0));
 }
 
-static int subTask(void*) {
+static void subTask() {
     task::pid_t pid = 0;
     asm volatile("int $0x80;" : "=a"(pid) : "a"(20));
     asm volatile("int $0x80;" ::"a"(4), "b"(1), "c"("hello!"), "d"(6));
-    vga::print("task {}: start\n", pid);
+    // vga::print("task {}: start\n", pid);
 
     sleep((pid - 14) * 500);
-    vga::print("task {}: awake\n", pid);
+    // vga::print("task {}: awake\n", pid);
 
     asm volatile("int $0x80;" ::"a"(1), "b"(123));
+}
+
+static int jumpTask(void*) {
+    task::jumpRing3(subTask);
     return 0;
 }
 
@@ -94,7 +95,7 @@ extern "C" void kmain(boot::BootInfo* info) {
     task::load();
 
     for (int i = 0; i < 5; i++) {
-        task::runTask(subTask);
+        task::runTask(jumpTask);
     }
     task::initYield();
 

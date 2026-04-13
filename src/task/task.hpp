@@ -60,6 +60,7 @@ extern lib::List<TaskControlBlock> currentTask asm("currentTask");
 void load();
 
 extern "C" void switchToTask(TaskControlBlock* nextTask);
+extern "C" void jumpRing3(void (*func)());
 
 TaskControlBlock* createTask(int (*func)(void* param), void* param = nullptr);
 pid_t addTask(TaskControlBlock* task);
