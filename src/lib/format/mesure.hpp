@@ -16,7 +16,7 @@ size_t mesure(const T& val, const format_spec& spec) {
     } else if constexpr (is_char_array<T>) {
         size_t capa = char_array_size<T>;
         size_t len = std::find(val, val + capa, 0);
-        return std::min(len, spec.precision);
+        return std::min<size_t>(len, spec.precision);
     } else {
         return 0;
     }
@@ -85,7 +85,7 @@ size_t mesure(const T& val, const format_spec& spec) {
     }
 
     if (spec.zero) {
-        len = std::max(len, spec.width);
+        len = std::max<size_t>(len, spec.width);
     }
 
     return len;

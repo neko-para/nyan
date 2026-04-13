@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string.h>
-#include <concepts>
+#include <type_traits>
 
 #include "../arch/io.hpp"
 

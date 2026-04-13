@@ -13,11 +13,10 @@ struct format_spec {
     bool sharp = false;
     bool zero = false;
 
-    // reordered
-    char type = 0;
+    uint16_t width = 0;
+    uint16_t precision = uint16_t(-1);
 
-    size_t width = 0;
-    size_t precision = size_t(-1);
+    char type = 0;
 
     constexpr static bool is_align(char ch) { return ch == '<' || ch == '>' || ch == '^'; }
     constexpr static bool is_sign(char ch) { return ch == '+' || ch == '-' || ch == ' '; }
