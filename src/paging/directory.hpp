@@ -19,7 +19,7 @@ struct alignas(4096) DirectoryData {
     void clear() noexcept { std::fill_n(data, 1024, 0); }
 
     void set(PhysicalAddress table, uint16_t location, uint16_t attr) noexcept { data[location] = table.addr | attr; }
-    PhysicalAddress at(uint16_t location) const noexcept { return {data[location] & (~0xFFF)}; }
+    PhysicalAddress at(uint16_t location) const noexcept { return PhysicalAddress{data[location] & (~0xFFF)}; }
     bool isPresent(uint16_t location) const noexcept { return data[location] & PDE_Present; }
 };
 
@@ -54,8 +54,8 @@ struct MapperGuard {
     }
     MapperGuard(const MapperGuard&) = delete;
     MapperGuard(MapperGuard&& mapper) noexcept : paddr(mapper.paddr), vaddr(mapper.vaddr.addr) {
-        mapper.paddr = {0};
-        mapper.vaddr = {0};
+        mapper.paddr = PhysicalAddress{0};
+        mapper.vaddr = VirtualAddress{0};
     }
     ~MapperGuard() noexcept {
         if (vaddr) {
@@ -73,8 +73,8 @@ struct MapperGuard {
         this->~MapperGuard();
         paddr = mapper.paddr;
         vaddr = mapper.vaddr;
-        mapper.paddr = {0};
-        mapper.vaddr = {0};
+        mapper.paddr = PhysicalAddress{0};
+        mapper.vaddr = VirtualAddress{0};
         return *this;
     }
 
@@ -108,6 +108,16 @@ struct UserDirectory {
     auto with(uint16_t location, Func func) const noexcept {
         MapperGuard mapper(data()->at(location));
         return func(mapper.as<Table>());
+    }
+
+    void free() {
+        for (size_t i = 0; i < 768; i++) {
+            if (!data()->isPresent(i)) {
+                continue;
+            }
+            with(i, [](Table* table) { table->free(); });
+            allocator::physicalFrameRelease(data()->at(i));
+        }
     }
 };
 

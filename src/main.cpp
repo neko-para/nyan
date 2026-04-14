@@ -23,30 +23,6 @@ extern uint8_t _end;
 
 namespace nyan {
 
-static void sleep(uint64_t ms) {
-    timespec spec;
-    spec.tv_sec = ms / 1000;
-    spec.tv_nsec = (ms % 1000) * 1000000;
-    asm volatile("int $0x80;" ::"a"(162), "b"(&spec), "c"(0));
-}
-
-static void subTask() {
-    task::pid_t pid = 0;
-    asm volatile("int $0x80;" : "=a"(pid) : "a"(20));
-    asm volatile("int $0x80;" ::"a"(4), "b"(1), "c"("hello!"), "d"(6));
-    // vga::print("task {}: start\n", pid);
-
-    sleep((pid - 14) * 500);
-    // vga::print("task {}: awake\n", pid);
-
-    asm volatile("int $0x80;" ::"a"(1), "b"(123));
-}
-
-static int jumpTask(void*) {
-    task::jumpRing3(subTask);
-    return 0;
-}
-
 extern "C" void kmain(boot::BootInfo* info) {
     arch::enableSse();
     paging::clearIdentityPaging();
@@ -101,13 +77,9 @@ extern "C" void kmain(boot::BootInfo* info) {
         task::addTask(tcb);
     }
 
-    // for (int i = 0; i < 5; i++) {
-    //     task::runTask(jumpTask);
-    // }
     task::initYield();
 
-    lib::string str = "all tasks finished.\n";
-    vga::puts(str.c_str());
+    vga::print("all tasks finished.\n");
 
     for (int i = 0; i < task::MaxTaskCount; i++) {
         if (task::allTasks[i]) {

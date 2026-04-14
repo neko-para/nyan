@@ -29,7 +29,7 @@ enum class BlockReason : uint16_t {
 
 struct TaskControlBlockMetaInfo {
     uint32_t userEsp;
-    uint32_t cr3;
+    paging::PhysicalAddress cr3;
     uint32_t kernelEsp;
     State state;
     BlockReason blockReason;

@@ -8,7 +8,8 @@
 namespace nyan::allocator {
 
 paging::PhysicalAddress physicalFrameAlloc();
-void physicalFrameFree(paging::PhysicalAddress addr);
+void physicalFrameRetain(paging::PhysicalAddress addr);
+void physicalFrameRelease(paging::PhysicalAddress addr);
 
 paging::VirtualAddress virtualFrameAlloc();
 void virtualFrameFree(paging::VirtualAddress addr);

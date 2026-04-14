@@ -74,7 +74,7 @@ TaskControlBlock* createTask(int (*func)(void* param), void* param) {
     uint32_t stack = reinterpret_cast<uint32_t>(allocator::frameAlloc());
     auto tcb = allocator::allocAs<TaskControlBlock>();
     tcb->userEsp = makeStack(func, param, stack);
-    tcb->cr3 = paging::VirtualAddress{&paging::kernelPageDirectory}.kernelToPhysical().addr;
+    tcb->cr3 = paging::VirtualAddress{&paging::kernelPageDirectory}.kernelToPhysical();
     tcb->kernelEsp = stack + (1 << 10);
     tcb->state = State::S_Ready;
     tcb->pid = KP_Invalid;
@@ -115,7 +115,7 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
                 pageAttr |= paging::PTE_ReadWrite;
             }
 
-            paging::VirtualAddress virtualAddr = {vaddr};
+            auto virtualAddr = paging::VirtualAddress{vaddr};
             auto tableLocation = virtualAddr.tableLoc();
             pageDir.ensure(tableLocation, paging::PDE_Present | paging::PDE_ReadWrite | paging::PDE_User);
             auto physicalAddr =
@@ -135,7 +135,7 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
     }
 
     uint32_t kernelStack = reinterpret_cast<uint32_t>(allocator::frameAlloc());
-    paging::VirtualAddress userStack = {0xC0000000 - 0x1000};
+    auto userStack = paging::VirtualAddress{0xC0000000 - 0x1000};
     uint32_t userEsp;
 
     {
@@ -155,7 +155,7 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
 
     auto tcb = allocator::allocAs<TaskControlBlock>();
     tcb->userEsp = userEsp;
-    tcb->cr3 = pageDir.mapper.paddr.addr;
+    tcb->cr3 = pageDir.mapper.paddr;
     tcb->kernelEsp = kernelStack + 0x1000;
     tcb->state = State::S_Ready;
     tcb->pid = KP_Invalid;
@@ -177,7 +177,7 @@ pid_t addTask(TaskControlBlock* task) {
 
 __attribute__((noinline)) void initYield() {
     TaskControlBlock* self = allocator::allocAs<TaskControlBlock>();
-    self->cr3 = paging::VirtualAddress{&paging::kernelPageDirectory}.kernelToPhysical().addr;
+    self->cr3 = paging::VirtualAddress{&paging::kernelPageDirectory}.kernelToPhysical();
     self->pid = KP_Init;
     self->state = State::S_Blocked;
     currentTask.pushFront(self);
@@ -225,7 +225,10 @@ bool freeTask(pid_t pid, int* code) {
     for (auto page : task->pages) {
         allocator::frameFree(reinterpret_cast<void*>(page));
     }
-    // TODO: clean cr3
+    auto userPage = paging::UserDirectory::from(task->cr3);
+    userPage.free();
+    allocator::physicalFrameRelease(task->cr3);
+
     allocator::freeAs(task);
     allTasks[pid] = nullptr;
 

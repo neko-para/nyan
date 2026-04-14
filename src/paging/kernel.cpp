@@ -22,14 +22,15 @@ extern "C" void preparePaging() {
     }
 
     for (size_t i = 0; i < 256; i++) {
-        PhysicalAddress addr = {
+        PhysicalAddress addr = PhysicalAddress{
             tableAddr.addr + i * sizeof(Table),
         };
         phyDirectory.set(addr, i, PDE_Present | PDE_ReadWrite);
         phyDirectory.set(addr, i | (3 << 8), PDE_Present | PDE_ReadWrite);
     }
     phyTable[0].fillFlat(0, paging::PTE_Present | paging::PTE_ReadWrite);
-    phyTable[0].map({.pAddr = {0xB8000}, .vAddr = {0xC03FF000}}, paging::PTE_Present | paging::PTE_ReadWrite);
+    phyTable[0].map({.pAddr = PhysicalAddress{0xB8000}, .vAddr = VirtualAddress{0xC03FF000}},
+                    paging::PTE_Present | paging::PTE_ReadWrite);
 
     cr3Addr.setCr3();
 
@@ -42,7 +43,7 @@ extern "C" void preparePaging() {
 
 void clearIdentityPaging() {
     for (size_t i = 0; i < 256; i++) {
-        kernelPageDirectory.set({0}, i, 0);
+        kernelPageDirectory.set(PhysicalAddress{0}, i, 0);
     }
 
     asm volatile(

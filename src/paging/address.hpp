@@ -12,8 +12,8 @@ struct VirtualAddress;
 struct PhysicalAddress {
     uint32_t addr;
 
-    PhysicalAddress(uint32_t addr = 0) : addr(addr) {}
-    PhysicalAddress(int addr) : addr(addr) {}
+    explicit PhysicalAddress(uint32_t addr = 0) : addr(addr) {}
+    explicit PhysicalAddress(int addr) : addr(addr) {}
     explicit PhysicalAddress(void* ptr) : addr(reinterpret_cast<uint32_t>(ptr)) {}
 
     operator bool() const noexcept { return addr; }
@@ -32,8 +32,8 @@ struct PhysicalAddress {
 struct VirtualAddress {
     uint32_t addr;
 
-    VirtualAddress(uint32_t addr = 0) : addr(addr) {}
-    VirtualAddress(int addr) : addr(addr) {}
+    explicit VirtualAddress(uint32_t addr = 0) : addr(addr) {}
+    explicit VirtualAddress(int addr) : addr(addr) {}
     explicit VirtualAddress(void* ptr) : addr(reinterpret_cast<uint32_t>(ptr)) {}
 
     operator bool() const noexcept { return addr; }
@@ -56,11 +56,11 @@ struct PairedAddress {
 };
 
 inline VirtualAddress PhysicalAddress::kernelToVirtual() const noexcept {
-    return {addr + 0xC0000000};
+    return VirtualAddress{addr + 0xC0000000};
 }
 
 inline PhysicalAddress VirtualAddress::kernelToPhysical() const noexcept {
-    return {addr - 0xC0000000};
+    return PhysicalAddress{addr - 0xC0000000};
 }
 
 }  // namespace nyan::paging

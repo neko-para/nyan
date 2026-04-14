@@ -5,6 +5,7 @@
 #include "../task/guard.hpp"
 #include "frame.hpp"
 #include "load.hpp"
+#include "physicalFrame.hpp"
 #include "pool.hpp"
 #include "slab.hpp"
 
@@ -13,22 +14,33 @@ namespace nyan::allocator {
 paging::PhysicalAddress physicalFrameAlloc() {
     task::InterruptGuard guard;
 
-    auto physicalOffset = poolManager->alloc();
-    return {PoolManager::pageAt(physicalOffset)};
+    auto offset = poolManager->alloc();
+    physicalFrameManager->info[offset] = {.ref = 1};
+    return paging::PhysicalAddress{PoolManager::pageAt(offset)};
 }
 
-void physicalFrameFree(paging::PhysicalAddress addr) {
+void physicalFrameRetain(paging::PhysicalAddress addr) {
     task::InterruptGuard guard;
 
-    auto physicalOffset = PoolManager::pageFor(addr.addr);
-    poolManager->free(physicalOffset);
+    auto offset = PoolManager::pageFor(addr.addr);
+    physicalFrameManager->info[offset].ref += 1;
+}
+
+void physicalFrameRelease(paging::PhysicalAddress addr) {
+    task::InterruptGuard guard;
+
+    auto offset = PoolManager::pageFor(addr.addr);
+    physicalFrameManager->info[offset].ref -= 1;
+    if (!physicalFrameManager->info[offset].ref) {
+        poolManager->free(offset);
+    }
 }
 
 paging::VirtualAddress virtualFrameAlloc() {
     task::InterruptGuard guard;
 
     auto virtualOffset = frameManager->alloc();
-    return {FrameManager::frameAt(virtualOffset)};
+    return paging::VirtualAddress{FrameManager::frameAt(virtualOffset)};
 }
 
 void virtualFrameFree(paging::VirtualAddress addr) {
@@ -56,14 +68,14 @@ void* frameAlloc() {
 void frameFree(void* frame) {
     task::InterruptGuard guard;
 
-    paging::VirtualAddress virtualAddr = {reinterpret_cast<uint32_t>(frame)};
+    paging::VirtualAddress virtualAddr = paging::VirtualAddress{reinterpret_cast<uint32_t>(frame)};
     paging::PhysicalAddress physicalAddr;
     if (!paging::kernelPageDirectory.unmap(virtualAddr, physicalAddr)) {
         arch::kfatal("frameFree unmap failed");
     }
     virtualAddr.invlpg();
     virtualFrameFree(virtualAddr);
-    physicalFrameFree(physicalAddr);
+    physicalFrameRelease(physicalAddr);
 }
 
 void* alloc(size_t size, size_t align) {

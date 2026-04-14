@@ -41,6 +41,15 @@ struct alignas(4096) Table {
         map({.pAddr = physicalAddr, .vAddr = virtualAddr}, attr);
         return physicalAddr;
     }
+
+    void free() noexcept {
+        for (size_t i = 0; i < 1024; i++) {
+            if (!(data[i] & PTE_Present)) {
+                continue;
+            }
+            allocator::physicalFrameRelease(PhysicalAddress{data[i] & (~0x3FF)});
+        }
+    }
 };
 
 }  // namespace nyan::paging
