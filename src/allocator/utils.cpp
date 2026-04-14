@@ -45,6 +45,7 @@ void* frameAlloc() {
     auto virtualAddr = virtualFrameAlloc();
     paging::kernelPageDirectory.map(physicalAddr, virtualAddr,
                                     paging::PTE_Present | paging::PTE_ReadWrite | paging::PTE_User);
+    arch::invlpg(virtualAddr);
     return reinterpret_cast<void*>(virtualAddr);
 }
 
@@ -56,6 +57,7 @@ void frameFree(void* frame) {
     if (!paging::kernelPageDirectory.unmap(virtualAddr, physicalAddr)) {
         arch::kfatal("frameFree unmap failed");
     }
+    arch::invlpg(virtualAddr);
     virtualFrameFree(virtualAddr);
     physicalFrameFree(physicalAddr);
 }

@@ -16,7 +16,7 @@ struct MapperGuard {
     MapperGuard(uint32_t addr) : paddr(addr) {
         vaddr = allocator::virtualFrameAlloc();
         kernelPageDirectory.map(paddr, vaddr, PTE_Present | PTE_ReadWrite);
-        asm volatile("invlpg (%0)" ::"r"(vaddr) : "memory");
+        arch::invlpg(vaddr);
     }
     MapperGuard(void* addr) : MapperGuard(reinterpret_cast<uint32_t>(addr)) {}
     MapperGuard(const MapperGuard&) = delete;
@@ -28,7 +28,7 @@ struct MapperGuard {
         if (vaddr) {
             uint32_t _;
             kernelPageDirectory.unmap(vaddr, _);
-            asm volatile("invlpg (%0)" ::"r"(vaddr) : "memory");
+            arch::invlpg(vaddr);
             allocator::virtualFrameFree(vaddr);
         }
     }

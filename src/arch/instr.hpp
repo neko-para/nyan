@@ -68,4 +68,8 @@ inline void outl(uint16_t port, uint32_t val) {
     asm volatile("outl %0, %1" : : "a"(val), "Nd"(port));
 }
 
+inline void invlpg(uint32_t addr) {
+    asm volatile("invlpg (%0)" ::"r"(addr) : "memory");
+}
+
 }  // namespace nyan::arch
