@@ -95,7 +95,9 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
     auto header = new (file) elf::Header;
     // TODO: check if support
 
-    auto pageDir = paging::kernelPageDirectory.fork();
+    uint32_t physicalPageDir;
+    auto pageDirMapper = paging::kernelPageDirectory.fork(physicalPageDir);
+    auto pageDir = pageDirMapper.frame<paging::Directory>();
 
     auto offset = header->program_header_table_offset;
     for (size_t i = 0; i < header->program_header_entry_count; i++) {
@@ -116,15 +118,19 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
 
             auto tableLocation = vaddr >> 22;
             if (!pageDir->at(tableLocation)) {
-                auto table = allocator::frameAllocAs<paging::Table>();
-                pageDir->set(virtualToPhysical(table), tableLocation,
-                             paging::PDE_Present | paging::PDE_ReadWrite | paging::PDE_User);
+                auto tableAddr = allocator::physicalFrameAlloc();
+                paging::MapperGuard mapper(tableAddr);
+                auto table = mapper.frame<paging::Table>();
+                table->clear();
+                pageDir->set(tableAddr, tableLocation, paging::PDE_Present | paging::PDE_ReadWrite | paging::PDE_User);
             }
+
+            paging::MapperGuard tableMapper(pageDir->at(tableLocation));
             auto attr = paging::PTE_Present | paging::PTE_User;
             if (program_header->flags & elf::PHF_Writable) {
                 attr |= paging::PTE_ReadWrite;
             }
-            pageDir->map(physicalAddr, vaddr, attr);
+            tableMapper.frame<paging::Table>()->map(physicalAddr, vaddr, attr);
 
             paging::MapperGuard mapper(physicalAddr);
             auto frame = mapper.frame<uint8_t>();
@@ -148,11 +154,16 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
 
         auto tableLocation = userStack >> 22;
         if (!pageDir->at(tableLocation)) {
-            auto table = allocator::frameAllocAs<paging::Table>();
-            pageDir->set(virtualToPhysical(table), tableLocation,
-                         paging::PDE_Present | paging::PDE_ReadWrite | paging::PDE_User);
+            auto tableAddr = allocator::physicalFrameAlloc();
+            paging::MapperGuard mapper(tableAddr);
+            auto table = mapper.frame<paging::Table>();
+            table->clear();
+            pageDir->set(tableAddr, tableLocation, paging::PDE_Present | paging::PDE_ReadWrite | paging::PDE_User);
         }
-        pageDir->map(physicalAddr, userStack, paging::PTE_Present | paging::PTE_ReadWrite | paging::PTE_User);
+
+        paging::MapperGuard tableMapper(pageDir->at(tableLocation));
+        tableMapper.frame<paging::Table>()->map(physicalAddr, userStack,
+                                                paging::PTE_Present | paging::PTE_ReadWrite | paging::PTE_User);
 
         paging::MapperGuard mapper(physicalAddr);
         auto frame = mapper.frame<uint8_t>();
@@ -165,7 +176,7 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
 
     auto tcb = allocator::allocAs<TaskControlBlock>();
     tcb->userEsp = userEsp;
-    tcb->cr3 = pageDir->cr3();
+    tcb->cr3 = physicalPageDir;
     tcb->kernelEsp = kernelStack + 0x1000;
     tcb->state = State::S_Ready;
     tcb->pid = KP_Invalid;

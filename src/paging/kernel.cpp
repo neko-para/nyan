@@ -35,13 +35,22 @@ extern "C" void preparePaging() {
 
 void clearIdentityPaging() {
     for (size_t i = 0; i < 256; i++) {
-        kernelPageDirectory.set(0, i, 0);
+        kernelPageDirectory.set(nullptr, i, 0);
     }
 
     asm volatile(
         "movl %%cr3, %%eax;"
         "movl %%eax, %%cr3;" ::
             : "eax", "memory");
+}
+
+MapperGuard Directory::fork(uint32_t& physicalAddr) const noexcept {
+    physicalAddr = allocator::physicalFrameAlloc();
+    MapperGuard mapper(physicalAddr);
+    auto other = mapper.frame<Directory>();
+    std::fill_n(other->data, 768, 0);
+    std::copy_n(data + 768, 256, other->data + 768);
+    return mapper;
 }
 
 }  // namespace nyan::paging

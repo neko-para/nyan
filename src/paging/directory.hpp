@@ -8,18 +8,22 @@
 
 namespace nyan::paging {
 
+struct MapperGuard;
+
 struct alignas(4096) Directory {
     uint32_t data[1024];
 
     void load() const noexcept { asm volatile("movl %0, %%cr3" ::"r"(this) : "memory"); }
     void clear() noexcept { std::fill_n(data, 1024, 0); }
     void set(Table* table, uint16_t location, uint16_t attr) noexcept {
-        data[location] = reinterpret_cast<uint32_t>(table) | attr;
+        set(reinterpret_cast<uint32_t>(table), location, attr);
     }
+    void set(uint32_t table, uint16_t location, uint16_t attr) noexcept { data[location] = table | attr; }
     Table* at(uint16_t location) const noexcept { return reinterpret_cast<Table*>(data[location] & (~0xFFF)); }
     uint32_t cr3() const noexcept { return virtualToPhysical(reinterpret_cast<uint32_t>(this)); }
     static Directory* fromCr3(uint32_t addr) noexcept { return physicalToVirtual(reinterpret_cast<Directory*>(addr)); }
 
+    // 仅用于内核. 用户态不是线性映射
     void map(uint32_t physicalAddr, uint32_t virtualAddr, uint16_t attr) noexcept {
         auto table = at(virtualAddr >> 22);
         if (!table) {
@@ -35,12 +39,7 @@ struct alignas(4096) Directory {
         return physicalToVirtual(table)->unmap(virtualAddr, physicalAddr);
     }
 
-    Directory* fork() const noexcept {
-        Directory* other = allocator::frameAllocAs<Directory>();
-        std::fill_n(other->data, 768, 0);
-        std::copy_n(data + 768, 256, other->data + 768);
-        return other;
-    }
+    MapperGuard fork(uint32_t& physicalAddr) const noexcept;
 };
 
 }  // namespace nyan::paging

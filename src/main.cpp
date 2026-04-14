@@ -98,7 +98,7 @@ extern "C" void kmain(boot::BootInfo* info) {
 
     {
         auto tcb =
-            task::createElfTask(&_binary_prog_bin_start[0], &_binary_prog_bin_start[0] - &_binary_prog_bin_end[0]);
+            task::createElfTask(&_binary_prog_bin_start[0], &_binary_prog_bin_end[0] - &_binary_prog_bin_start[0]);
         task::addTask(tcb);
     }
 
