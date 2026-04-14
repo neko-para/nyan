@@ -12,14 +12,29 @@ struct VirtualAddress;
 struct PhysicalAddress {
     uint32_t addr;
 
+    PhysicalAddress(uint32_t addr = 0) : addr(addr) {}
+    PhysicalAddress(int addr) : addr(addr) {}
+    explicit PhysicalAddress(void* ptr) : addr(reinterpret_cast<uint32_t>(ptr)) {}
+
     operator bool() const noexcept { return addr; }
     operator uint32_t() const noexcept = delete;
 
     VirtualAddress kernelToVirtual() const noexcept;
+
+    void setCr3() const noexcept { arch::setCr3(addr); }
+
+    template <typename T>
+    T* unsafeAs() const noexcept {
+        return reinterpret_cast<T*>(addr);
+    }
 };
 
 struct VirtualAddress {
     uint32_t addr;
+
+    VirtualAddress(uint32_t addr = 0) : addr(addr) {}
+    VirtualAddress(int addr) : addr(addr) {}
+    explicit VirtualAddress(void* ptr) : addr(reinterpret_cast<uint32_t>(ptr)) {}
 
     operator bool() const noexcept { return addr; }
     operator uint32_t() const noexcept = delete;

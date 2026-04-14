@@ -48,7 +48,7 @@ void* frameAlloc() {
             .pAddr = physicalAddr,
             .vAddr = virtualAddr,
         },
-        paging::PTE_Present | paging::PTE_ReadWrite | paging::PTE_User);
+        paging::PTE_Present | paging::PTE_ReadWrite);
     virtualAddr.invlpg();
     return reinterpret_cast<void*>(virtualAddr.addr);
 }

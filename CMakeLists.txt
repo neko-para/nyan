@@ -7,6 +7,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+option(NYAN_ENABLE_OPTIMIZE CACHE OFF)
+
 # user program
 
 add_library(user STATIC src/user/lib/start.s src/user/lib/syscall.cpp)
@@ -60,11 +62,15 @@ target_link_options(kernel PRIVATE -T ${CMAKE_CURRENT_LIST_DIR}/src/linker.ld)
 
 target_compile_options(kernel PRIVATE -g -Wall -Wextra)
 
-target_compile_options(
-  kernel PRIVATE -flto=thin -funified-lto -Og -fomit-frame-pointer
-                 -ffunction-sections -fdata-sections)
+if(NYAN_ENABLE_OPTIMIZE)
+  target_compile_options(
+    kernel PRIVATE -flto=thin -funified-lto -O2 -fomit-frame-pointer
+                   -ffunction-sections -fdata-sections)
+  target_link_options(kernel PRIVATE --lto=thin --gc-sections)
+else()
+  target_compile_options(kernel PRIVATE -Og)
 
-target_link_options(kernel PRIVATE --lto=thin --gc-sections)
+endif()
 
 # 不能开启向量化, 会产生内存引用, 提前启用sse也不行
 set_source_files_properties(src/paging/kernel.cpp PROPERTIES COMPILE_FLAGS

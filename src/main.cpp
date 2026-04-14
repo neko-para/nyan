@@ -12,7 +12,6 @@
 #include "lib/containers.hpp"
 #include "lib/format.hpp"
 #include "lib/function.hpp"
-#include "paging/convert.hpp"
 #include "paging/kernel.hpp"
 #include "task/task.hpp"
 #include "timer/load.hpp"
@@ -72,9 +71,9 @@ extern "C" void kmain(boot::BootInfo* info) {
         }
     };
 
-    info = paging::physicalToVirtual(info);
+    info = paging::PhysicalAddress(info).kernelToVirtual().as<boot::BootInfo>();
     auto mmap_count = info->mmap_length / sizeof(boot::MMapEntry);
-    info->mmap_addr = paging::physicalToVirtual(info->mmap_addr);
+    info->mmap_addr = paging::PhysicalAddress(info->mmap_addr).kernelToVirtual().as<boot::MMapEntry>();
 
     for (size_t i = 0; i < mmap_count; i++) {
         auto& entry = info->mmap_addr[i];
@@ -92,7 +91,7 @@ extern "C" void kmain(boot::BootInfo* info) {
 
     arch::sti();
 
-    vga::print("kernel end {010p}\n", paging::virtualToPhysical(&_end));
+    vga::print("kernel end {#010x}\n", paging::VirtualAddress(&_end).kernelToPhysical().addr);
 
     task::load();
 

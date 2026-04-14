@@ -26,6 +26,10 @@ inline uint32_t cr2() {
     return reg;
 }
 
+inline void setCr3(uint32_t addr) {
+    asm volatile("movl %0, %%cr3" ::"r"(addr) : "memory");
+}
+
 inline void cli() {
     asm volatile("cli");
 }

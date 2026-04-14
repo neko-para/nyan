@@ -1,7 +1,5 @@
 #include "task.hpp"
 
-#include "../allocator/load.hpp"
-#include "../allocator/pool.hpp"
 #include "../allocator/utils.hpp"
 #include "../elf/entry.hpp"
 #include "../paging/kernel.hpp"
@@ -76,7 +74,7 @@ TaskControlBlock* createTask(int (*func)(void* param), void* param) {
     uint32_t stack = reinterpret_cast<uint32_t>(allocator::frameAlloc());
     auto tcb = allocator::allocAs<TaskControlBlock>();
     tcb->userEsp = makeStack(func, param, stack);
-    tcb->cr3 = paging::kernelPageDirectory.cr3().addr;
+    tcb->cr3 = paging::VirtualAddress{&paging::kernelPageDirectory}.kernelToPhysical().addr;
     tcb->kernelEsp = stack + (1 << 10);
     tcb->state = State::S_Ready;
     tcb->pid = KP_Invalid;
@@ -146,7 +144,6 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
 
     {
         auto physicalAddr = allocator::physicalFrameAlloc();
-
         auto tableLocation = userStack.tableLoc();
 
         pageDir->ensure(tableLocation, paging::PDE_Present | paging::PDE_ReadWrite | paging::PDE_User);
@@ -190,7 +187,7 @@ pid_t addTask(TaskControlBlock* task) {
 
 __attribute__((noinline)) void initYield() {
     TaskControlBlock* self = allocator::allocAs<TaskControlBlock>();
-    self->cr3 = paging::kernelPageDirectory.cr3().addr;
+    self->cr3 = paging::VirtualAddress{&paging::kernelPageDirectory}.kernelToPhysical().addr;
     self->pid = KP_Init;
     self->state = State::S_Blocked;
     currentTask.pushFront(self);

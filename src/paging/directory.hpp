@@ -4,7 +4,6 @@
 
 #include "../arch/io.hpp"
 #include "../lib/function.hpp"
-#include "convert.hpp"
 #include "table.hpp"
 
 namespace nyan::paging {
@@ -13,11 +12,6 @@ struct MapperGuard;
 
 struct alignas(4096) Directory {
     uint32_t data[1024];
-
-    // TODO: 清理下这三个函数
-    void load() const noexcept { asm volatile("movl %0, %%cr3" ::"r"(this) : "memory"); }
-    PhysicalAddress cr3() const noexcept { return VirtualAddress{reinterpret_cast<uint32_t>(this)}.kernelToPhysical(); }
-    static Directory* fromCr3(uint32_t addr) noexcept { return physicalToVirtual(reinterpret_cast<Directory*>(addr)); }
 
     void clear() noexcept { std::fill_n(data, 1024, 0); }
 

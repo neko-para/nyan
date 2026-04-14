@@ -1,7 +1,5 @@
 #include "kernel.hpp"
 
-#include "convert.hpp"
-
 namespace nyan::paging {
 
 Directory kernelPageDirectory;
@@ -9,8 +7,11 @@ Table kernelPageTable[256];
 
 // RUN IN LOWER
 extern "C" void preparePaging() {
-    auto& phyDirectory = *virtualToPhysical(&kernelPageDirectory);
-    auto& phyTable = *virtualToPhysical(&kernelPageTable);
+    auto cr3Addr = paging::VirtualAddress(&kernelPageDirectory).kernelToPhysical();
+    auto& phyDirectory = *cr3Addr.unsafeAs<Directory>();
+
+    auto tableAddr = paging::VirtualAddress{kernelPageTable}.kernelToPhysical();
+    auto& phyTable = *tableAddr.unsafeAs<Table[256]>();
 
     phyDirectory.clear();
     for (auto& table : phyTable) {
@@ -18,14 +19,16 @@ extern "C" void preparePaging() {
     }
 
     for (size_t i = 0; i < 256; i++) {
-        PhysicalAddress addr = {reinterpret_cast<uint32_t>(phyTable + i)};
-        phyDirectory.set(addr, i, PDE_Present | PDE_ReadWrite | PDE_User);
-        phyDirectory.set(addr, i | (3 << 8), PDE_Present | PDE_ReadWrite | PDE_User);
+        PhysicalAddress addr = {
+            tableAddr.addr + i * sizeof(Table),
+        };
+        phyDirectory.set(addr, i, PDE_Present | PDE_ReadWrite);
+        phyDirectory.set(addr, i | (3 << 8), PDE_Present | PDE_ReadWrite);
     }
-    phyTable[0].fillFlat(0, paging::PTE_Present | paging::PTE_ReadWrite | PTE_User);
+    phyTable[0].fillFlat(0, paging::PTE_Present | paging::PTE_ReadWrite);
     phyTable[0].map({.pAddr = {0xB8000}, .vAddr = {0xC03FF000}}, paging::PTE_Present | paging::PTE_ReadWrite);
 
-    phyDirectory.load();
+    cr3Addr.setCr3();
 
     asm volatile(
         "movl %%cr0, %%eax;"
