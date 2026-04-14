@@ -76,7 +76,7 @@ TaskControlBlock* createTask(int (*func)(void* param), void* param) {
     uint32_t stack = reinterpret_cast<uint32_t>(allocator::frameAlloc());
     auto tcb = allocator::allocAs<TaskControlBlock>();
     tcb->userEsp = makeStack(func, param, stack);
-    tcb->cr3 = paging::kernelPageDirectory.cr3();
+    tcb->cr3 = paging::kernelPageDirectory.cr3().addr;
     tcb->kernelEsp = stack + (1 << 10);
     tcb->state = State::S_Ready;
     tcb->pid = KP_Invalid;
@@ -95,9 +95,8 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
     auto header = new (file) elf::Header;
     // TODO: check if support
 
-    uint32_t physicalPageDir;
-    auto pageDirMapper = paging::kernelPageDirectory.fork(physicalPageDir);
-    auto pageDir = pageDirMapper.frame<paging::Directory>();
+    auto pageDirMapper = paging::kernelPageDirectory.fork();
+    auto pageDir = pageDirMapper.as<paging::Directory>();
 
     auto offset = header->program_header_table_offset;
     for (size_t i = 0; i < header->program_header_entry_count; i++) {
@@ -115,68 +114,61 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
         uint32_t upperPage = (upper + 0xFFF) & (~0xFFF);
         for (uint32_t vaddr = lowerPage; vaddr != upperPage; vaddr += 0x1000) {
             auto physicalAddr = allocator::physicalFrameAlloc();
+            paging::VirtualAddress virtualAddr = {vaddr};
 
-            auto tableLocation = vaddr >> 22;
-            if (!pageDir->at(tableLocation)) {
-                auto tableAddr = allocator::physicalFrameAlloc();
-                paging::MapperGuard mapper(tableAddr);
-                auto table = mapper.frame<paging::Table>();
-                table->clear();
-                pageDir->set(tableAddr, tableLocation, paging::PDE_Present | paging::PDE_ReadWrite | paging::PDE_User);
-            }
-
-            paging::MapperGuard tableMapper(pageDir->at(tableLocation));
-            auto attr = paging::PTE_Present | paging::PTE_User;
+            auto pageAttr = paging::PTE_Present | paging::PTE_User;
             if (program_header->flags & elf::PHF_Writable) {
-                attr |= paging::PTE_ReadWrite;
+                pageAttr |= paging::PTE_ReadWrite;
             }
-            tableMapper.frame<paging::Table>()->map(physicalAddr, vaddr, attr);
+
+            auto tableLocation = virtualAddr.tableLoc();
+            pageDir->ensure(tableLocation, paging::PDE_Present | paging::PDE_ReadWrite | paging::PDE_User);
+            pageDir->with(tableLocation, [&](paging::Table* table) {
+                table->map({.pAddr = physicalAddr, .vAddr = virtualAddr}, pageAttr);
+            });
 
             paging::MapperGuard mapper(physicalAddr);
-            auto frame = mapper.frame<uint8_t>();
+            auto frame = mapper.as<uint8_t>();
             std::fill_n(frame, 0x1000, 0);
 
-            uint32_t lower_bound = std::max(lower, vaddr);
-            uint32_t upper_bound = std::min(upper, vaddr + 0x1000);
+            uint32_t lower_bound = std::max(lower, virtualAddr.addr);
+            uint32_t upper_bound = std::min(upper, virtualAddr.addr + 0x1000);
             if (lower_bound < upper_bound) {
                 std::copy_n(&file[program_header->offset + lower_bound - lower], upper_bound - lower_bound,
-                            &frame[lower_bound - vaddr]);
+                            &frame[lower_bound - virtualAddr.addr]);
             }
         }
     }
 
     uint32_t kernelStack = reinterpret_cast<uint32_t>(allocator::frameAlloc());
-    uint32_t userStack = 0xC0000000 - 0x1000;
+    paging::VirtualAddress userStack = {0xC0000000 - 0x1000};
     uint32_t userEsp;
 
     {
         auto physicalAddr = allocator::physicalFrameAlloc();
 
-        auto tableLocation = userStack >> 22;
-        if (!pageDir->at(tableLocation)) {
-            auto tableAddr = allocator::physicalFrameAlloc();
-            paging::MapperGuard mapper(tableAddr);
-            auto table = mapper.frame<paging::Table>();
-            table->clear();
-            pageDir->set(tableAddr, tableLocation, paging::PDE_Present | paging::PDE_ReadWrite | paging::PDE_User);
-        }
+        auto tableLocation = userStack.tableLoc();
 
-        paging::MapperGuard tableMapper(pageDir->at(tableLocation));
-        tableMapper.frame<paging::Table>()->map(physicalAddr, userStack,
-                                                paging::PTE_Present | paging::PTE_ReadWrite | paging::PTE_User);
+        pageDir->ensure(tableLocation, paging::PDE_Present | paging::PDE_ReadWrite | paging::PDE_User);
+        pageDir->with(tableLocation, [&](paging::Table* table) {
+            table->map(
+                {
+                    .pAddr = physicalAddr,
+                    .vAddr = userStack,
+                },
+                paging::PTE_Present | paging::PTE_ReadWrite | paging::PTE_User);
+        });
 
         paging::MapperGuard mapper(physicalAddr);
-        auto frame = mapper.frame<uint8_t>();
+        auto frame = mapper.as<uint8_t>();
         std::fill_n(frame, 0x1000, 0);
-        uint32_t esp = makeStack(elfEntry, reinterpret_cast<void*>(header->entry_offset), mapper.vaddr);
-        userEsp = userStack + (esp - mapper.vaddr);
+        uint32_t esp = makeStack(elfEntry, reinterpret_cast<void*>(header->entry_offset), mapper.vaddr.addr);
+        userEsp = userStack.addr + (esp - mapper.vaddr.addr);
     }
-
-    // TODO: fix page fault. stack should be map to upper to fill data
 
     auto tcb = allocator::allocAs<TaskControlBlock>();
     tcb->userEsp = userEsp;
-    tcb->cr3 = physicalPageDir;
+    tcb->cr3 = pageDirMapper.paddr.addr;
     tcb->kernelEsp = kernelStack + 0x1000;
     tcb->state = State::S_Ready;
     tcb->pid = KP_Invalid;
@@ -198,7 +190,7 @@ pid_t addTask(TaskControlBlock* task) {
 
 __attribute__((noinline)) void initYield() {
     TaskControlBlock* self = allocator::allocAs<TaskControlBlock>();
-    self->cr3 = paging::kernelPageDirectory.cr3();
+    self->cr3 = paging::kernelPageDirectory.cr3().addr;
     self->pid = KP_Init;
     self->state = State::S_Blocked;
     currentTask.pushFront(self);
@@ -246,6 +238,7 @@ bool freeTask(pid_t pid, int* code) {
     for (auto page : task->pages) {
         allocator::frameFree(reinterpret_cast<void*>(page));
     }
+    // TODO: clean cr3
     allocator::freeAs(task);
     allTasks[pid] = nullptr;
 

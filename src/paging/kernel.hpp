@@ -13,22 +13,26 @@ extern Table kernelPageTable[256];
 void clearIdentityPaging();
 
 struct MapperGuard {
-    MapperGuard(uint32_t addr) : paddr(addr) {
+    MapperGuard(PhysicalAddress addr) : paddr(addr) {
         vaddr = allocator::virtualFrameAlloc();
-        kernelPageDirectory.map(paddr, vaddr, PTE_Present | PTE_ReadWrite);
-        arch::invlpg(vaddr);
+        kernelPageDirectory.map(
+            {
+                .pAddr = paddr,
+                .vAddr = vaddr,
+            },
+            PTE_Present | PTE_ReadWrite);
+        vaddr.invlpg();
     }
-    MapperGuard(void* addr) : MapperGuard(reinterpret_cast<uint32_t>(addr)) {}
     MapperGuard(const MapperGuard&) = delete;
-    MapperGuard(MapperGuard&& mapper) noexcept : paddr(mapper.paddr), vaddr(mapper.vaddr) {
-        mapper.paddr = 0;
-        mapper.vaddr = 0;
+    MapperGuard(MapperGuard&& mapper) noexcept : paddr(mapper.paddr), vaddr(mapper.vaddr.addr) {
+        mapper.paddr = {0};
+        mapper.vaddr = {0};
     }
     ~MapperGuard() {
         if (vaddr) {
-            uint32_t _;
-            kernelPageDirectory.unmap(vaddr, _);
-            arch::invlpg(vaddr);
+            PhysicalAddress _;
+            kernelPageDirectory.unmap({vaddr}, _);
+            vaddr.invlpg();
             allocator::virtualFrameFree(vaddr);
         }
     }
@@ -40,18 +44,18 @@ struct MapperGuard {
         this->~MapperGuard();
         paddr = mapper.paddr;
         vaddr = mapper.vaddr;
-        mapper.paddr = 0;
-        mapper.vaddr = 0;
+        mapper.paddr = {0};
+        mapper.vaddr = {0};
         return *this;
     }
 
     template <typename T>
-    T* frame() const noexcept {
-        return reinterpret_cast<T*>(vaddr);
+    T* as() const noexcept {
+        return vaddr.as<T>();
     }
 
-    uint32_t paddr;
-    uint32_t vaddr;
+    PhysicalAddress paddr;
+    VirtualAddress vaddr;
 };
 
 }  // namespace nyan::paging

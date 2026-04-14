@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <algorithm>
 
+#include "address.hpp"
 #include "entry.hpp"
 
 namespace nyan::paging {
@@ -18,14 +19,14 @@ struct alignas(4096) Table {
         }
     }
 
-    void map(uint32_t physicalAddr, uint32_t virtualAddr, uint16_t attr) noexcept {
-        auto location = (virtualAddr >> 12) & 0x3FF;
-        data[location] = (physicalAddr & (~0x3FF)) | attr;
+    void map(PairedAddress addrs, uint16_t attr) noexcept {
+        auto location = (addrs.vAddr.addr >> 12) & 0x3FF;
+        data[location] = (addrs.pAddr.addr & (~0x3FF)) | attr;
     }
-    bool unmap(uint32_t virtualAddr, uint32_t& physicalAddr) noexcept {
-        auto location = (virtualAddr >> 12) & 0x3FF;
+    bool unmap(VirtualAddress virtualAddr, PhysicalAddress& physicalAddr) noexcept {
+        auto location = (virtualAddr.addr >> 12) & 0x3FF;
         if (data[location] & PTE_Present) {
-            physicalAddr = data[location] & (~0x3FF);
+            physicalAddr.addr = data[location] & (~0x3FF);
             data[location] = 0;
             return true;
         } else {

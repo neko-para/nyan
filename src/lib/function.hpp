@@ -133,7 +133,6 @@ struct function<Ret(Args...), Size> {
     }
 
     operator bool() const noexcept { return vt; }
-    bool operator!() const noexcept { return !vt; }
 
     void reset() noexcept {
         if (vt && vt->destroy) {

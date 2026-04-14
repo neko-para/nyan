@@ -53,7 +53,6 @@ struct List {
     Base* head{};
 
     operator bool() const noexcept { return head; }
-    bool operator!() const noexcept { return !head; }
 
     auto operator->() const noexcept { return head; }
 

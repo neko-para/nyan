@@ -10,31 +10,31 @@
 
 namespace nyan::allocator {
 
-uint32_t physicalFrameAlloc() {
+paging::PhysicalAddress physicalFrameAlloc() {
     task::InterruptGuard guard;
 
     auto physicalOffset = poolManager->alloc();
-    return PoolManager::pageAt(physicalOffset);
+    return {PoolManager::pageAt(physicalOffset)};
 }
 
-void physicalFrameFree(uint32_t addr) {
+void physicalFrameFree(paging::PhysicalAddress addr) {
     task::InterruptGuard guard;
 
-    auto physicalOffset = PoolManager::pageFor(addr);
+    auto physicalOffset = PoolManager::pageFor(addr.addr);
     poolManager->free(physicalOffset);
 }
 
-uint32_t virtualFrameAlloc() {
+paging::VirtualAddress virtualFrameAlloc() {
     task::InterruptGuard guard;
 
     auto virtualOffset = frameManager->alloc();
-    return FrameManager::frameAt(virtualOffset);
+    return {FrameManager::frameAt(virtualOffset)};
 }
 
-void virtualFrameFree(uint32_t addr) {
+void virtualFrameFree(paging::VirtualAddress addr) {
     task::InterruptGuard guard;
 
-    auto virtualOffset = FrameManager::frameFor(addr);
+    auto virtualOffset = FrameManager::frameFor(addr.addr);
     frameManager->free(virtualOffset);
 }
 
@@ -43,21 +43,25 @@ void* frameAlloc() {
 
     auto physicalAddr = physicalFrameAlloc();
     auto virtualAddr = virtualFrameAlloc();
-    paging::kernelPageDirectory.map(physicalAddr, virtualAddr,
-                                    paging::PTE_Present | paging::PTE_ReadWrite | paging::PTE_User);
-    arch::invlpg(virtualAddr);
-    return reinterpret_cast<void*>(virtualAddr);
+    paging::kernelPageDirectory.map(
+        {
+            .pAddr = physicalAddr,
+            .vAddr = virtualAddr,
+        },
+        paging::PTE_Present | paging::PTE_ReadWrite | paging::PTE_User);
+    virtualAddr.invlpg();
+    return reinterpret_cast<void*>(virtualAddr.addr);
 }
 
 void frameFree(void* frame) {
     task::InterruptGuard guard;
 
-    auto virtualAddr = reinterpret_cast<uint32_t>(frame);
-    uint32_t physicalAddr;
+    paging::VirtualAddress virtualAddr = {reinterpret_cast<uint32_t>(frame)};
+    paging::PhysicalAddress physicalAddr;
     if (!paging::kernelPageDirectory.unmap(virtualAddr, physicalAddr)) {
         arch::kfatal("frameFree unmap failed");
     }
-    arch::invlpg(virtualAddr);
+    virtualAddr.invlpg();
     virtualFrameFree(virtualAddr);
     physicalFrameFree(physicalAddr);
 }
