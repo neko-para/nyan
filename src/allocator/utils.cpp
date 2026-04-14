@@ -1,7 +1,7 @@
 #include "utils.hpp"
 
+#include "../paging/directory.hpp"
 #include "../paging/entry.hpp"
-#include "../paging/kernel.hpp"
 #include "../task/guard.hpp"
 #include "frame.hpp"
 #include "load.hpp"

@@ -46,6 +46,7 @@ add_executable(
   src/interrupt/syscall.s
   src/keyboard/load.cpp
   src/keyboard/message.cpp
+  src/paging/directory.cpp
   src/paging/kernel.cpp
   src/syscall/exit.cpp
   src/syscall/write.cpp

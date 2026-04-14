@@ -2,7 +2,7 @@
 
 #include "../allocator/utils.hpp"
 #include "../elf/entry.hpp"
-#include "../paging/kernel.hpp"
+#include "../paging/directory.hpp"
 #include "../timer/load.hpp"
 #include "../vga/print.hpp"
 #include "guard.hpp"
@@ -93,8 +93,7 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
     auto header = new (file) elf::Header;
     // TODO: check if support
 
-    auto pageDirMapper = paging::kernelPageDirectory.fork();
-    auto pageDir = pageDirMapper.as<paging::Directory>();
+    auto pageDir = paging::UserDirectory::fork(paging::kernelPageDirectory);
 
     auto offset = header->program_header_table_offset;
     for (size_t i = 0; i < header->program_header_entry_count; i++) {
@@ -120,8 +119,8 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
             }
 
             auto tableLocation = virtualAddr.tableLoc();
-            pageDir->ensure(tableLocation, paging::PDE_Present | paging::PDE_ReadWrite | paging::PDE_User);
-            pageDir->with(tableLocation, [&](paging::Table* table) {
+            pageDir.ensure(tableLocation, paging::PDE_Present | paging::PDE_ReadWrite | paging::PDE_User);
+            pageDir.with(tableLocation, [&](paging::Table* table) {
                 table->map({.pAddr = physicalAddr, .vAddr = virtualAddr}, pageAttr);
             });
 
@@ -146,8 +145,8 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
         auto physicalAddr = allocator::physicalFrameAlloc();
         auto tableLocation = userStack.tableLoc();
 
-        pageDir->ensure(tableLocation, paging::PDE_Present | paging::PDE_ReadWrite | paging::PDE_User);
-        pageDir->with(tableLocation, [&](paging::Table* table) {
+        pageDir.ensure(tableLocation, paging::PDE_Present | paging::PDE_ReadWrite | paging::PDE_User);
+        pageDir.with(tableLocation, [&](paging::Table* table) {
             table->map(
                 {
                     .pAddr = physicalAddr,
@@ -165,7 +164,7 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
 
     auto tcb = allocator::allocAs<TaskControlBlock>();
     tcb->userEsp = userEsp;
-    tcb->cr3 = pageDirMapper.paddr.addr;
+    tcb->cr3 = pageDir.mapper.paddr.addr;
     tcb->kernelEsp = kernelStack + 0x1000;
     tcb->state = State::S_Ready;
     tcb->pid = KP_Invalid;
