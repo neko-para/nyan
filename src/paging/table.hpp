@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <algorithm>
 
+#include "../allocator/utils.hpp"
 #include "address.hpp"
 #include "entry.hpp"
 
@@ -23,6 +24,7 @@ struct alignas(4096) Table {
         auto location = (addrs.vAddr.addr >> 12) & 0x3FF;
         data[location] = (addrs.pAddr.addr & (~0x3FF)) | attr;
     }
+
     bool unmap(VirtualAddress virtualAddr, PhysicalAddress& physicalAddr) noexcept {
         auto location = (virtualAddr.addr >> 12) & 0x3FF;
         if (data[location] & PTE_Present) {
@@ -32,6 +34,12 @@ struct alignas(4096) Table {
         } else {
             return false;
         }
+    }
+
+    PhysicalAddress alloc(VirtualAddress virtualAddr, uint16_t attr) noexcept {
+        auto physicalAddr = allocator::physicalFrameAlloc();
+        map({.pAddr = physicalAddr, .vAddr = virtualAddr}, attr);
+        return physicalAddr;
     }
 };
 

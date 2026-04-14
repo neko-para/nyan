@@ -110,19 +110,16 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
         uint32_t lowerPage = lower & (~0xFFF);
         uint32_t upperPage = (upper + 0xFFF) & (~0xFFF);
         for (uint32_t vaddr = lowerPage; vaddr != upperPage; vaddr += 0x1000) {
-            auto physicalAddr = allocator::physicalFrameAlloc();
-            paging::VirtualAddress virtualAddr = {vaddr};
-
             auto pageAttr = paging::PTE_Present | paging::PTE_User;
             if (program_header->flags & elf::PHF_Writable) {
                 pageAttr |= paging::PTE_ReadWrite;
             }
 
+            paging::VirtualAddress virtualAddr = {vaddr};
             auto tableLocation = virtualAddr.tableLoc();
             pageDir.ensure(tableLocation, paging::PDE_Present | paging::PDE_ReadWrite | paging::PDE_User);
-            pageDir.with(tableLocation, [&](paging::Table* table) {
-                table->map({.pAddr = physicalAddr, .vAddr = virtualAddr}, pageAttr);
-            });
+            auto physicalAddr =
+                pageDir.with(tableLocation, [&](paging::Table* table) { return table->alloc(virtualAddr, pageAttr); });
 
             paging::MapperGuard mapper(physicalAddr);
             auto frame = mapper.as<uint8_t>();
@@ -142,17 +139,11 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
     uint32_t userEsp;
 
     {
-        auto physicalAddr = allocator::physicalFrameAlloc();
         auto tableLocation = userStack.tableLoc();
 
         pageDir.ensure(tableLocation, paging::PDE_Present | paging::PDE_ReadWrite | paging::PDE_User);
-        pageDir.with(tableLocation, [&](paging::Table* table) {
-            table->map(
-                {
-                    .pAddr = physicalAddr,
-                    .vAddr = userStack,
-                },
-                paging::PTE_Present | paging::PTE_ReadWrite | paging::PTE_User);
+        auto physicalAddr = pageDir.with(tableLocation, [&](paging::Table* table) {
+            return table->alloc(userStack, paging::PTE_Present | paging::PTE_ReadWrite | paging::PTE_User);
         });
 
         paging::MapperGuard mapper(physicalAddr);

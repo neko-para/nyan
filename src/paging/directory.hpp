@@ -3,7 +3,6 @@
 #include <stdint.h>
 
 #include "../arch/io.hpp"
-#include "../lib/function.hpp"
 #include "table.hpp"
 
 namespace nyan::paging {
@@ -25,7 +24,7 @@ struct alignas(4096) DirectoryData {
 };
 
 struct KernelDirectory : public DirectoryData {
-    void map(PairedAddress addrs, uint16_t attr) noexcept {
+    void map(PairedAddress addrs, uint16_t attr) const noexcept {
         auto table = at(addrs.vAddr.addr >> 22);
         if (!table) {
             arch::kfatal("table not exists");
@@ -33,7 +32,7 @@ struct KernelDirectory : public DirectoryData {
         table.kernelToVirtual().as<Table>()->map(addrs, attr);
     }
 
-    bool unmap(VirtualAddress virtualAddr, PhysicalAddress& physicalAddr) noexcept {
+    bool unmap(VirtualAddress virtualAddr, PhysicalAddress& physicalAddr) const noexcept {
         auto table = at(virtualAddr.addr >> 22);
         if (!table) {
             arch::kfatal("table not exists");
@@ -43,7 +42,7 @@ struct KernelDirectory : public DirectoryData {
 };
 
 struct MapperGuard {
-    MapperGuard(PhysicalAddress addr) : paddr(addr) {
+    MapperGuard(PhysicalAddress addr) noexcept : paddr(addr) {
         vaddr = allocator::virtualFrameAlloc();
         kernelPageDirectory.map(
             {
@@ -58,7 +57,7 @@ struct MapperGuard {
         mapper.paddr = {0};
         mapper.vaddr = {0};
     }
-    ~MapperGuard() {
+    ~MapperGuard() noexcept {
         if (vaddr) {
             PhysicalAddress _;
             kernelPageDirectory.unmap({vaddr}, _);
@@ -105,9 +104,10 @@ struct UserDirectory {
         }
     }
 
-    void with(uint16_t location, lib::function<void(Table*)> func) const noexcept {
+    template <typename Func>
+    auto with(uint16_t location, Func func) const noexcept {
         MapperGuard mapper(data()->at(location));
-        func(mapper.as<Table>());
+        return func(mapper.as<Table>());
     }
 };
 
