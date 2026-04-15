@@ -113,6 +113,7 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
         }
         uint32_t lower = program_header->vaddr;
         uint32_t upper = program_header->vaddr + program_header->memsz;
+        uint32_t fileUpper = program_header->vaddr + program_header->filesz;
         uint32_t lowerPage = lower & (~0xFFF);
         uint32_t upperPage = (upper + 0xFFF) & (~0xFFF);
         for (uint32_t vaddr = lowerPage; vaddr != upperPage; vaddr += 0x1000) {
@@ -132,7 +133,7 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
             std::fill_n(frame, 0x1000, 0);
 
             uint32_t lower_bound = std::max(lower, virtualAddr.addr);
-            uint32_t upper_bound = std::min(upper, virtualAddr.addr + 0x1000);
+            uint32_t upper_bound = std::min(fileUpper, virtualAddr.addr + 0x1000);
             if (lower_bound < upper_bound) {
                 std::copy_n(&file[program_header->offset + lower_bound - lower], upper_bound - lower_bound,
                             &frame[lower_bound - virtualAddr.addr]);

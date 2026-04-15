@@ -9,6 +9,9 @@ namespace nyan::syscall {
 // 1
 void exit(int code);
 
+// 2 借用下fork
+pid_t spawn(const char* name);
+
 // 3
 ssize_t read(int fd, void* buff, size_t size);
 

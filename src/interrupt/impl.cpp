@@ -68,7 +68,7 @@ template void defaultHandlerImpl<30>(Frame*, uint32_t);
 template void defaultHandlerImplNe<31>(Frame*);
 
 template <typename T>
-T castArg(uint32_t val) {
+static T castArg(uint32_t val) {
     if constexpr (std::is_pointer_v<T>) {
         return reinterpret_cast<T>(val);
     } else {
@@ -77,7 +77,7 @@ T castArg(uint32_t val) {
 }
 
 template <typename T>
-uint32_t castRet(T val) {
+static uint32_t castRet(T val) {
     if constexpr (std::is_pointer_v<T>) {
         return reinterpret_cast<uint32_t>(val);
     } else {
@@ -86,7 +86,7 @@ uint32_t castRet(T val) {
 }
 
 template <typename Ret>
-void call(SyscallFrame* frame, Ret (*func)()) {
+static void call(SyscallFrame* frame, Ret (*func)()) {
     if constexpr (std::same_as<Ret, void>) {
         frame->eax = 0;
         func();
@@ -96,7 +96,7 @@ void call(SyscallFrame* frame, Ret (*func)()) {
 }
 
 template <typename Ret, typename Arg1>
-void call(SyscallFrame* frame, Ret (*func)(Arg1)) {
+static void call(SyscallFrame* frame, Ret (*func)(Arg1)) {
     auto a1 = castArg<Arg1>(frame->ebx);
     if constexpr (std::same_as<Ret, void>) {
         frame->eax = 0;
@@ -107,7 +107,7 @@ void call(SyscallFrame* frame, Ret (*func)(Arg1)) {
 }
 
 template <typename Ret, typename Arg1, typename Arg2>
-void call(SyscallFrame* frame, Ret (*func)(Arg1, Arg2)) {
+static void call(SyscallFrame* frame, Ret (*func)(Arg1, Arg2)) {
     auto a1 = castArg<Arg1>(frame->ebx);
     auto a2 = castArg<Arg2>(frame->ecx);
     if constexpr (std::same_as<Ret, void>) {
@@ -119,7 +119,7 @@ void call(SyscallFrame* frame, Ret (*func)(Arg1, Arg2)) {
 }
 
 template <typename Ret, typename Arg1, typename Arg2, typename Arg3>
-void call(SyscallFrame* frame, Ret (*func)(Arg1, Arg2, Arg3)) {
+static void call(SyscallFrame* frame, Ret (*func)(Arg1, Arg2, Arg3)) {
     auto a1 = castArg<Arg1>(frame->ebx);
     auto a2 = castArg<Arg2>(frame->ecx);
     auto a3 = castArg<Arg3>(frame->edx);
@@ -131,26 +131,37 @@ void call(SyscallFrame* frame, Ret (*func)(Arg1, Arg2, Arg3)) {
     }
 }
 
+template <size_t N>
+static void dump(SyscallFrame* frame, const char (&name)[N]) {
+    arch::kprint("syscall eax={}({}) from {}\n", frame->eax, name, task::currentTask->pid);
+}
+
+#define CALL(func)      \
+    dump(frame, #func); \
+    call(frame, syscall::func);
+
 extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
-    arch::kprint("syscall eax={} from {}\n", frame->eax, task::currentTask->pid);
     switch (frame->eax) {
         case 1:
-            call(frame, syscall::exit);
+            CALL(exit)
+            return;
+        case 2:
+            CALL(spawn)
             return;
         case 3:
-            call(frame, syscall::read);
+            CALL(read)
             return;
         case 4:
-            call(frame, syscall::write);
+            CALL(write)
             return;
         case 7:
-            call(frame, syscall::waitpid);
+            CALL(waitpid)
             return;
         case 20:
-            call(frame, syscall::getpid);
+            CALL(getpid)
             return;
         case 162:
-            call(frame, syscall::nanosleep);
+            CALL(nanosleep)
             return;
     }
     frame->eax = -ENOSYS;

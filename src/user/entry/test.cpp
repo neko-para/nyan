@@ -3,6 +3,9 @@
 int pid;
 
 extern "C" int main() {
+    auto pid = spawn("true");
+    waitpid(pid, 0, 0);
+
     char buf[256];
     char* ptr = buf;
     while (true) {

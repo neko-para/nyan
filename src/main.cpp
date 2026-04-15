@@ -69,6 +69,7 @@ extern "C" void kmain(boot::BootInfo* info) {
 
     arch::sti();
     vga::print("all tasks finished.\n");
+    arch::kprint("all tasks finished.\n");
     for (int i = 0; i < task::MaxTaskCount; i++) {
         if (task::allTasks[i]) {
             task::allTasks[i]->dump();

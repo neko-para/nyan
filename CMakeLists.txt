@@ -57,8 +57,13 @@ add_user_program(false src/user/entry/false.cpp)
 # kernel
 
 set(syscall_srcs
-    src/syscall/exit.cpp src/syscall/read.cpp src/syscall/write.cpp
-    src/syscall/waitpid.cpp src/syscall/getpid.cpp src/syscall/nanosleep.cpp)
+    src/syscall/exit.cpp
+    src/syscall/spawn.cpp
+    src/syscall/read.cpp
+    src/syscall/write.cpp
+    src/syscall/waitpid.cpp
+    src/syscall/getpid.cpp
+    src/syscall/nanosleep.cpp)
 
 add_executable(
   kernel

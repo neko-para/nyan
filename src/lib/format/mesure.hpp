@@ -10,12 +10,12 @@ size_t mesure(const T& val, const format_spec& spec) = delete;
 template <target_string T>
 size_t mesure(const T& val, const format_spec& spec) {
     if constexpr (same_as_any<T, const char*, char*>) {
-        return std::min(std::char_traits<char>::length(val), spec.precision);
+        return std::min<size_t>(std::char_traits<char>::length(val), spec.precision);
     } else if constexpr (same_as_any<T, string_view, string>) {
-        return std::min(val.size(), spec.precision);
+        return std::min<size_t>(val.size(), spec.precision);
     } else if constexpr (is_char_array<T>) {
         size_t capa = char_array_size<T>;
-        size_t len = std::find(val, val + capa, 0);
+        size_t len = std::find(val, val + capa, 0) - val;
         return std::min<size_t>(len, spec.precision);
     } else {
         return 0;
