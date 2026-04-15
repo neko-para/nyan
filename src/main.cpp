@@ -23,7 +23,7 @@ namespace nyan {
 int logic(void*) {
     vga::print("kernel end {#010x}\n", paging::VirtualAddress(&_end).kernelToPhysical().addr);
 
-    auto tcb = task::createElfTask(&_binary_prog_bin_start[0], &_binary_prog_bin_end[0] - &_binary_prog_bin_start[0]);
+    auto tcb = task::createElfTask(data::programs[0].data, data::programs[0].size);
     auto pid = task::addTask(tcb);
 
     syscall::waitpid(pid, 0, 0);

@@ -1,6 +1,16 @@
 #pragma once
 
+#include <stddef.h>
 #include <stdint.h>
 
-extern uint8_t _binary_prog_bin_start[];
-extern uint8_t _binary_prog_bin_end[];
+namespace nyan::data {
+
+struct EmbedProgram {
+    uint8_t* data;
+    size_t size;
+    char name[8];
+};
+
+extern EmbedProgram programs[3];
+
+}  // namespace nyan::data

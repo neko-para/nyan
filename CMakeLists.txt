@@ -18,22 +18,41 @@ target_include_directories(user_initerface INTERFACE SYSTEM
 add_library(user STATIC src/user/lib/start.s src/user/lib/syscall.cpp)
 target_link_libraries(user PUBLIC user_initerface)
 
-add_executable(prog src/user/entry/test.cpp)
-target_link_libraries(prog PRIVATE user)
-target_compile_options(prog PRIVATE -Wall -Wextra)
+set(USER_PROGRAM_OBJECTS "")
+set(USER_PROGRAM_TARGETS "")
 
-add_custom_command(
-  OUTPUT ${CMAKE_BINARY_DIR}/prog.o
-  COMMAND ${CMAKE_COMMAND} ARGS -E copy $<TARGET_FILE:prog>
-          ${CMAKE_BINARY_DIR}/prog_bin
-  COMMAND
-    ${CMAKE_OBJCOPY} ARGS -I binary -O elf32-i386 -B i386 --rename-section
-    .data=.rodata,alloc,load,readonly,data,contents prog_bin
-    ${CMAKE_BINARY_DIR}/prog.o
-  DEPENDS prog
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+function(add_user_program NAME SOURCE)
+  add_executable(${NAME} ${SOURCE})
+  target_link_libraries(${NAME} PRIVATE user)
+  target_compile_options(${NAME} PRIVATE -Wall -Wextra)
 
-add_custom_target(prog_embed DEPENDS ${CMAKE_BINARY_DIR}/prog.o)
+  set(BIN_FILE ${CMAKE_BINARY_DIR}/${NAME}_bin)
+  set(OBJ_FILE ${CMAKE_BINARY_DIR}/${NAME}.o)
+
+  add_custom_command(
+    OUTPUT ${OBJ_FILE}
+    COMMAND ${CMAKE_COMMAND} ARGS -E copy $<TARGET_FILE:${NAME}> ${BIN_FILE}
+    COMMAND
+      ${CMAKE_OBJCOPY} ARGS -I binary -O elf32-i386 -B i386 --rename-section
+      .data=.rodata,alloc,load,readonly,data,contents ${NAME}_bin ${OBJ_FILE}
+    DEPENDS ${NAME}
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+
+  add_custom_target(${NAME}_embed DEPENDS ${OBJ_FILE})
+
+  list(APPEND USER_PROGRAM_OBJECTS ${OBJ_FILE})
+  list(APPEND USER_PROGRAM_TARGETS ${NAME}_embed)
+  set(USER_PROGRAM_OBJECTS
+      "${USER_PROGRAM_OBJECTS}"
+      PARENT_SCOPE)
+  set(USER_PROGRAM_TARGETS
+      "${USER_PROGRAM_TARGETS}"
+      PARENT_SCOPE)
+endfunction()
+
+add_user_program(test src/user/entry/test.cpp)
+add_user_program(true src/user/entry/true.cpp)
+add_user_program(false src/user/entry/false.cpp)
 
 # kernel
 
@@ -48,6 +67,7 @@ add_executable(
   src/allocator/load.cpp
   src/allocator/slab.cpp
   src/allocator/utils.cpp
+  src/data/embed.cpp
   src/gdt/load.cpp
   src/interrupt/impl.cpp
   src/interrupt/isr.cpp
@@ -89,9 +109,11 @@ set_source_files_properties(src/interrupt/isr.cpp
 set_target_properties(kernel PROPERTIES LINK_DEPENDS
                                         ${CMAKE_CURRENT_LIST_DIR}/src/linker.ld)
 
-add_dependencies(kernel prog_embed)
+foreach(target ${USER_PROGRAM_TARGETS})
+  add_dependencies(kernel ${target})
+endforeach()
 
 target_link_directories(kernel PRIVATE sysroot/usr/lib/generic
                         sysroot/usr/lib/i686-none-elf)
 target_link_libraries(kernel PRIVATE user_initerface c clang_rt.builtins-i386
-                                     ${CMAKE_BINARY_DIR}/prog.o)
+                                     ${USER_PROGRAM_OBJECTS})
