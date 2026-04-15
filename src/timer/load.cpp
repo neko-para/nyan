@@ -24,7 +24,6 @@ void hit() {
     msSinceBoot += 1;
 
     if (msSinceBoot % 1000 == 0) {
-        vga::putc('.');
         arch::kput('.');
     }
 

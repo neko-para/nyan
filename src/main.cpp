@@ -21,7 +21,7 @@ extern uint8_t _end;
 namespace nyan {
 
 int logic(void*) {
-    vga::print("kernel end {#010x}\n", paging::VirtualAddress(&_end).kernelToPhysical().addr);
+    arch::kprint("kernel end {#010x}\n", paging::VirtualAddress(&_end).kernelToPhysical().addr);
 
     auto tcb = task::createElfTask(data::programs[0].data, data::programs[0].size);
     auto pid = task::addTask(tcb);
@@ -36,6 +36,7 @@ extern "C" void kmain(boot::BootInfo* info) {
 
     vga::clear();
     vga::showCursor();
+    vga::flushCursor();
 
     __libc_init_array();
 

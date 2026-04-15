@@ -50,7 +50,7 @@ function(add_user_program NAME SOURCE)
       PARENT_SCOPE)
 endfunction()
 
-add_user_program(test src/user/entry/test.cpp)
+add_user_program(sh src/user/entry/sh.cpp)
 add_user_program(true src/user/entry/true.cpp)
 add_user_program(false src/user/entry/false.cpp)
 
