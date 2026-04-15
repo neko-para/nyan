@@ -25,6 +25,7 @@ enum class State : uint16_t {
 enum class BlockReason : uint16_t {
     BR_Unknown,
     BR_Sleep,
+    BR_Wait,
 };
 
 struct TaskControlBlockMetaInfo {
@@ -46,7 +47,6 @@ struct BlockSleepInfo {
 
 struct TaskControlBlock : public TaskControlBlockMetaInfo, public lib::ListBase<TaskControlBlockTag> {
     lib::vector<uint32_t> pages;
-    // std::vector<uint32_t> pages;
     union {
         ExitInfo exitInfo;
         BlockSleepInfo sleepInfo;

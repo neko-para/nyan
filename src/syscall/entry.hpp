@@ -8,6 +8,9 @@ namespace nyan::syscall {
 // 1
 void exit(int code);
 
+// 3
+ssize_t read(int fd, void* buff, size_t size);
+
 // 4
 ssize_t write(int fd, const void* buf, size_t size);
 

@@ -49,12 +49,14 @@ add_executable(
   src/paging/directory.cpp
   src/paging/kernel.cpp
   src/syscall/exit.cpp
+  src/syscall/read.cpp
   src/syscall/write.cpp
   src/syscall/getpid.cpp
   src/syscall/nanosleep.cpp
   src/task/switch.s
   src/task/pid.cpp
   src/task/task.cpp
+  src/task/wait.cpp
   src/timer/load.cpp
   src/vga/print.cpp
   src/lib/libcxx.cpp

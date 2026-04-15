@@ -28,6 +28,9 @@ void TaskControlBlock::dump() {
                 case BlockReason::BR_Sleep:
                     vga::print("task {} sleeping, eta {}\n", pid, sleepInfo.time - timer::msSinceBoot);
                     break;
+                case BlockReason::BR_Wait:
+                    vga::print("task {} waiting\n", pid);
+                    break;
             }
             break;
     }

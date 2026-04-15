@@ -5,6 +5,12 @@
     __builtin_unreachable();
 }
 
+ssize_t read(int fd, void* buf, size_t size) {
+    ssize_t ret;
+    asm volatile("int $0x80" : "=a"(ret) : "a"(3), "b"(fd), "c"(buf), "d"(size));
+    return ret;
+}
+
 ssize_t write(int fd, const void* buf, size_t size) {
     ssize_t ret;
     asm volatile("int $0x80" : "=a"(ret) : "a"(4), "b"(fd), "c"(buf), "d"(size));

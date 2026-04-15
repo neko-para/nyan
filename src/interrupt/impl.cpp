@@ -72,6 +72,9 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             syscall::exit(frame->ebx);
             frame->eax = 0;
             return;
+        case 3:
+            frame->eax = syscall::read(frame->ebx, reinterpret_cast<void*>(frame->ecx), frame->edx);
+            return;
         case 4:
             frame->eax = syscall::write(frame->ebx, reinterpret_cast<void*>(frame->ecx), frame->edx);
             return;

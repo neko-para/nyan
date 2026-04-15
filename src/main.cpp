@@ -38,15 +38,6 @@ extern "C" void kmain(boot::BootInfo* info) {
     timer::load();
     keyboard::load();
 
-    keyboard::keyboardCallback = +[](const keyboard::Message& msg) {
-        if (!(msg.flag & keyboard::F_Release)) {
-            vga::putc(msg.ch);
-            if (msg.flag & keyboard::F_Ctrl && msg.code == keyboard::SC_C) {
-                arch::qemuQuit();
-            }
-        }
-    };
-
     info = paging::PhysicalAddress(info).kernelToVirtual().as<boot::BootInfo>();
     auto mmap_count = info->mmap_length / sizeof(boot::MMapEntry);
     info->mmap_addr = paging::PhysicalAddress(info->mmap_addr).kernelToVirtual().as<boot::MMapEntry>();
