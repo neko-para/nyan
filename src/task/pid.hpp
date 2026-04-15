@@ -1,10 +1,9 @@
 #pragma once
 
 #include <stdint.h>
+#include <sys/types.h>
 
 namespace nyan::task {
-
-using pid_t = int32_t;
 
 enum KnownPid : pid_t {
     KP_Invalid = -1,
@@ -23,5 +22,6 @@ extern TaskControlBlock* allTasks[MaxTaskCount];
 
 pid_t allocPid(TaskControlBlock* task);
 void setupKnownTasks();
+TaskControlBlock* findTask(pid_t pid);
 
 }  // namespace nyan::task

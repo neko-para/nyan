@@ -39,6 +39,8 @@ struct KernelDirectory : public DirectoryData {
         }
         return table.kernelToVirtual().as<Table>()->unmap(virtualAddr, physicalAddr);
     }
+
+    PhysicalAddress cr3() const noexcept { return paging::VirtualAddress{this}.kernelToPhysical(); }
 };
 
 struct MapperGuard {

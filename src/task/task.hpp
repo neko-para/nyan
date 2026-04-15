@@ -18,6 +18,7 @@ enum class State : uint16_t {
     S_Ready,
     S_Running,
     S_Exited,
+    // TODO: signal
 
     S_Blocked,
 };
@@ -25,7 +26,8 @@ enum class State : uint16_t {
 enum class BlockReason : uint16_t {
     BR_Unknown,
     BR_Sleep,
-    BR_Wait,
+    BR_WaitInput,
+    BR_WaitTask,
 };
 
 struct TaskControlBlockMetaInfo {
@@ -45,13 +47,20 @@ struct BlockSleepInfo {
     uint64_t time;
 };
 
+struct BlockWaitInfo {
+    pid_t pid;
+};
+
 struct TaskControlBlock : public TaskControlBlockMetaInfo, public lib::ListBase<TaskControlBlockTag> {
     lib::vector<uint32_t> pages;
+    lib::List<TaskControlBlock> waitingTasks;
     union {
         ExitInfo exitInfo;
         BlockSleepInfo sleepInfo;
+        BlockWaitInfo waitInfo;
     };
 
+    bool ended() const noexcept { return state == State::S_Exited; }
     void dump();
 };
 

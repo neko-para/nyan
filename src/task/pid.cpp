@@ -38,4 +38,11 @@ void setupKnownTasks() {
     allTasks[KP_Idle] = task;
 }
 
+TaskControlBlock* findTask(pid_t pid) {
+    if (pid < 0 || pid >= MaxTaskCount) {
+        return nullptr;
+    }
+    return allTasks[pid];
+}
+
 }  // namespace nyan::task

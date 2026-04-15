@@ -28,8 +28,11 @@ void TaskControlBlock::dump() {
                 case BlockReason::BR_Sleep:
                     vga::print("task {} sleeping, eta {}\n", pid, sleepInfo.time - timer::msSinceBoot);
                     break;
-                case BlockReason::BR_Wait:
-                    vga::print("task {} waiting\n", pid);
+                case BlockReason::BR_WaitInput:
+                    vga::print("task {} waiting input\n", pid);
+                    break;
+                case BlockReason::BR_WaitTask:
+                    vga::print("task {} waiting task {}\n", pid, waitInfo.pid);
                     break;
             }
             break;
@@ -77,7 +80,7 @@ TaskControlBlock* createTask(int (*func)(void* param), void* param) {
     uint32_t stack = reinterpret_cast<uint32_t>(allocator::frameAlloc());
     auto tcb = allocator::allocAs<TaskControlBlock>();
     tcb->userEsp = makeStack(func, param, stack);
-    tcb->cr3 = paging::VirtualAddress{&paging::kernelPageDirectory}.kernelToPhysical();
+    tcb->cr3 = paging::kernelPageDirectory.cr3();
     tcb->kernelEsp = stack + (1 << 10);
     tcb->state = State::S_Ready;
     tcb->pid = KP_Invalid;
@@ -180,7 +183,7 @@ pid_t addTask(TaskControlBlock* task) {
 
 __attribute__((noinline)) void initYield() {
     TaskControlBlock* self = allocator::allocAs<TaskControlBlock>();
-    self->cr3 = paging::VirtualAddress{&paging::kernelPageDirectory}.kernelToPhysical();
+    self->cr3 = paging::kernelPageDirectory.cr3();
     self->pid = KP_Init;
     self->state = State::S_Blocked;
     currentTask.pushFront(self);
@@ -196,6 +199,9 @@ __attribute__((noinline)) void initYield() {
     currentTask->state = State::S_Exited;
     currentTask->exitInfo.code = code;
     aliveTaskCount--;
+    while (auto tcb = currentTask->waitingTasks.popFront()) {
+        unblock(tcb);
+    }
     if (pendingTasks) {
         switchToTask(pendingTasks.popFront());
     } else if (aliveTaskCount == 0) {
@@ -212,6 +218,7 @@ pid_t runTask(int (*func)(void* param), void* param) {
 }
 
 bool freeTask(pid_t pid, int* code) {
+    arch::kprint("free called pid = {} current = {}\n", pid, currentTask->pid);
     auto task = allTasks[pid];
     if (!task) {
         vga::print("Task {} not exists!\n", pid);
@@ -228,9 +235,12 @@ bool freeTask(pid_t pid, int* code) {
     for (auto page : task->pages) {
         allocator::frameFree(reinterpret_cast<void*>(page));
     }
-    auto userPage = paging::UserDirectory::from(task->cr3);
-    userPage.free();
-    allocator::physicalFrameRelease(task->cr3);
+
+    if (task->cr3.addr != paging::kernelPageDirectory.cr3().addr) {
+        auto userPage = paging::UserDirectory::from(task->cr3);
+        userPage.free();
+        allocator::physicalFrameRelease(task->cr3);
+    }
 
     allocator::freeAs(task);
     allTasks[pid] = nullptr;

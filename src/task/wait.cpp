@@ -7,7 +7,7 @@ namespace nyan::task {
 void WaitList::wait() noexcept {
     InterruptGuard guard;
     list.pushBack(currentTask.head);
-    block(BlockReason::BR_Wait);
+    block(BlockReason::BR_WaitInput);
 }
 
 bool WaitList::wakeOne() noexcept {

@@ -14,7 +14,7 @@ struct PhysicalAddress {
 
     explicit PhysicalAddress(uint32_t addr = 0) : addr(addr) {}
     explicit PhysicalAddress(int addr) : addr(addr) {}
-    explicit PhysicalAddress(void* ptr) : addr(reinterpret_cast<uint32_t>(ptr)) {}
+    explicit PhysicalAddress(const void* ptr) : addr(reinterpret_cast<uint32_t>(ptr)) {}
 
     operator bool() const noexcept { return addr; }
     operator uint32_t() const noexcept = delete;
@@ -34,7 +34,7 @@ struct VirtualAddress {
 
     explicit VirtualAddress(uint32_t addr = 0) : addr(addr) {}
     explicit VirtualAddress(int addr) : addr(addr) {}
-    explicit VirtualAddress(void* ptr) : addr(reinterpret_cast<uint32_t>(ptr)) {}
+    explicit VirtualAddress(const void* ptr) : addr(reinterpret_cast<uint32_t>(ptr)) {}
 
     operator bool() const noexcept { return addr; }
     operator uint32_t() const noexcept = delete;

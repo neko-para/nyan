@@ -13,6 +13,7 @@
 #include "lib/format.hpp"
 #include "lib/function.hpp"
 #include "paging/kernel.hpp"
+#include "syscall/entry.hpp"
 #include "task/task.hpp"
 #include "timer/load.hpp"
 #include "vga/cursor.hpp"
@@ -62,11 +63,19 @@ extern "C" void kmain(boot::BootInfo* info) {
 
     task::load();
 
+    pid_t pid;
     {
         auto tcb =
             task::createElfTask(&_binary_prog_bin_start[0], &_binary_prog_bin_end[0] - &_binary_prog_bin_start[0]);
-        task::addTask(tcb);
+        pid = task::addTask(tcb);
     }
+
+    task::addTask(task::createTask(
+        +[](void* param) {
+            syscall::waitpid(reinterpret_cast<pid_t>(param), 0, 0);
+            return 0;
+        },
+        reinterpret_cast<void*>(pid)));
 
     task::initYield();
 

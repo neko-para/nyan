@@ -1,4 +1,4 @@
-#include "../lib/syscall.hpp"
+#include <unistd.h>
 
 int pid;
 

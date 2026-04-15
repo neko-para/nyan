@@ -9,9 +9,11 @@
 namespace nyan::interrupt {
 
 template <uint32_t Id>
-void defaultHandlerImpl(Frame*, uint32_t error) {
+void defaultHandlerImpl(Frame* frame, uint32_t error) {
     if constexpr (Id == E_PageFault) {
         arch::kprint("Page Fault: {#010x} {}\n", arch::cr2(), error);
+        arch::kprint("  pid={}\n", task::currentTask->pid);
+        arch::kprint("  eip={#010x}\n", frame->eip);
         if (error & PF_Present) {
             arch::kputs("Present ");
         }
@@ -77,6 +79,9 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             return;
         case 4:
             frame->eax = syscall::write(frame->ebx, reinterpret_cast<void*>(frame->ecx), frame->edx);
+            return;
+        case 7:
+            frame->eax = syscall::waitpid(frame->ebx, reinterpret_cast<int*>(frame->ecx), frame->edx);
             return;
         case 20:
             frame->eax = syscall::getpid();

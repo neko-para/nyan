@@ -11,7 +11,12 @@ option(NYAN_ENABLE_OPTIMIZE CACHE OFF)
 
 # user program
 
+add_library(user_initerface INTERFACE)
+target_include_directories(user_initerface INTERFACE SYSTEM
+                                                     src/user/lib/include)
+
 add_library(user STATIC src/user/lib/start.s src/user/lib/syscall.cpp)
+target_link_libraries(user PUBLIC user_initerface)
 
 add_executable(prog src/user/entry/test.cpp)
 target_link_libraries(prog PRIVATE user)
@@ -32,6 +37,10 @@ add_custom_target(prog_embed DEPENDS ${CMAKE_BINARY_DIR}/prog.o)
 
 # kernel
 
+set(syscall_srcs
+    src/syscall/exit.cpp src/syscall/read.cpp src/syscall/write.cpp
+    src/syscall/waitpid.cpp src/syscall/getpid.cpp src/syscall/nanosleep.cpp)
+
 add_executable(
   kernel
   src/main.cpp
@@ -48,11 +57,6 @@ add_executable(
   src/keyboard/message.cpp
   src/paging/directory.cpp
   src/paging/kernel.cpp
-  src/syscall/exit.cpp
-  src/syscall/read.cpp
-  src/syscall/write.cpp
-  src/syscall/getpid.cpp
-  src/syscall/nanosleep.cpp
   src/task/switch.s
   src/task/pid.cpp
   src/task/task.cpp
@@ -60,7 +64,8 @@ add_executable(
   src/timer/load.cpp
   src/vga/print.cpp
   src/lib/libcxx.cpp
-  src/lib/libc.cpp)
+  src/lib/libc.cpp
+  ${syscall_srcs})
 target_link_options(kernel PRIVATE -T ${CMAKE_CURRENT_LIST_DIR}/src/linker.ld)
 
 target_compile_options(kernel PRIVATE -g -Wall -Wextra)
@@ -88,5 +93,5 @@ add_dependencies(kernel prog_embed)
 
 target_link_directories(kernel PRIVATE sysroot/usr/lib/generic
                         sysroot/usr/lib/i686-none-elf)
-target_link_libraries(kernel PRIVATE c clang_rt.builtins-i386
+target_link_libraries(kernel PRIVATE user_initerface c clang_rt.builtins-i386
                                      ${CMAKE_BINARY_DIR}/prog.o)
