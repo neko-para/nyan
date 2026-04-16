@@ -1,7 +1,7 @@
-#include <stdio.h>
 #include <string.h>
 
 #include "allocator/load.hpp"
+#include "arch/io.hpp"
 #include "boot/entry.hpp"
 #include "data/embed.hpp"
 #include "gdt/load.hpp"

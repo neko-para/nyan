@@ -1,8 +1,6 @@
 #pragma once
 
-#include <stdio.h>
 #include <sys/types.h>
-#include <time.h>
 
 namespace nyan::syscall {
 

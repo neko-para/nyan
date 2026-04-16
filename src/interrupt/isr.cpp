@@ -1,7 +1,5 @@
 #include "isr.hpp"
 
-#include <stdio.h>
-
 #include "../arch/instr.hpp"
 #include "../keyboard/load.hpp"
 #include "../timer/load.hpp"

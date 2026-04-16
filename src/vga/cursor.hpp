@@ -1,9 +1,8 @@
 #pragma once
 
-#include <stddef.h>
-#include <stdint.h>
+#include <sys/types.h>
 
-#include "../arch/io.hpp"
+#include "../arch/instr.hpp"
 #include "buffer.hpp"
 
 namespace nyan::vga {

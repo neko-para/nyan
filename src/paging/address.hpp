@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdint.h>
+#include <sys/types.h>
 
 #include "../arch/instr.hpp"
 

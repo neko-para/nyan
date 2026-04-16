@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdint.h>
+#include <sys/types.h>
 #include <algorithm>
 
 #include "../arch/io.hpp"

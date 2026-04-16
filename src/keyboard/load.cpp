@@ -1,6 +1,6 @@
 #include "load.hpp"
 
-#include <stdint.h>
+#include <sys/types.h>
 
 #include "../arch/io.hpp"
 #include "../interrupt/load.hpp"

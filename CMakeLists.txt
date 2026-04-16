@@ -94,6 +94,7 @@ add_executable(
 target_link_options(kernel PRIVATE -T ${CMAKE_CURRENT_LIST_DIR}/src/linker.ld)
 
 target_compile_options(kernel PRIVATE -g -Wall -Wextra)
+target_compile_definitions(kernel PRIVATE __BUILDING_NYAN__)
 
 if(NYAN_ENABLE_OPTIMIZE)
   target_compile_options(

@@ -1,10 +1,10 @@
 #pragma once
 
-#include <stddef.h>
-#include <stdint.h>
-#include <time.h>
-
 #include <sys/types.h>
+
+#ifdef __BUILDING_NYAN__
+#error "kernel shouldn't include this header"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
