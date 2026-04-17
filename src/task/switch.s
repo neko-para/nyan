@@ -50,8 +50,9 @@ jumpRing3:
     movw %ax, %gs
 
     movl %esp, %eax
+    leal 8(%eax), %ecx
     pushl $((4 << 3) | 3)
-    pushl %eax
+    pushl %ecx
     pushf
     pushl $((3 << 3) | 3)
     pushl 4(%eax)

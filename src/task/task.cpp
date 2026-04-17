@@ -66,7 +66,7 @@ TaskControlBlock* createTask(int (*func)(void* param), void* param) {
 
 static int elfEntry(void* param) {
     uint32_t* args = static_cast<uint32_t*>(param);
-    jumpRing3(args[0], args[1], args[2]);
+    jumpRing3(args[0], args[1], args + 2);
     return 0;
 }
 

@@ -28,7 +28,7 @@ set(USER_PROGRAM_TARGETS "")
 function(add_user_program NAME SOURCE)
   add_executable(${NAME} ${SOURCE})
   target_link_libraries(${NAME} PRIVATE user)
-  target_compile_options(${NAME} PRIVATE -Wall -Wextra)
+  target_compile_options(${NAME} PRIVATE -Wall -Wextra -g)
 
   set(BIN_FILE ${CMAKE_BINARY_DIR}/${NAME}_bin)
   set(OBJ_FILE ${CMAKE_BINARY_DIR}/${NAME}.o)
