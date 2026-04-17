@@ -91,26 +91,14 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
         uint32_t upperPage = (upper + 0xFFF) & (~0xFFF);
         brkAddr = std::max(brkAddr, upperPage);
         for (uint32_t vaddr = lowerPage; vaddr != upperPage; vaddr += 0x1000) {
-            auto pageAttr = paging::PTE_Present | paging::PTE_User;
-            if (program_header->flags & elf::PHF_Writable) {
-                pageAttr |= paging::PTE_ReadWrite;
-            }
-
-            auto virtualAddr = paging::VirtualAddress{vaddr};
-            auto tableLocation = virtualAddr.tableLoc();
-            pageDir.ensure(tableLocation, paging::PDE_Present | paging::PDE_ReadWrite | paging::PDE_User);
-            auto physicalAddr =
-                pageDir.with(tableLocation, [&](paging::Table* table) { return table->alloc(virtualAddr, pageAttr); });
-
-            paging::MapperGuard mapper(physicalAddr);
+            auto mapper = pageDir.alloc(paging::VirtualAddress{vaddr}, program_header->flags & elf::PHF_Writable);
             auto frame = mapper.as<uint8_t>();
-            std::fill_n(frame, 0x1000, 0);
 
-            uint32_t lower_bound = std::max(lower, virtualAddr.addr);
-            uint32_t upper_bound = std::min(fileUpper, virtualAddr.addr + 0x1000);
+            uint32_t lower_bound = std::max(lower, vaddr);
+            uint32_t upper_bound = std::min(fileUpper, vaddr + 0x1000);
             if (lower_bound < upper_bound) {
                 std::copy_n(&file[program_header->offset + lower_bound - lower], upper_bound - lower_bound,
-                            &frame[lower_bound - virtualAddr.addr]);
+                            &frame[lower_bound - vaddr]);
             }
         }
     }
@@ -120,16 +108,7 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
     uint32_t userEsp;
 
     {
-        auto tableLocation = userStack.tableLoc();
-
-        pageDir.ensure(tableLocation, paging::PDE_Present | paging::PDE_ReadWrite | paging::PDE_User);
-        auto physicalAddr = pageDir.with(tableLocation, [&](paging::Table* table) {
-            return table->alloc(userStack, paging::PTE_Present | paging::PTE_ReadWrite | paging::PTE_User);
-        });
-
-        paging::MapperGuard mapper(physicalAddr);
-        auto frame = mapper.as<uint8_t>();
-        std::fill_n(frame, 0x1000, 0);
+        auto mapper = pageDir.alloc(userStack, true);
         uint32_t esp = makeStack(elfEntry, reinterpret_cast<void*>(header->entry_offset), mapper.vaddr.addr);
         userEsp = userStack.addr + (esp - mapper.vaddr.addr);
     }

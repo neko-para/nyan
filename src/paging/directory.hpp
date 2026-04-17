@@ -121,6 +121,8 @@ struct UserDirectory {
             allocator::physicalFrameRelease(data()->at(i));
         }
     }
+
+    MapperGuard alloc(VirtualAddress addr, bool writable);
 };
 
 }  // namespace nyan::paging
