@@ -104,15 +104,13 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
     }
 
     uint32_t kernelStack = reinterpret_cast<uint32_t>(allocator::frameAlloc());
-    auto userStack = 0xC0000000_va .prevPage();
     uint32_t userEsp;
 
     {
         paging::Translator translator;
-        auto mapper = pageDir.alloc(userStack, true);
         // TODO: 这里需要mapper来传给makeStack. 之后把这里改下
-        uint32_t esp = makeStack(elfEntry, reinterpret_cast<void*>(header->entry_offset), mapper.as<uint32_t>());
-        translator.addEntry(std::move(mapper), userStack);
+        auto stack = translator.allocEntry<uint32_t>(pageDir, 0xC0000000_va .prevPage(), true);
+        uint32_t esp = makeStack(elfEntry, reinterpret_cast<void*>(header->entry_offset), stack);
         userEsp = translator.toUser(paging::VirtualAddress{esp}).addr;
     }
 

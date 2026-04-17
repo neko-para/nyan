@@ -21,7 +21,17 @@ struct Translator {
     Translator& operator=(const Translator&) = delete;
     Translator& operator=(Translator&&) = default;
 
-    void addEntry(MapperGuard mapper, VirtualAddress user) { entries.push_back(Entry{std::move(mapper), user}); }
+    template <typename T = void>
+    T* addEntry(MapperGuard mapper, VirtualAddress user) {
+        auto ptr = mapper.as<T>();
+        entries.push_back(Entry{std::move(mapper), user});
+        return ptr;
+    }
+
+    template <typename T = void>
+    T* allocEntry(UserDirectory& pageDir, VirtualAddress user, bool writable) {
+        return addEntry<T>(pageDir.alloc(user, writable), user);
+    }
 
     VirtualAddress toUser(VirtualAddress addr) const {
         for (const auto& entry : entries) {
