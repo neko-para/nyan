@@ -8,7 +8,7 @@ namespace nyan::syscall {
 pid_t spawn(const char* name, const char* const* argv) {
     for (auto prog : data::programs) {
         if (std::string_view{prog.name} == name) {
-            auto task = task::createElfTask(prog.data, prog.size);
+            auto task = task::createElfTask(prog.data, prog.size, argv);
             return task::addTask(task);
         }
     }

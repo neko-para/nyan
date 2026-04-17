@@ -37,13 +37,13 @@ __attribute__((noinline)) void taskWrapper(int (*func)(void* param), void* param
 void fillStack(Stack& stack, int (*func)(void* param), void* param) {
     stack.pushPtr(param);
     stack.pushPtr(func);
-    stack.pushPtr(reinterpret_cast<void*>(0x12345678));  // fake eip
-    stack.pushPtr(taskWrapper);                          // entry
-    stack.pushVal(0x2);                                  // flags
-    stack.pushVal(0);                                    // ebx
-    stack.pushVal(0);                                    // esi
-    stack.pushVal(0);                                    // edi
-    stack.pushVal(0);                                    // ebp
+    stack.pushVal(0x12345678);   // fake eip
+    stack.pushPtr(taskWrapper);  // entry
+    stack.pushVal(0x2);          // flags
+    stack.pushVal(0);            // ebx
+    stack.pushVal(0);            // esi
+    stack.pushVal(0);            // edi
+    stack.pushVal(0);            // ebp
 }
 
 TaskControlBlock* createTask(int (*func)(void* param), void* param) {
@@ -64,12 +64,13 @@ TaskControlBlock* createTask(int (*func)(void* param), void* param) {
     return tcb;
 }
 
-static int elfEntry(void* entry) {
-    jumpRing3(reinterpret_cast<void (*)()>(entry));
+static int elfEntry(void* param) {
+    uint32_t* args = static_cast<uint32_t*>(param);
+    jumpRing3(args[0], args[1], args[2]);
     return 0;
 }
 
-TaskControlBlock* createElfTask(uint8_t* file, size_t) {
+TaskControlBlock* createElfTask(uint8_t* file, size_t, const char* const* argv) {
     auto header = new (file) elf::Header;
     // TODO: check if support
 
@@ -107,7 +108,19 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
 
     Stack kernelStack;
     Stack stack(pageDir, 0xC0000000_va);
-    fillStack(stack, elfEntry, reinterpret_cast<void*>(header->entry_offset));
+    lib::vector<paging::VirtualAddress> args;
+    for (auto arg = argv; *arg; arg++) {
+        arch::kprint("arg {} {}\n", args.size(), *arg);
+        args.push_back(stack.translator.toUser(stack.pushString(*arg)));
+    }
+    stack.pushVal(0);
+    for (auto it = args.rbegin(); it != args.rend(); it++) {
+        stack.pushVal(it->addr);
+    }
+    stack.pushVal(args.size());
+    stack.pushVal(header->entry_offset);
+    auto argPtr = stack.userEsp();
+    fillStack(stack, elfEntry, argPtr.as<void>());
 
     auto tcb = allocator::allocAs<TaskControlBlock>();
     tcb->userEsp = stack.userEsp().addr;

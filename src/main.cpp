@@ -24,7 +24,8 @@ namespace nyan {
 int logic(void*) {
     arch::kprint("kernel end {#010x}\n", paging::VirtualAddress(&_end).kernelToPhysical().addr);
 
-    auto tcb = task::createElfTask(data::programs[0].data, data::programs[0].size);
+    const char* argv[] = {0};
+    auto tcb = task::createElfTask(data::programs[0].data, data::programs[0].size, argv);
     auto pid = task::addTask(tcb);
 
     syscall::waitpid(pid, 0, 0);

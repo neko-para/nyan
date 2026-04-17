@@ -10,6 +10,6 @@ struct EmbedProgram {
     char name[8];
 };
 
-extern EmbedProgram programs[3];
+extern EmbedProgram programs[4];
 
 }  // namespace nyan::data

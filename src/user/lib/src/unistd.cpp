@@ -12,6 +12,8 @@ static T wrapRet(T ret) {
     }
 }
 
+extern "C" {
+
 void exit(int code) {
     sys_exit(code);
 }
@@ -61,4 +63,5 @@ void* sbrk(intptr_t increment) {
 
 int nanosleep(const struct timespec* rqtp, struct timespec* rmtp) {
     return wrapRet(sys_nanosleep(rqtp, rmtp));
+}
 }

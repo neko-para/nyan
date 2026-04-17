@@ -1,5 +1,7 @@
 #include <string.h>
 
+extern "C" {
+
 int memcmp(const void* lhs, const void* rhs, size_t size) {
     auto plhs = reinterpret_cast<const uint8_t*>(lhs);
     auto prhs = reinterpret_cast<const uint8_t*>(rhs);
@@ -155,4 +157,5 @@ char* strstr(const char* str, const char* pat) {
     fail:
         str++;
     }
+}
 }

@@ -18,7 +18,7 @@ add_library(
   user STATIC
   src/user/lib/src/start.s src/user/lib/src/syscall.cpp
   src/user/lib/src/unistd.cpp src/user/lib/src/string.cpp
-  src/user/lib/src/errno.cpp)
+  src/user/lib/src/stdio.cpp src/user/lib/src/errno.cpp)
 target_include_directories(user PUBLIC src/user/lib/include)
 target_link_libraries(user PUBLIC kernel_header)
 
@@ -57,6 +57,7 @@ endfunction()
 add_user_program(sh src/user/entry/sh.cpp)
 add_user_program(true src/user/entry/true.cpp)
 add_user_program(false src/user/entry/false.cpp)
+add_user_program(argv src/user/entry/argv.cpp)
 
 # kernel
 

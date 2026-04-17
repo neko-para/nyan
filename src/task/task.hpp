@@ -14,7 +14,7 @@ enum class BlockReason : uint16_t;
 void load();
 
 TaskControlBlock* createTask(int (*func)(void* param), void* param = nullptr);
-TaskControlBlock* createElfTask(uint8_t* file, size_t size);
+TaskControlBlock* createElfTask(uint8_t* file, size_t size, const char* const* argv);
 pid_t addTask(TaskControlBlock* task);
 __attribute__((noinline)) void initYield();
 [[noreturn]] void exitTask(int code);
