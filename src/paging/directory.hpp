@@ -51,8 +51,8 @@ struct MapperGuard {
     }
     MapperGuard(const MapperGuard&) = delete;
     MapperGuard(MapperGuard&& mapper) noexcept : paddr(mapper.paddr), vaddr(mapper.vaddr.addr) {
-        mapper.paddr = PhysicalAddress{0};
-        mapper.vaddr = VirtualAddress{0};
+        mapper.paddr = 0_pa;
+        mapper.vaddr = 0_va;
     }
     ~MapperGuard() noexcept {
         if (vaddr) {
@@ -70,8 +70,8 @@ struct MapperGuard {
         this->~MapperGuard();
         paddr = mapper.paddr;
         vaddr = mapper.vaddr;
-        mapper.paddr = PhysicalAddress{0};
-        mapper.vaddr = VirtualAddress{0};
+        mapper.paddr = 0_pa;
+        mapper.vaddr = 0_va;
         return *this;
     }
 

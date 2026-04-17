@@ -42,7 +42,7 @@ extern "C" void preparePaging() {
 
 void clearIdentityPaging() {
     for (size_t i = 0; i < 256; i++) {
-        kernelPageDirectory.set(PhysicalAddress{0}, i, 0);
+        kernelPageDirectory.set(0_pa, i, 0);
     }
 
     asm volatile(
