@@ -7,6 +7,7 @@
 #include "../timer/load.hpp"
 #include "../vga/print.hpp"
 #include "guard.hpp"
+#include "stack.hpp"
 #include "switch.hpp"
 #include "tcb.hpp"
 
@@ -33,31 +34,32 @@ __attribute__((noinline)) void taskWrapper(int (*func)(void* param), void* param
     exitTask(code);
 }
 
-uint32_t makeStack(int (*func)(void* param), void* param, uint32_t* stack) {
-    stack += (1 << 10);  // +4K
-    *--stack = reinterpret_cast<uint32_t>(param);
-    *--stack = reinterpret_cast<uint32_t>(func);
-    *--stack = 0x12345678;  // fake eip
-    *--stack = reinterpret_cast<uint32_t>(taskWrapper);
-    *--stack = 0x2;  // flags
-    *--stack = 0;    // ebx
-    *--stack = 0;    // esi
-    *--stack = 0;    // edi
-    *--stack = 0;    // ebp
-    return reinterpret_cast<uint32_t>(stack);
+void fillStack(Stack& stack, int (*func)(void* param), void* param) {
+    stack.pushPtr(param);
+    stack.pushPtr(func);
+    stack.pushPtr(reinterpret_cast<void*>(0x12345678));  // fake eip
+    stack.pushPtr(taskWrapper);                          // entry
+    stack.pushVal(0x2);                                  // flags
+    stack.pushVal(0);                                    // ebx
+    stack.pushVal(0);                                    // esi
+    stack.pushVal(0);                                    // edi
+    stack.pushVal(0);                                    // ebp
 }
 
 TaskControlBlock* createTask(int (*func)(void* param), void* param) {
-    uint32_t stack = reinterpret_cast<uint32_t>(allocator::frameAlloc());
+    Stack kernelStack;
+    Stack stack;
+    fillStack(stack, func, param);
     auto tcb = allocator::allocAs<TaskControlBlock>();
-    tcb->userEsp = makeStack(func, param, reinterpret_cast<uint32_t*>(stack));
+    tcb->userEsp = stack.esp().addr;
     tcb->cr3 = paging::kernelPageDirectory.cr3();
-    tcb->kernelEsp = stack + (1 << 10);
+    tcb->kernelEsp = kernelStack.esp().addr;
     tcb->state = State::S_Ready;
     tcb->pid = KP_Invalid;
 
     tcb->brkAddr = 0x400000_va;
-    tcb->pages.push_back(stack);
+    tcb->pages.push_back(kernelStack.userBase.addr);
+    tcb->pages.push_back(stack.userBase.addr);
 
     return tcb;
 }
@@ -103,26 +105,19 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
         }
     }
 
-    uint32_t kernelStack = reinterpret_cast<uint32_t>(allocator::frameAlloc());
-    uint32_t userEsp;
-
-    {
-        paging::Translator translator;
-        // TODO: 这里需要mapper来传给makeStack. 之后把这里改下
-        auto stack = translator.allocEntry<uint32_t>(pageDir, 0xC0000000_va .prevPage(), true);
-        uint32_t esp = makeStack(elfEntry, reinterpret_cast<void*>(header->entry_offset), stack);
-        userEsp = translator.toUser(paging::VirtualAddress{esp}).addr;
-    }
+    Stack kernelStack;
+    Stack stack(pageDir, 0xC0000000_va);
+    fillStack(stack, elfEntry, reinterpret_cast<void*>(header->entry_offset));
 
     auto tcb = allocator::allocAs<TaskControlBlock>();
-    tcb->userEsp = userEsp;
+    tcb->userEsp = stack.userEsp().addr;
     tcb->cr3 = pageDir.mapper.paddr;
-    tcb->kernelEsp = kernelStack + 0x1000;
+    tcb->kernelEsp = kernelStack.esp().addr;
     tcb->state = State::S_Ready;
     tcb->pid = KP_Invalid;
 
     tcb->brkAddr = brkAddr;
-    tcb->pages.push_back(kernelStack);
+    tcb->pages.push_back(kernelStack.userBase.addr);
 
     return tcb;
 }
