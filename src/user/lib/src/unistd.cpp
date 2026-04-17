@@ -16,8 +16,8 @@ void exit(int code) {
     sys_exit(code);
 }
 
-pid_t spawn(const char* name) {
-    return sys_spawn(name);
+pid_t spawn(const char* name, const char* const* argv) {
+    return sys_spawn(name, argv);
 }
 
 ssize_t read(int fd, void* buf, size_t size) {

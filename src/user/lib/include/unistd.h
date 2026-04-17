@@ -12,7 +12,7 @@ extern "C" {
 
 [[noreturn]] void exit(int code);
 
-pid_t spawn(const char* name);
+pid_t spawn(const char* name, const char* const* argv);
 
 ssize_t read(int fd, void* buf, size_t size);
 

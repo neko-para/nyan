@@ -32,9 +32,8 @@ __attribute__((noinline)) void taskWrapper(int (*func)(void* param), void* param
     exitTask(code);
 }
 
-uint32_t makeStack(int (*func)(void* param), void* param, uint32_t stackBase) {
-    auto base = reinterpret_cast<uint32_t*>(stackBase);
-    auto stack = base + (1 << 10);  // +4K
+uint32_t makeStack(int (*func)(void* param), void* param, uint32_t* stack) {
+    stack += (1 << 10);  // +4K
     *--stack = reinterpret_cast<uint32_t>(param);
     *--stack = reinterpret_cast<uint32_t>(func);
     *--stack = 0x12345678;  // fake eip
@@ -50,7 +49,7 @@ uint32_t makeStack(int (*func)(void* param), void* param, uint32_t stackBase) {
 TaskControlBlock* createTask(int (*func)(void* param), void* param) {
     uint32_t stack = reinterpret_cast<uint32_t>(allocator::frameAlloc());
     auto tcb = allocator::allocAs<TaskControlBlock>();
-    tcb->userEsp = makeStack(func, param, stack);
+    tcb->userEsp = makeStack(func, param, reinterpret_cast<uint32_t*>(stack));
     tcb->cr3 = paging::kernelPageDirectory.cr3();
     tcb->kernelEsp = stack + (1 << 10);
     tcb->state = State::S_Ready;
@@ -109,7 +108,7 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
 
     {
         auto mapper = pageDir.alloc(userStack, true);
-        uint32_t esp = makeStack(elfEntry, reinterpret_cast<void*>(header->entry_offset), mapper.vaddr.addr);
+        uint32_t esp = makeStack(elfEntry, reinterpret_cast<void*>(header->entry_offset), mapper.as<uint32_t>());
         userEsp = userStack.addr + (esp - mapper.vaddr.addr);
     }
 

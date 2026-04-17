@@ -31,7 +31,8 @@ extern "C" int main() {
         if (!strcmp(buf, "exit")) {
             break;
         } else {
-            auto pid = spawn(buf);
+            const char* args[] = {0};
+            auto pid = spawn(buf, args);
             if (pid <= 0) {
                 puts("launch failed\n");
             } else {

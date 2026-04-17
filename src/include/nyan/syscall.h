@@ -9,7 +9,7 @@ __NYAN_SYSCALL_BEGIN__
 [[noreturn]] void __NYAN_SYSCALL__(exit)(int code);
 
 // 2, 借用fork
-pid_t __NYAN_SYSCALL__(spawn)(const char* name);
+pid_t __NYAN_SYSCALL__(spawn)(const char* name, const char* const* argv);
 
 // 3
 ssize_t __NYAN_SYSCALL__(read)(int fd, void* buf, size_t size);

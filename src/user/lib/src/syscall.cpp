@@ -44,13 +44,15 @@ static Ret syscall(Arg1 arg1, Arg2 arg2, Arg3 arg3) {
     }
 }
 
+extern "C" {
+
 [[noreturn]] void sys_exit(int code) {
     syscall<1, void>(code);
     __builtin_unreachable();
 }
 
-pid_t sys_spawn(const char* name) {
-    return syscall<2, pid_t>(name);
+pid_t sys_spawn(const char* name, const char* const* argv) {
+    return syscall<2, pid_t>(name, argv);
 }
 
 ssize_t sys_read(int fd, void* buf, size_t size) {
@@ -75,4 +77,5 @@ void* sys_brk(const void* addr) {
 
 int sys_nanosleep(const timespec* rqtp, timespec* rmtp) {
     return syscall<162, int>(rqtp, rmtp);
+}
 }
