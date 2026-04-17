@@ -24,12 +24,12 @@ struct alignas(4096) DirectoryData {
 };
 
 struct KernelDirectory : public DirectoryData {
-    void map(PairedAddress addrs, uint16_t attr) const noexcept {
-        auto table = at(addrs.vAddr.addr >> 22);
+    void map(VirtualAddress vAddr, PhysicalAddress pAddr, uint16_t attr) const noexcept {
+        auto table = at(vAddr.addr >> 22);
         if (!table) {
             arch::kfatal("table not exists");
         }
-        table.kernelToVirtual().as<Table>()->map(addrs, attr);
+        table.kernelToVirtual().as<Table>()->map(vAddr, pAddr, attr);
     }
 
     bool unmap(VirtualAddress virtualAddr, PhysicalAddress& physicalAddr) const noexcept {
@@ -46,12 +46,7 @@ struct KernelDirectory : public DirectoryData {
 struct MapperGuard {
     MapperGuard(PhysicalAddress addr) noexcept : paddr(addr) {
         vaddr = allocator::virtualFrameAlloc();
-        kernelPageDirectory.map(
-            {
-                .pAddr = paddr,
-                .vAddr = vaddr,
-            },
-            PTE_Present | PTE_ReadWrite);
+        kernelPageDirectory.map(vaddr, paddr, PTE_Present | PTE_ReadWrite);
         vaddr.invlpg();
     }
     MapperGuard(const MapperGuard&) = delete;

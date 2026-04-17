@@ -19,9 +19,9 @@ struct alignas(4096) Table {
         }
     }
 
-    void map(PairedAddress addrs, uint16_t attr) noexcept {
-        auto location = (addrs.vAddr.addr >> 12) & 0x3FF;
-        data[location] = (addrs.pAddr.addr & (~0xFFF)) | attr;
+    void map(VirtualAddress vAddr, PhysicalAddress pAddr, uint16_t attr) noexcept {
+        auto location = (vAddr.addr >> 12) & 0x3FF;
+        data[location] = (pAddr.addr & (~0xFFF)) | attr;
     }
 
     bool unmap(VirtualAddress virtualAddr, PhysicalAddress& physicalAddr) noexcept {
@@ -37,7 +37,7 @@ struct alignas(4096) Table {
 
     PhysicalAddress alloc(VirtualAddress virtualAddr, uint16_t attr) noexcept {
         auto physicalAddr = allocator::physicalFrameAlloc();
-        map({.pAddr = physicalAddr, .vAddr = virtualAddr}, attr);
+        map(virtualAddr, physicalAddr, attr);
         return physicalAddr;
     }
 

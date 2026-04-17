@@ -50,11 +50,6 @@ struct VirtualAddress {
     }
 };
 
-struct PairedAddress {
-    PhysicalAddress pAddr;
-    VirtualAddress vAddr;
-};
-
 inline VirtualAddress PhysicalAddress::kernelToVirtual() const noexcept {
     return VirtualAddress{addr + 0xC0000000};
 }
