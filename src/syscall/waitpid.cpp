@@ -1,11 +1,11 @@
-#include "entry.hpp"
+#include <nyan/syscall.h>
 
-#include <errno.h>
 #include <sys/wait.h>
 
 #include "../task/guard.hpp"
 #include "../task/pid.hpp"
 #include "../task/task.hpp"
+#include "../task/tcb.hpp"
 
 namespace nyan::syscall {
 
@@ -13,25 +13,25 @@ constexpr int KnownOptions = WNOHANG;
 
 pid_t waitpid(pid_t pid, int* stat_loc, int options) {
     if ((options & KnownOptions) != options) {
-        return -EINVAL;
+        return -SYS_EINVAL;
     }
 
     if (pid < -1) {
         // wait group
-        return -ENOSYS;
+        return -SYS_ENOSYS;
     } else if (pid == -1) {
         // wait any child
-        return -ENOSYS;
+        return -SYS_ENOSYS;
     } else if (pid == 0) {
         // wait any child in same group
-        return -ENOSYS;
+        return -SYS_ENOSYS;
     } else {
         // wait pid
         while (true) {
             task::InterruptGuard guard;
             auto tcb = task::findTask(pid);
             if (!tcb) {
-                return -ECHILD;
+                return -SYS_ECHILD;
             }
 
             if (!tcb->ended()) {

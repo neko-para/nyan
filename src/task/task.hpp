@@ -9,67 +9,9 @@
 namespace nyan::task {
 
 struct TaskControlBlock;
-
-struct TaskControlBlockTag {
-    using type = TaskControlBlock;
-};
-
-enum class State : uint16_t {
-    S_Ready,
-    S_Running,
-    S_Exited,
-    // TODO: signal
-
-    S_Blocked,
-};
-
-enum class BlockReason : uint16_t {
-    BR_Unknown,
-    BR_Sleep,
-    BR_WaitInput,
-    BR_WaitTask,
-};
-
-struct TaskControlBlockMetaInfo {
-    uint32_t userEsp;
-    paging::PhysicalAddress cr3;
-    uint32_t kernelEsp;
-    State state;
-    BlockReason blockReason;
-    pid_t pid;
-};
-
-struct ExitInfo {
-    int code;
-};
-
-struct BlockSleepInfo {
-    uint64_t time;
-};
-
-struct BlockWaitInfo {
-    pid_t pid;
-};
-
-struct TaskControlBlock : public TaskControlBlockMetaInfo, public lib::ListBase<TaskControlBlockTag> {
-    lib::vector<uint32_t> pages;
-    lib::List<TaskControlBlock> waitingTasks;
-    union {
-        ExitInfo exitInfo;
-        BlockSleepInfo sleepInfo;
-        BlockWaitInfo waitInfo;
-    };
-
-    bool ended() const noexcept { return state == State::S_Exited; }
-    void dump();
-};
-
-extern lib::List<TaskControlBlock> currentTask asm("currentTask");
+enum class BlockReason : uint16_t;
 
 void load();
-
-extern "C" void switchToTask(TaskControlBlock* nextTask);
-extern "C" void jumpRing3(void (*func)());
 
 TaskControlBlock* createTask(int (*func)(void* param), void* param = nullptr);
 TaskControlBlock* createElfTask(uint8_t* file, size_t size);

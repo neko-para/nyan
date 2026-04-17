@@ -2,9 +2,9 @@
 
 #include <algorithm>
 
-#include "../arch/io.hpp"
 #include "guard.hpp"
 #include "task.hpp"
+#include "tcb.hpp"
 
 namespace nyan::task {
 

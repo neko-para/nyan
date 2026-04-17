@@ -11,12 +11,13 @@ option(NYAN_ENABLE_OPTIMIZE CACHE OFF)
 
 # user program
 
-add_library(user_initerface INTERFACE)
-target_include_directories(user_initerface INTERFACE SYSTEM
-                                                     src/user/lib/include)
+add_library(kernel_header INTERFACE)
+target_include_directories(kernel_header INTERFACE SYSTEM src/include)
 
-add_library(user STATIC src/user/lib/start.s src/user/lib/syscall.cpp)
-target_link_libraries(user PUBLIC user_initerface)
+add_library(user STATIC src/user/lib/src/start.s src/user/lib/src/syscall.cpp
+                        src/user/lib/src/unistd.cpp src/user/lib/src/errno.cpp)
+target_include_directories(user PUBLIC src/user/lib/include)
+target_link_libraries(user PUBLIC kernel_header)
 
 set(USER_PROGRAM_OBJECTS "")
 set(USER_PROGRAM_TARGETS "")
@@ -63,6 +64,7 @@ set(syscall_srcs
     src/syscall/write.cpp
     src/syscall/waitpid.cpp
     src/syscall/getpid.cpp
+    src/syscall/brk.cpp
     src/syscall/nanosleep.cpp)
 
 add_executable(
@@ -85,6 +87,7 @@ add_executable(
   src/task/switch.s
   src/task/pid.cpp
   src/task/task.cpp
+  src/task/tcb.cpp
   src/task/wait.cpp
   src/timer/load.cpp
   src/vga/print.cpp
@@ -121,5 +124,5 @@ endforeach()
 
 target_link_directories(kernel PRIVATE sysroot/usr/lib/generic
                         sysroot/usr/lib/i686-none-elf)
-target_link_libraries(kernel PRIVATE user_initerface c clang_rt.builtins-i386
+target_link_libraries(kernel PRIVATE kernel_header c clang_rt.builtins-i386
                                      ${USER_PROGRAM_OBJECTS})

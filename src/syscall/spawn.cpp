@@ -1,4 +1,4 @@
-#include "entry.hpp"
+#include <nyan/syscall.h>
 
 #include "../data/embed.hpp"
 #include "../task/task.hpp"

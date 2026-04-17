@@ -1,4 +1,4 @@
-#include "entry.hpp"
+#include <nyan/syscall.h>
 
 #include "../task/task.hpp"
 
@@ -7,11 +7,11 @@ namespace nyan::syscall {
 int nanosleep(const timespec* rqtp, timespec* rmtp) {
     std::ignore = rmtp;
     if (!rqtp) {
-        return -EFAULT;
+        return -SYS_EFAULT;
     }
 
     if (rqtp->tv_nsec < 0 || rqtp->tv_nsec >= 1000000000L) {
-        return -EINVAL;
+        return -SYS_EINVAL;
     }
 
     int64_t msec = rqtp->tv_sec * 1000 + rqtp->tv_nsec / 1000000;

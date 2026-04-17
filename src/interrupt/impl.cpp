@@ -1,9 +1,11 @@
 #include "isr.hpp"
 
+#include <nyan/syscall.h>
+
 #include "../arch/io.hpp"
 #include "../lib/format.hpp"
-#include "../syscall/entry.hpp"
 #include "../task/task.hpp"
+#include "../task/tcb.hpp"
 #include "../vga/print.hpp"
 
 namespace nyan::interrupt {
@@ -160,11 +162,14 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
         case 20:
             CALL(getpid)
             return;
+        case 45:
+            CALL(brk)
+            return;
         case 162:
             CALL(nanosleep)
             return;
     }
-    frame->eax = -ENOSYS;
+    frame->eax = -SYS_ENOSYS;
 }
 
 }  // namespace nyan::interrupt

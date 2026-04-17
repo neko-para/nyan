@@ -1,6 +1,4 @@
-#include "entry.hpp"
-
-#include <errno.h>
+#include <nyan/syscall.h>
 
 #include "../keyboard/buffer.hpp"
 #include "../task/guard.hpp"
@@ -14,13 +12,13 @@ static bool empty() {
 
 ssize_t read(int fd, void* buf, size_t size) {
     if (fd != 0) {
-        return -EBADF;
+        return -SYS_EBADF;
     }
     if (!buf) {
-        return -EFAULT;
+        return -SYS_EFAULT;
     }
     if (size > INT_MAX) {
-        return -EINVAL;
+        return -SYS_EINVAL;
     }
     while (empty()) {
         keyboard::waitList.wait();

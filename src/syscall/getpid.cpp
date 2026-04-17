@@ -1,6 +1,7 @@
-#include "entry.hpp"
+#include <nyan/syscall.h>
 
 #include "../task/task.hpp"
+#include "../task/tcb.hpp"
 
 namespace nyan::syscall {
 

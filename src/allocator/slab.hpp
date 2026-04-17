@@ -42,7 +42,7 @@ struct SlabHeader : public lib::ListBase<SlabHeaderTag> {
     bool empty() const noexcept { return used_count == 0; }
 
     static SlabHeader* fromAddr(void* addr) noexcept {
-        return reinterpret_cast<SlabHeader*>(reinterpret_cast<uint32_t>(addr) & (~0x3FF));
+        return reinterpret_cast<SlabHeader*>(reinterpret_cast<uint32_t>(addr) & (~0xFFF));
     }
 };
 

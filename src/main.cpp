@@ -1,3 +1,4 @@
+#include <nyan/syscall.h>
 #include <string.h>
 
 #include "allocator/load.hpp"
@@ -9,8 +10,8 @@
 #include "keyboard/load.hpp"
 #include "lib/format.hpp"
 #include "paging/kernel.hpp"
-#include "syscall/entry.hpp"
 #include "task/task.hpp"
+#include "task/tcb.hpp"
 #include "timer/load.hpp"
 #include "vga/cursor.hpp"
 #include "vga/print.hpp"

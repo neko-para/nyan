@@ -6,40 +6,11 @@
 #include "../timer/load.hpp"
 #include "../vga/print.hpp"
 #include "guard.hpp"
+#include "switch.hpp"
+#include "tcb.hpp"
 
 namespace nyan::task {
 
-void TaskControlBlock::dump() {
-    switch (state) {
-        case State::S_Ready:
-            vga::print("task {} ready\n", pid);
-            break;
-        case task::State::S_Running:
-            vga::print("task {} running\n", pid);
-            break;
-        case task::State::S_Exited:
-            vga::print("task {} exited with {}\n", pid, exitInfo.code);
-            break;
-        case task::State::S_Blocked:
-            switch (blockReason) {
-                case BlockReason::BR_Unknown:
-                    vga::print("task {} blocked\n", pid);
-                    break;
-                case BlockReason::BR_Sleep:
-                    vga::print("task {} sleeping, eta {}\n", pid, sleepInfo.time - timer::msSinceBoot);
-                    break;
-                case BlockReason::BR_WaitInput:
-                    vga::print("task {} waiting input\n", pid);
-                    break;
-                case BlockReason::BR_WaitTask:
-                    vga::print("task {} waiting task {}\n", pid, waitInfo.pid);
-                    break;
-            }
-            break;
-    }
-}
-
-lib::List<TaskControlBlock> currentTask asm("currentTask");
 lib::TailList<TaskControlBlock> pendingTasks;
 lib::TailList<TaskControlBlock> sleepTasks;
 
@@ -85,6 +56,7 @@ TaskControlBlock* createTask(int (*func)(void* param), void* param) {
     tcb->state = State::S_Ready;
     tcb->pid = KP_Invalid;
 
+    tcb->brkAddr = paging::VirtualAddress{0x400000};
     tcb->pages.push_back(stack);
 
     return tcb;
@@ -102,6 +74,7 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
     auto pageDir = paging::UserDirectory::fork(paging::kernelPageDirectory);
 
     auto offset = header->program_header_table_offset;
+    uint32_t brkAddr = 0x400000;
     for (size_t i = 0; i < header->program_header_entry_count; i++) {
         auto program_header = new (file + offset) elf::ProgramHeader;
         offset += header->program_header_entry_size;
@@ -116,6 +89,7 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
         uint32_t fileUpper = program_header->vaddr + program_header->filesz;
         uint32_t lowerPage = lower & (~0xFFF);
         uint32_t upperPage = (upper + 0xFFF) & (~0xFFF);
+        brkAddr = std::max(brkAddr, upperPage);
         for (uint32_t vaddr = lowerPage; vaddr != upperPage; vaddr += 0x1000) {
             auto pageAttr = paging::PTE_Present | paging::PTE_User;
             if (program_header->flags & elf::PHF_Writable) {
@@ -167,6 +141,7 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
     tcb->state = State::S_Ready;
     tcb->pid = KP_Invalid;
 
+    tcb->brkAddr = paging::VirtualAddress{brkAddr};
     tcb->pages.push_back(kernelStack);
 
     return tcb;
