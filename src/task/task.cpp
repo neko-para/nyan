@@ -3,6 +3,7 @@
 #include "../allocator/utils.hpp"
 #include "../elf/entry.hpp"
 #include "../paging/directory.hpp"
+#include "../paging/translator.hpp"
 #include "../timer/load.hpp"
 #include "../vga/print.hpp"
 #include "guard.hpp"
@@ -107,9 +108,12 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
     uint32_t userEsp;
 
     {
+        paging::Translator translator;
         auto mapper = pageDir.alloc(userStack, true);
+        // TODO: 这里需要mapper来传给makeStack. 之后把这里改下
         uint32_t esp = makeStack(elfEntry, reinterpret_cast<void*>(header->entry_offset), mapper.as<uint32_t>());
-        userEsp = userStack.addr + (esp - mapper.vaddr.addr);
+        translator.addEntry(std::move(mapper), userStack);
+        userEsp = translator.toUser(paging::VirtualAddress{esp}).addr;
     }
 
     auto tcb = allocator::allocAs<TaskControlBlock>();
