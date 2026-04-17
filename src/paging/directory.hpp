@@ -25,7 +25,7 @@ struct alignas(4096) DirectoryData {
 
 struct KernelDirectory : public DirectoryData {
     void map(VirtualAddress vAddr, PhysicalAddress pAddr, uint16_t attr) const noexcept {
-        auto table = at(vAddr.addr >> 22);
+        auto table = at(vAddr.tableLoc());
         if (!table) {
             arch::kfatal("table not exists");
         }
@@ -33,7 +33,7 @@ struct KernelDirectory : public DirectoryData {
     }
 
     bool unmap(VirtualAddress virtualAddr, PhysicalAddress& physicalAddr) const noexcept {
-        auto table = at(virtualAddr.addr >> 22);
+        auto table = at(virtualAddr.tableLoc());
         if (!table) {
             arch::kfatal("table not exists");
         }

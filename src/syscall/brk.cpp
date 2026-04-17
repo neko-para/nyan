@@ -8,17 +8,17 @@ namespace nyan::syscall {
 
 void* brk(const void* addr) {
     auto vAddr = paging::VirtualAddress{addr};
-    if (!vAddr || vAddr.addr < task::currentTask->brkAddr.addr) {
+    if (!vAddr || vAddr < task::currentTask->brkAddr) {
         return task::currentTask->brkAddr.as<void>();
     }
-    auto currentPage = (task::currentTask->brkAddr.addr - 1) & (~0xFFF);
-    auto wantPage = (vAddr.addr - 1) & (~0xFFF);
+    auto currentPage = (task::currentTask->brkAddr - 1).thisPage();
+    auto wantPage = (vAddr - 1).thisPage();
 
     if (currentPage != wantPage) {
         auto pageDir = paging::UserDirectory::from(task::currentTask->cr3);
         while (currentPage != wantPage) {
-            currentPage += 0x1000;
-            pageDir.alloc(paging::VirtualAddress{currentPage}, true);
+            currentPage = currentPage.nextPage();
+            pageDir.alloc(currentPage, true);
         }
     }
     return vAddr.as<void>();

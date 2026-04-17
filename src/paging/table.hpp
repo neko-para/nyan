@@ -21,7 +21,7 @@ struct alignas(4096) Table {
 
     void map(VirtualAddress vAddr, PhysicalAddress pAddr, uint16_t attr) noexcept {
         auto location = (vAddr.addr >> 12) & 0x3FF;
-        data[location] = (pAddr.addr & (~0xFFF)) | attr;
+        data[location] = pAddr.thisPage().addr | attr;
     }
 
     bool unmap(VirtualAddress virtualAddr, PhysicalAddress& physicalAddr) noexcept {
@@ -46,7 +46,7 @@ struct alignas(4096) Table {
             if (!(data[i] & PTE_Present)) {
                 continue;
             }
-            allocator::physicalFrameRelease(PhysicalAddress{data[i] & (~0xFFF)});
+            allocator::physicalFrameRelease(PhysicalAddress{data[i]}.thisPage());
         }
     }
 };

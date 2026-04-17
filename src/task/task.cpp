@@ -55,7 +55,7 @@ TaskControlBlock* createTask(int (*func)(void* param), void* param) {
     tcb->state = State::S_Ready;
     tcb->pid = KP_Invalid;
 
-    tcb->brkAddr = paging::VirtualAddress{0x400000};
+    tcb->brkAddr = 0x400000_va;
     tcb->pages.push_back(stack);
 
     return tcb;
@@ -73,7 +73,7 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
     auto pageDir = paging::UserDirectory::fork(paging::kernelPageDirectory);
 
     auto offset = header->program_header_table_offset;
-    uint32_t brkAddr = 0x400000;
+    auto brkAddr = 0x400000_va;
     for (size_t i = 0; i < header->program_header_entry_count; i++) {
         auto program_header = new (file + offset) elf::ProgramHeader;
         offset += header->program_header_entry_size;
@@ -83,27 +83,27 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
         if (program_header->align != 0x1000) {
             continue;
         }
-        uint32_t lower = program_header->vaddr;
-        uint32_t upper = program_header->vaddr + program_header->memsz;
-        uint32_t fileUpper = program_header->vaddr + program_header->filesz;
-        uint32_t lowerPage = lower & (~0xFFF);
-        uint32_t upperPage = (upper + 0xFFF) & (~0xFFF);
+        auto lower = paging::VirtualAddress{program_header->vaddr};
+        auto upper = paging::VirtualAddress{program_header->vaddr + program_header->memsz};
+        auto fileUpper = paging::VirtualAddress{program_header->vaddr + program_header->filesz};
+        auto lowerPage = lower.alignDown();
+        auto upperPage = upper.alignUp();
         brkAddr = std::max(brkAddr, upperPage);
-        for (uint32_t vaddr = lowerPage; vaddr != upperPage; vaddr += 0x1000) {
-            auto mapper = pageDir.alloc(paging::VirtualAddress{vaddr}, program_header->flags & elf::PHF_Writable);
+        for (auto vaddr = lowerPage; vaddr != upperPage; vaddr = vaddr.nextPage()) {
+            auto mapper = pageDir.alloc(vaddr, program_header->flags & elf::PHF_Writable);
             auto frame = mapper.as<uint8_t>();
 
-            uint32_t lower_bound = std::max(lower, vaddr);
-            uint32_t upper_bound = std::min(fileUpper, vaddr + 0x1000);
+            auto lower_bound = std::max(lower, vaddr);
+            auto upper_bound = std::min(fileUpper, vaddr.nextPage());
             if (lower_bound < upper_bound) {
-                std::copy_n(&file[program_header->offset + lower_bound - lower], upper_bound - lower_bound,
+                std::copy_n(&file[program_header->offset + (lower_bound - lower)], upper_bound - lower_bound,
                             &frame[lower_bound - vaddr]);
             }
         }
     }
 
     uint32_t kernelStack = reinterpret_cast<uint32_t>(allocator::frameAlloc());
-    auto userStack = paging::VirtualAddress{0xC0000000 - 0x1000};
+    auto userStack = 0xC0000000_va .prevPage();
     uint32_t userEsp;
 
     {
@@ -119,7 +119,7 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t) {
     tcb->state = State::S_Ready;
     tcb->pid = KP_Invalid;
 
-    tcb->brkAddr = paging::VirtualAddress{brkAddr};
+    tcb->brkAddr = brkAddr;
     tcb->pages.push_back(kernelStack);
 
     return tcb;
@@ -190,7 +190,7 @@ bool freeTask(pid_t pid, int* code) {
         allocator::frameFree(reinterpret_cast<void*>(page));
     }
 
-    if (task->cr3.addr != paging::kernelPageDirectory.cr3().addr) {
+    if (task->cr3 != paging::kernelPageDirectory.cr3()) {
         auto userPage = paging::UserDirectory::from(task->cr3);
         userPage.free();
         allocator::physicalFrameRelease(task->cr3);

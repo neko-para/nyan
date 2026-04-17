@@ -29,7 +29,7 @@ extern "C" void preparePaging() {
         phyDirectory.set(addr, i | (3 << 8), PDE_Present | PDE_ReadWrite);
     }
     phyTable[0].fillFlat(0, paging::PTE_Present | paging::PTE_ReadWrite);
-    phyTable[0].map(VirtualAddress{0xC03FF000}, PhysicalAddress{0xB8000}, paging::PTE_Present | paging::PTE_ReadWrite);
+    phyTable[0].map(0xC03FF000_va, 0xB8000_pa, paging::PTE_Present | paging::PTE_ReadWrite);
 
     cr3Addr.setCr3();
 

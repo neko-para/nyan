@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sys/types.h>
+#include <compare>
 
 #include "../arch/instr.hpp"
 
@@ -9,15 +10,37 @@ namespace nyan::paging {
 struct PhysicalAddress;
 struct VirtualAddress;
 
-struct PhysicalAddress {
+template <typename Addr>
+struct BaseAddress {
     uint32_t addr;
 
-    explicit PhysicalAddress(uint32_t addr = 0) : addr(addr) {}
-    explicit PhysicalAddress(int addr) : addr(addr) {}
-    explicit PhysicalAddress(const void* ptr) : addr(reinterpret_cast<uint32_t>(ptr)) {}
+    constexpr explicit BaseAddress(uint32_t addr = 0) : addr(addr) {}
+    constexpr explicit BaseAddress(int addr) : addr(addr) {}
+    explicit BaseAddress(const void* ptr) : addr(reinterpret_cast<uint32_t>(ptr)) {}
 
-    operator bool() const noexcept { return addr; }
-    operator uint32_t() const noexcept = delete;
+    constexpr explicit operator bool() const noexcept { return addr; }
+    constexpr explicit operator uint32_t() const noexcept = delete;
+
+    constexpr auto operator<=>(const BaseAddress<Addr>& a) const noexcept = default;
+
+    constexpr Addr alignDown() const noexcept { return Addr{addr & (~0xFFF)}; }
+    constexpr Addr alignUp() const noexcept { return Addr{(addr + 0xFFF) & (~0xFFF)}; }
+
+    constexpr Addr thisPage() const noexcept { return alignDown(); }
+    constexpr Addr prevPage() const noexcept { return Addr{(addr & (~0xFFF)) - 0x1000}; }
+    constexpr Addr nextPage() const noexcept { return Addr{(addr & (~0xFFF)) + 0x1000}; }
+
+    constexpr uint32_t pageOffset() const noexcept { return addr & 0xFFF; }
+
+    constexpr Addr operator+(int32_t offset) const noexcept { return Addr{static_cast<uint32_t>(addr + offset)}; }
+    constexpr Addr operator-(int32_t offset) const noexcept { return Addr{static_cast<uint32_t>(addr - offset)}; }
+    constexpr int64_t operator-(const Addr& a) const noexcept {
+        return static_cast<int64_t>(addr) - static_cast<int64_t>(a.addr);
+    }
+};
+
+struct PhysicalAddress : public BaseAddress<PhysicalAddress> {
+    using BaseAddress::BaseAddress;
 
     VirtualAddress kernelToVirtual() const noexcept;
 
@@ -29,20 +52,13 @@ struct PhysicalAddress {
     }
 };
 
-struct VirtualAddress {
-    uint32_t addr;
-
-    explicit VirtualAddress(uint32_t addr = 0) : addr(addr) {}
-    explicit VirtualAddress(int addr) : addr(addr) {}
-    explicit VirtualAddress(const void* ptr) : addr(reinterpret_cast<uint32_t>(ptr)) {}
-
-    operator bool() const noexcept { return addr; }
-    operator uint32_t() const noexcept = delete;
+struct VirtualAddress : public BaseAddress<VirtualAddress> {
+    using BaseAddress::BaseAddress;
 
     PhysicalAddress kernelToPhysical() const noexcept;
 
     void invlpg() const noexcept { arch::invlpg(addr); }
-    uint16_t tableLoc() const noexcept { return addr >> 22; }
+    constexpr uint16_t tableLoc() const noexcept { return addr >> 22; }
 
     template <typename T>
     T* as() const noexcept {
@@ -59,3 +75,11 @@ inline PhysicalAddress VirtualAddress::kernelToPhysical() const noexcept {
 }
 
 }  // namespace nyan::paging
+
+constexpr nyan::paging::PhysicalAddress operator""_pa(uint64_t addr) {
+    return nyan::paging::PhysicalAddress{static_cast<uint32_t>(addr)};
+}
+
+constexpr nyan::paging::VirtualAddress operator""_va(uint64_t addr) {
+    return nyan::paging::VirtualAddress{static_cast<uint32_t>(addr)};
+}
