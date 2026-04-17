@@ -14,8 +14,11 @@ option(NYAN_ENABLE_OPTIMIZE CACHE OFF)
 add_library(kernel_header INTERFACE)
 target_include_directories(kernel_header INTERFACE SYSTEM src/include)
 
-add_library(user STATIC src/user/lib/src/start.s src/user/lib/src/syscall.cpp
-                        src/user/lib/src/unistd.cpp src/user/lib/src/errno.cpp)
+add_library(
+  user STATIC
+  src/user/lib/src/start.s src/user/lib/src/syscall.cpp
+  src/user/lib/src/unistd.cpp src/user/lib/src/string.cpp
+  src/user/lib/src/errno.cpp)
 target_include_directories(user PUBLIC src/user/lib/include)
 target_link_libraries(user PUBLIC kernel_header)
 

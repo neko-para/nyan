@@ -1,21 +1,6 @@
+#include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
-
-int strcmp(const char* a, const char* b) {
-    while (*a == *b && *a && *b) {
-        a++;
-        b++;
-    }
-    return *a - *b;
-}
-
-size_t strlen(const char* s) {
-    size_t n = 0;
-    while (*s++) {
-        n++;
-    }
-    return n;
-}
 
 bool readline(char* buf, size_t len) {
     char* ptr = buf;
