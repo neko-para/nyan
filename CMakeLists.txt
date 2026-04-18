@@ -57,7 +57,7 @@ endfunction()
 add_user_program(sh src/user/entry/sh.cpp)
 add_user_program(true src/user/entry/true.cpp)
 add_user_program(false src/user/entry/false.cpp)
-add_user_program(argv src/user/entry/argv.cpp)
+add_user_program(echo src/user/entry/echo.cpp)
 
 # kernel
 

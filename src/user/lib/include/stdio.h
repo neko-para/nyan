@@ -14,6 +14,7 @@ struct FILE;
 extern "C" {
 #endif
 
+int fputc(int ch, FILE* file);
 int fputs(const char* str, FILE* file);
 
 #ifdef __cplusplus

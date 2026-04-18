@@ -10,7 +10,7 @@
 DECLARE_PROGRAM_DATA(sh)
 DECLARE_PROGRAM_DATA(true)
 DECLARE_PROGRAM_DATA(false)
-DECLARE_PROGRAM_DATA(argv)
+DECLARE_PROGRAM_DATA(echo)
 
 namespace nyan::data {
 
@@ -18,7 +18,7 @@ EmbedProgram programs[4] = {
     DECLARE_PROGRAM(sh),
     DECLARE_PROGRAM(true),
     DECLARE_PROGRAM(false),
-    DECLARE_PROGRAM(argv),
+    DECLARE_PROGRAM(echo),
 };
 
 }
