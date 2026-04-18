@@ -34,25 +34,12 @@ void Tty::input(keyboard::Message msg) {
     if (flags & F_Canonical) {
         switch (msg.code) {
             case keyboard::SC_UP:
-                lineBuffer.append("\x1B[A");
-                break;
             case keyboard::SC_DOWN:
-                lineBuffer.append("\x1B[B");
-                break;
             case keyboard::SC_LEFT:
-                lineBuffer.append("\x1B[C");
-                break;
             case keyboard::SC_RIGHT:
-                lineBuffer.append("\x1B[D");
-                break;
             case keyboard::SC_DELETE:
-                lineBuffer.append("\x1B[3~");
-                break;
             case keyboard::SC_HOME:
-                lineBuffer.append("\x1B[H");
-                break;
             case keyboard::SC_END:
-                lineBuffer.append("\x1B[F");
                 break;
             default:
                 if (msg.ch) {
@@ -75,7 +62,7 @@ void Tty::input(keyboard::Message msg) {
                         }
                     } else {
                         if (msg.flag & keyboard::F_Ctrl) {
-                            lineBuffer.push_back(msg.ch & 0x1F);
+                            ;
                         } else {
                             lineBuffer.push_back(msg.ch);
                             if (flags & F_Echo) {
@@ -138,7 +125,6 @@ void Tty::syncWaitInput() {
 
 int consoleDeamon(void* param) {
     Tty* tty = static_cast<Tty*>(param);
-    task::currentTask->tty = tty;
 
     while (true) {
         const char* argv[] = {"sh", 0};
@@ -164,8 +150,9 @@ void load() {
 
 void loadDeamons() {
     for (auto& tty : allTtys) {
-        auto pid = task::createTask(consoleDeamon, &tty);
-        task::addTask(pid);
+        auto tcb = task::createTask(consoleDeamon, &tty);
+        tcb->tty = &tty;
+        task::addTask(tcb);
     }
 }
 

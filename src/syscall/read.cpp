@@ -6,9 +6,6 @@
 namespace nyan::syscall {
 
 ssize_t read(int fd, void* buf, size_t size) {
-    if (fd != 0) {
-        return -SYS_EBADF;
-    }
     if (!buf) {
         return -SYS_EFAULT;
     }
