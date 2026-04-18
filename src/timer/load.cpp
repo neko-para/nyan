@@ -3,7 +3,6 @@
 #include "../arch/io.hpp"
 #include "../interrupt/load.hpp"
 #include "../task/task.hpp"
-#include "../vga/print.hpp"
 
 namespace nyan::timer {
 

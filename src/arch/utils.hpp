@@ -30,6 +30,12 @@ inline void kputs(const char* str) {
     }
 }
 
+inline void kputs(const char* str, size_t len) {
+    while (len--) {
+        kput(*str++);
+    }
+}
+
 [[noreturn]] inline void kfatal() {
     cli();
     for (;;) {

@@ -27,6 +27,7 @@ struct Entry {
     char ch;
     uint8_t attr;
 
+    Entry& operator=(const Entry& entry) = default;
     volatile Entry& operator=(const Entry& entry) volatile {
         value() = entry.value();
         return *this;
@@ -43,5 +44,9 @@ struct Entry {
     const volatile uint16_t& value() const volatile& { return *reinterpret_cast<const volatile uint16_t*>(this); }
     volatile uint16_t& value() volatile& { return *reinterpret_cast<volatile uint16_t*>(this); }
 };
+
+constexpr uint8_t makeAttr(uint8_t fg, uint8_t bg) {
+    return (bg << 4) | fg;
+}
 
 }  // namespace nyan::vga

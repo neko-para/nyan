@@ -20,6 +20,21 @@ struct wrap_iterator {
     wrap_iterator& operator++(int) noexcept { return *this; }
 };
 
+template <typename T, void (T::*put)(char ch)>
+struct wrap_member_iterator {
+    using difference_type = ptrdiff_t;
+
+    T* obj;
+
+    wrap_member_iterator& operator=(char ch) noexcept {
+        (obj->*put)(ch);
+        return *this;
+    }
+    wrap_member_iterator& operator*() noexcept { return *this; }
+    wrap_member_iterator& operator++() noexcept { return *this; }
+    wrap_member_iterator& operator++(int) noexcept { return *this; }
+};
+
 template <typename... Args>
 struct format_string {
     string_view fmt;

@@ -6,7 +6,7 @@
 #include "../interrupt/load.hpp"
 #include "../lib/queue.hpp"
 #include "../task/wait.hpp"
-#include "../vga/print.hpp"
+#include "../tty/entry.hpp"
 #include "buffer.hpp"
 #include "message.hpp"
 
@@ -26,6 +26,8 @@ void pushMsg(const Message& msg) {
     if (msg.flag & F_Release) {
         return;
     }
+
+    tty::activeTty->input(msg);
 
     if (msg.flag & keyboard::F_Ctrl && msg.code == keyboard::SC_C) {
         arch::qemuQuit();
@@ -60,7 +62,8 @@ void pushMsg(const Message& msg) {
                 } else {
                     buffer.push(msg.ch);
                     if (echo) {
-                        vga::putc(msg.ch);
+                        // TODO: echo
+                        // vga::putc(msg.ch);
                     }
                 }
             }

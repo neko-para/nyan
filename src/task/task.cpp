@@ -5,7 +5,6 @@
 #include "../paging/directory.hpp"
 #include "../paging/translator.hpp"
 #include "../timer/load.hpp"
-#include "../vga/print.hpp"
 #include "guard.hpp"
 #include "stack.hpp"
 #include "switch.hpp"
@@ -185,11 +184,11 @@ bool freeTask(pid_t pid, int* code) {
     arch::kprint("free called pid = {} current = {}\n", pid, currentTask->pid);
     auto task = allTasks[pid];
     if (!task) {
-        vga::print("Task {} not exists!\n", pid);
+        arch::kprint("Task {} not exists!\n", pid);
         return false;
     }
     if (task->state != State::S_Exited) {
-        vga::print("Task {} not exited!\n", pid);
+        arch::kprint("Task {} not exited!\n", pid);
         return false;
     }
     if (code) {

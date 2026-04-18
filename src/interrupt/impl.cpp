@@ -6,7 +6,6 @@
 #include "../lib/format.hpp"
 #include "../task/task.hpp"
 #include "../task/tcb.hpp"
-#include "../vga/print.hpp"
 
 namespace nyan::interrupt {
 

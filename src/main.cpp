@@ -13,8 +13,7 @@
 #include "task/task.hpp"
 #include "task/tcb.hpp"
 #include "timer/load.hpp"
-#include "vga/cursor.hpp"
-#include "vga/print.hpp"
+#include "tty/entry.hpp"
 
 extern "C" void __libc_init_array();
 extern uint8_t _end;
@@ -36,9 +35,7 @@ extern "C" void kmain(boot::BootInfo* info) {
     arch::enableSse();
     paging::clearIdentityPaging();
 
-    vga::clear();
-    vga::showCursor();
-    vga::flushCursor();
+    tty::load();
 
     __libc_init_array();
 
@@ -71,7 +68,7 @@ extern "C" void kmain(boot::BootInfo* info) {
     task::initYield();
 
     arch::sti();
-    vga::print("all tasks finished.\n");
+    tty::activeTty->print("all tasks finished.\n");
     arch::kprint("all tasks finished.\n");
     for (int i = 0; i < task::MaxTaskCount; i++) {
         if (task::allTasks[i]) {
