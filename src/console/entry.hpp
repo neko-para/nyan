@@ -7,6 +7,10 @@ namespace nyan::keyboard {
 struct Message;
 }
 
+namespace nyan::task {
+struct InterruptGuard;
+}
+
 namespace nyan::console {
 
 constexpr size_t count = 2;
@@ -25,7 +29,7 @@ struct Tty : public ScreenBuffer {
     void input(const keyboard::Message& msg);
 
     bool inputEmpty();
-    void syncWaitInput();
+    task::InterruptGuard syncWaitInput();
 };
 
 extern Tty* activeTty;

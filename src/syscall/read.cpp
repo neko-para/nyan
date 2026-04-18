@@ -14,18 +14,11 @@ ssize_t read(int fd, void* buf, size_t size) {
     }
     if (fd == 0) {
         if (auto tty = task::currentTask->tty) {
-            tty->syncWaitInput();
-            task::InterruptGuard guard;
-            if (tty->inputBuffer.size() <= size) {
-                auto result = tty->inputBuffer.size();
-                std::copy_n(tty->inputBuffer.data(), result, static_cast<uint8_t*>(buf));
-                tty->inputBuffer.clear();
-                return result;
-            } else {
-                std::copy_n(tty->inputBuffer.data(), size, static_cast<uint8_t*>(buf));
-                tty->inputBuffer.erase(0, size);
-                return size;
-            }
+            auto guard = tty->syncWaitInput();
+            auto result = std::min(tty->inputBuffer.size(), size);
+            std::copy_n(tty->inputBuffer.data(), result, static_cast<uint8_t*>(buf));
+            tty->inputBuffer.erase(0, result);
+            return result;
         } else {
             return -SYS_EBADF;
         }

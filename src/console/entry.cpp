@@ -32,6 +32,7 @@ void Tty::input(const keyboard::Message& msg) {
         arch::qemuQuit();
     }
 
+    task::InterruptGuard guard;
     if (flags & F_Canonical) {
         switch (msg.code) {
             case keyboard::SC_UP:
@@ -118,8 +119,12 @@ bool Tty::inputEmpty() {
     return inputBuffer.empty();
 }
 
-void Tty::syncWaitInput() {
-    while (inputEmpty()) {
+task::InterruptGuard Tty::syncWaitInput() {
+    while (true) {
+        task::InterruptGuard guard;
+        if (!inputBuffer.empty()) {
+            return guard;
+        }
         waitList.wait();
     }
 }
