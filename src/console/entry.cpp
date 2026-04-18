@@ -12,7 +12,7 @@
 namespace nyan::console {
 
 Tty* activeTty;
-Tty allTtys[count];
+Tty* allTtys[count];
 
 void Tty::activate() {
     flags |= F_Active;
@@ -132,37 +132,39 @@ task::InterruptGuard Tty::syncWaitInput() {
 
 int consoleDeamon(void* param) {
     Tty* tty = static_cast<Tty*>(param);
-    arch::kprint("tty {}: deamon entered, pid {}\n", tty - allTtys, task::currentTask->pid);
+    auto id = std::find(std::begin(allTtys), std::end(allTtys), tty) - std::begin(allTtys);
+    arch::kprint("tty {}: deamon entered, pid {}\n", id, task::currentTask->pid);
 
     while (true) {
         const char* argv[] = {"sh", 0};
         auto tcb = task::createElfTask(data::programs[0].data, data::programs[0].size, argv);
         tcb->tty = tty;
         auto pid = task::addTask(tcb);
-        arch::kprint("tty {}: shell started, pid {}\n", tty - allTtys, pid);
+        arch::kprint("tty {}: shell started, pid {}\n", id, pid);
 
         int stat = 0;
         syscall::waitpid(pid, &stat, 0);
-        tty->print("\ntty {}: shell exited, stat {} exit code {}\n", tty - allTtys, stat, WEXITSTATUS(stat));
+        tty->print("\ntty {}: shell exited, stat {} exit code {}\n", id, stat, WEXITSTATUS(stat));
     }
 }
 
 void load() {
     for (auto& tty : allTtys) {
-        tty.currentAttr = vga::makeAttr(vga::C_LightGray, vga::C_Black);
-        tty.flags = F_ShowCursor | F_Canonical | F_Echo;
-        tty.clear();
+        tty = new Tty;
+        tty->clear();
     }
-    activeTty = &allTtys[0];
+    activeTty = allTtys[0];
     activeTty->activate();
 }
 
 void loadDeamons() {
-    for (auto& tty : allTtys) {
-        auto tcb = task::createTask(consoleDeamon, &tty);
-        tcb->tty = &tty;
+    int id = 0;
+    for (auto tty : allTtys) {
+        auto tcb = task::createTask(consoleDeamon, tty);
+        tcb->name = lib::format("tty_deamon_{}", ++id);
+        tcb->tty = tty;
         auto pid = task::addTask(tcb);
-        arch::kprint("tty {} deamon started, pid {}\n", &tty - allTtys, pid);
+        arch::kprint("tty {} deamon started, pid {}\n", id, pid);
     }
 }
 

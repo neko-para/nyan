@@ -22,6 +22,9 @@ struct SlabAllocator {
         return static_cast<value_type*>(alloc(n * sizeof(value_type), alignof(value_type)));
     }
     void deallocate(value_type* ptr, size_type) const noexcept { free(ptr); }
+
+    bool operator==(const SlabAllocator<T>&) const { return true; }
+    bool operator!=(const SlabAllocator<T>&) const { return false; }
 };
 
 }  // namespace nyan::allocator

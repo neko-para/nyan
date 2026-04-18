@@ -33,7 +33,7 @@ struct Tty : public ScreenBuffer {
 };
 
 extern Tty* activeTty;
-extern Tty allTtys[count];
+extern Tty* allTtys[count];
 
 void load();
 void loadDeamons();

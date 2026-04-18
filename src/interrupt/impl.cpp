@@ -144,7 +144,7 @@ static void call(SyscallFrame* frame, Ret (*func)(Arg1, Arg2, Arg3)) {
 
 template <size_t N>
 static void dump(SyscallFrame* frame, const char (&name)[N]) {
-    arch::kprint("syscall eax={}({}) from {}\n", frame->eax, name, task::currentTask->pid);
+    arch::kprint("syscall eax={}({}) from {} {}\n", frame->eax, name, task::currentTask->pid, task::currentTask->name);
 }
 
 #define CALL(func)      \

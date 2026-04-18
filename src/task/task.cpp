@@ -109,7 +109,6 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t, const char* const* argv) 
     Stack stack(pageDir, 0xC0000000_va);
     lib::vector<paging::VirtualAddress> args;
     for (auto arg = argv; *arg; arg++) {
-        arch::kprint("arg {} {}\n", args.size(), *arg);
         args.push_back(stack.translator.toUser(stack.pushString(*arg)));
     }
     stack.pushVal(0);
@@ -128,6 +127,7 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t, const char* const* argv) 
     tcb->state = State::S_Ready;
     tcb->pid = KP_Invalid;
 
+    tcb->name = lib::format("elf_{}", argv[0] ? argv[0] : "unknown");
     tcb->brkAddr = brkAddr;
     tcb->pages.push_back(kernelStack.userBase.addr);
 
@@ -181,7 +181,7 @@ pid_t runTask(int (*func)(void* param), void* param) {
 }
 
 bool freeTask(pid_t pid, int* code) {
-    arch::kprint("free called pid = {} current = {}\n", pid, currentTask->pid);
+    arch::kprint("free task pid = {} current = {} {}\n", pid, currentTask->pid, currentTask->name);
     auto task = allTasks[pid];
     if (!task) {
         arch::kprint("Task {} not exists!\n", pid);

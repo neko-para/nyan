@@ -21,8 +21,8 @@ struct ScreenBuffer {
 
     int rowPtr = 0;
     int colPtr = 0;
-    uint8_t currentAttr;
-    uint8_t flags;
+    uint8_t currentAttr = vga::makeAttr(vga::C_LightGray, vga::C_Black);
+    uint8_t flags = F_ShowCursor | F_Canonical | F_Echo;
 
     void flush();
     void flushBuffer();

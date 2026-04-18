@@ -55,6 +55,7 @@ struct BlockWaitInfo {
 };
 
 struct TaskControlBlock : public TaskControlBlockMetaInfo, public lib::ListBase<TaskControlBlockTag> {
+    lib::string name;
     paging::VirtualAddress brkAddr;
     console::Tty* tty{};
     lib::vector<uint32_t> pages;
