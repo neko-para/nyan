@@ -5,6 +5,7 @@
 
 #include "../arch/utils.hpp"
 #include "../data/embed.hpp"
+#include "../keyboard/message.hpp"
 #include "../task/guard.hpp"
 
 namespace nyan::console {
@@ -21,7 +22,7 @@ void Tty::deactivate() {
     flags &= ~F_Active;
 }
 
-void Tty::input(keyboard::Message msg) {
+void Tty::input(const keyboard::Message& msg) {
     if (msg.flag & keyboard::F_Release) {
         return;
     }
@@ -55,7 +56,7 @@ void Tty::input(keyboard::Message msg) {
                         }
                     } else if (msg.ch == '\n') {
                         lineBuffer.push_back('\n');
-                        inputBuffer.pushSome(lineBuffer.data(), lineBuffer.size());
+                        inputBuffer.append(lineBuffer);
                         lineBuffer.clear();
                         if (flags & F_Echo) {
                             putc('\n');
@@ -75,32 +76,32 @@ void Tty::input(keyboard::Message msg) {
     } else {
         switch (msg.code) {
             case keyboard::SC_UP:
-                inputBuffer.pushSome("\x1B[A", 3);
+                inputBuffer.append("\x1B[A", 3);
                 break;
             case keyboard::SC_DOWN:
-                inputBuffer.pushSome("\x1B[B", 3);
+                inputBuffer.append("\x1B[B", 3);
                 break;
             case keyboard::SC_LEFT:
-                inputBuffer.pushSome("\x1B[C", 3);
+                inputBuffer.append("\x1B[C", 3);
                 break;
             case keyboard::SC_RIGHT:
-                inputBuffer.pushSome("\x1B[D", 3);
+                inputBuffer.append("\x1B[D", 3);
                 break;
             case keyboard::SC_DELETE:
-                inputBuffer.pushSome("\x1B[3~", 4);
+                inputBuffer.append("\x1B[3~", 4);
                 break;
             case keyboard::SC_HOME:
-                inputBuffer.pushSome("\x1B[H", 3);
+                inputBuffer.append("\x1B[H", 3);
                 break;
             case keyboard::SC_END:
-                inputBuffer.pushSome("\x1B[F", 3);
+                inputBuffer.append("\x1B[F", 3);
                 break;
             default:
                 if (msg.ch) {
                     if (msg.flag & keyboard::F_Ctrl) {
-                        inputBuffer.push(msg.ch & 0x1F);
+                        inputBuffer.push_back(msg.ch & 0x1F);
                     } else {
-                        inputBuffer.push(msg.ch);
+                        inputBuffer.push_back(msg.ch);
                         if (flags & F_Echo) {
                             putc(msg.ch);
                         }

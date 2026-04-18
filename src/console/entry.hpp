@@ -1,9 +1,11 @@
 #pragma once
 
-#include "../keyboard/message.hpp"
-#include "../lib/queue.hpp"
 #include "../task/wait.hpp"
 #include "buffer.hpp"
+
+namespace nyan::keyboard {
+struct Message;
+}
 
 namespace nyan::console {
 
@@ -14,14 +16,13 @@ struct Tty : public ScreenBuffer {
 
     lib::string lineBuffer;
 
-    // TODO: 看看要不改下，不然一行只能输入256了
-    lib::RingQueue<uint8_t, 256> inputBuffer;
+    lib::string inputBuffer;
     task::WaitList waitList;
 
     void activate();
     void deactivate();
 
-    void input(keyboard::Message msg);
+    void input(const keyboard::Message& msg);
 
     bool inputEmpty();
     void syncWaitInput();

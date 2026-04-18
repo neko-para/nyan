@@ -16,7 +16,16 @@ ssize_t read(int fd, void* buf, size_t size) {
         if (auto tty = task::currentTask->tty) {
             tty->syncWaitInput();
             task::InterruptGuard guard;
-            return tty->inputBuffer.popSome(static_cast<uint8_t*>(buf), size);
+            if (tty->inputBuffer.size() <= size) {
+                auto result = tty->inputBuffer.size();
+                std::copy_n(tty->inputBuffer.data(), result, static_cast<uint8_t*>(buf));
+                tty->inputBuffer.clear();
+                return result;
+            } else {
+                std::copy_n(tty->inputBuffer.data(), size, static_cast<uint8_t*>(buf));
+                tty->inputBuffer.erase(0, size);
+                return size;
+            }
         } else {
             return -SYS_EBADF;
         }

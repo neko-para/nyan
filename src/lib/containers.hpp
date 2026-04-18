@@ -1,5 +1,6 @@
 #pragma once
 
+#include <deque>
 #include <string>
 #include <vector>
 
@@ -11,5 +12,7 @@ using string = std::basic_string<char, std::char_traits<char>, allocator::SlabAl
 using string_view = std::basic_string_view<char, std::char_traits<char>>;
 template <typename T>
 using vector = std::vector<T, allocator::SlabAllocator<T>>;
+template <typename T>
+using deque = std::deque<T, allocator::SlabAllocator<T>>;
 
 }  // namespace nyan::lib
