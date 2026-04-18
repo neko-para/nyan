@@ -1,7 +1,7 @@
 #include <nyan/syscall.h>
 
+#include "../console/entry.hpp"
 #include "../task/guard.hpp"
-#include "../tty/entry.hpp"
 
 namespace nyan::syscall {
 
@@ -16,9 +16,13 @@ ssize_t read(int fd, void* buf, size_t size) {
         return -SYS_EINVAL;
     }
     if (fd == 0) {
-        tty::activeTty->syncWaitInput();
-        task::InterruptGuard guard;
-        return tty::activeTty->inputBuffer.popSome(static_cast<uint8_t*>(buf), size);
+        if (auto tty = task::currentTask->tty) {
+            tty->syncWaitInput();
+            task::InterruptGuard guard;
+            return tty->inputBuffer.popSome(static_cast<uint8_t*>(buf), size);
+        } else {
+            return -SYS_EBADF;
+        }
     } else {
         return -SYS_EBADF;
     }

@@ -5,6 +5,10 @@
 #include "../lib/containers.hpp"
 #include "../lib/list.hpp"
 
+namespace nyan::console {
+struct Tty;
+}
+
 namespace nyan::task {
 
 struct TaskControlBlock;
@@ -52,6 +56,7 @@ struct BlockWaitInfo {
 
 struct TaskControlBlock : public TaskControlBlockMetaInfo, public lib::ListBase<TaskControlBlockTag> {
     paging::VirtualAddress brkAddr;
+    console::Tty* tty{};
     lib::vector<uint32_t> pages;
     lib::List<TaskControlBlock> waitingTasks;
     union {

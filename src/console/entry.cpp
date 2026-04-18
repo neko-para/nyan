@@ -1,10 +1,13 @@
 #include "entry.hpp"
 
+#include <nyan/syscall.h>
+#include <sys/wait.h>
+
 #include "../arch/utils.hpp"
 #include "../data/embed.hpp"
 #include "../task/guard.hpp"
 
-namespace nyan::tty {
+namespace nyan::console {
 
 Tty* activeTty;
 Tty allTtys[count];
@@ -133,15 +136,37 @@ void Tty::syncWaitInput() {
     }
 }
 
+int consoleDeamon(void* param) {
+    Tty* tty = static_cast<Tty*>(param);
+    task::currentTask->tty = tty;
+
+    while (true) {
+        const char* argv[] = {"sh", 0};
+        auto tcb = task::createElfTask(data::programs[0].data, data::programs[0].size, argv);
+        tcb->tty = tty;
+        auto pid = task::addTask(tcb);
+
+        int stat = 0;
+        syscall::waitpid(pid, &stat, 0);
+        tty->print("\nshell exited, stat {} exit code {}\n", stat, WEXITSTATUS(stat));
+    }
+}
+
 void load() {
     for (auto& tty : allTtys) {
-        tty.currentPid = -1;
         tty.currentAttr = vga::makeAttr(vga::C_LightGray, vga::C_Black);
         tty.flags = F_ShowCursor | F_Canonical | F_Echo;
         tty.clear();
     }
     activeTty = &allTtys[0];
     activeTty->activate();
+}
+
+void loadDeamons() {
+    for (auto& tty : allTtys) {
+        auto pid = task::createTask(consoleDeamon, &tty);
+        task::addTask(pid);
+    }
 }
 
 void switchTo(Tty* tty) {
@@ -153,21 +178,6 @@ void switchTo(Tty* tty) {
     activeTty->deactivate();
     activeTty = tty;
     tty->activate();
-    if (tty->currentPid == -1) {
-        startShellOn(tty);
-    }
 }
 
-bool startShellOn(Tty* tty) {
-    if (tty->currentPid != -1) {
-        return false;
-    }
-
-    const char* argv[] = {"sh", 0};
-    auto tcb = task::createElfTask(data::programs[0].data, data::programs[0].size, argv);
-    auto pid = task::addTask(tcb);
-    tty->currentPid = pid;
-    return true;
-}
-
-}  // namespace nyan::tty
+}  // namespace nyan::console

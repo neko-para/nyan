@@ -2,8 +2,8 @@
 
 #include <sys/types.h>
 
+#include "../console/entry.hpp"
 #include "../interrupt/load.hpp"
-#include "../tty/entry.hpp"
 #include "message.hpp"
 
 namespace nyan::keyboard {
@@ -26,12 +26,12 @@ void load() {
 static void handle(const Message& msg) {
     if (!(msg.flag & F_Release) && (msg.flag & F_Ctrl) && (msg.flag & F_Alt)) {
         if (msg.key >= SC_F1 && msg.key <= SC_F2) {
-            tty::switchTo(&tty::allTtys[msg.key - SC_F1]);
+            console::switchTo(&console::allTtys[msg.key - SC_F1]);
             return;
         }
     }
 
-    tty::activeTty->input(msg);
+    console::activeTty->input(msg);
 }
 
 bool push(uint8_t dat) {

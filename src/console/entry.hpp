@@ -5,12 +5,12 @@
 #include "../task/wait.hpp"
 #include "buffer.hpp"
 
-namespace nyan::tty {
+namespace nyan::console {
 
 constexpr size_t count = 2;
 
 struct Tty : public ScreenBuffer {
-    pid_t currentPid;
+    // pid_t currentPid;
 
     lib::string lineBuffer;
 
@@ -31,8 +31,7 @@ extern Tty* activeTty;
 extern Tty allTtys[count];
 
 void load();
+void loadDeamons();
 void switchTo(Tty* tty);
 
-bool startShellOn(Tty* tty);
-
-}  // namespace nyan::tty
+}  // namespace nyan::console

@@ -1,7 +1,7 @@
 #include <nyan/syscall.h>
 
 #include "../arch/utils.hpp"
-#include "../tty/entry.hpp"
+#include "../console/entry.hpp"
 
 namespace nyan::syscall {
 
@@ -13,8 +13,12 @@ ssize_t write(int fd, const void* buf, size_t size) {
         return -SYS_EINVAL;
     }
     if (fd == 1) {
-        tty::activeTty->puts(static_cast<const char*>(buf), size);
-        return size;
+        if (auto tty = task::currentTask->tty) {
+            tty->puts(static_cast<const char*>(buf), size);
+            return size;
+        } else {
+            return -SYS_EBADF;
+        }
     } else if (fd == 2) {
         arch::kputs(static_cast<const char*>(buf), size);
         return size;

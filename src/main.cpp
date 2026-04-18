@@ -4,6 +4,7 @@
 #include "allocator/load.hpp"
 #include "arch/io.hpp"
 #include "boot/entry.hpp"
+#include "console/entry.hpp"
 #include "data/embed.hpp"
 #include "gdt/load.hpp"
 #include "interrupt/load.hpp"
@@ -13,7 +14,6 @@
 #include "task/task.hpp"
 #include "task/tcb.hpp"
 #include "timer/load.hpp"
-#include "tty/entry.hpp"
 
 extern "C" void __libc_init_array();
 extern uint8_t _end;
@@ -23,8 +23,8 @@ namespace nyan {
 int logic(void*) {
     arch::kprint("kernel end {#010x}\n", paging::VirtualAddress(&_end).kernelToPhysical().addr);
 
-    tty::startShellOn(tty::activeTty);
-    syscall::waitpid(tty::activeTty->currentPid, 0, 0);
+    console::loadDeamons();
+
     return 0;
 }
 
@@ -32,7 +32,7 @@ extern "C" void kmain(boot::BootInfo* info) {
     arch::enableSse();
     paging::clearIdentityPaging();
 
-    tty::load();
+    console::load();
 
     __libc_init_array();
 
@@ -65,8 +65,9 @@ extern "C" void kmain(boot::BootInfo* info) {
     task::initYield();
 
     arch::sti();
-    tty::activeTty->print("all tasks finished.\n");
     arch::kprint("all tasks finished.\n");
+
+    console::activeTty->print("all tasks finished. freeing...\n");
     for (int i = 0; i < task::MaxTaskCount; i++) {
         if (task::allTasks[i]) {
             task::allTasks[i]->dump();
@@ -76,6 +77,7 @@ extern "C" void kmain(boot::BootInfo* info) {
         }
     }
 
+    console::activeTty->print("after free\n");
     for (int i = 0; i < task::MaxTaskCount; i++) {
         if (task::allTasks[i]) {
             task::allTasks[i]->dump();

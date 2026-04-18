@@ -4,7 +4,7 @@
 #include "../vga/buffer.hpp"
 #include "../vga/entry.hpp"
 
-namespace nyan::tty {
+namespace nyan::console {
 
 constexpr size_t width = vga::width;
 constexpr size_t height = vga::height;
@@ -43,4 +43,4 @@ struct ScreenBuffer {
     }
 };
 
-}  // namespace nyan::tty
+}  // namespace nyan::console

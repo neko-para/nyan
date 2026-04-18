@@ -94,8 +94,8 @@ add_executable(
   src/task/tcb.cpp
   src/task/wait.cpp
   src/timer/load.cpp
-  src/tty/buffer.cpp
-  src/tty/entry.cpp
+  src/console/buffer.cpp
+  src/console/entry.cpp
   src/lib/libcxx.cpp
   src/lib/libc.cpp
   ${syscall_srcs})

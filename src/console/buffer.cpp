@@ -4,7 +4,7 @@
 
 #include "../vga/cursor.hpp"
 
-namespace nyan::tty {
+namespace nyan::console {
 
 void ScreenBuffer::flush() {
     flushBuffer();
@@ -92,4 +92,4 @@ void ScreenBuffer::puts(const char* str, size_t len) {
     flushCursor();
 }
 
-}  // namespace nyan::tty
+}  // namespace nyan::console
