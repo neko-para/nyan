@@ -12,6 +12,8 @@ constexpr size_t height = vga::height;
 enum Flags {
     F_Active = 1 << 0,
     F_ShowCursor = 1 << 1,
+    F_Canonical = 1 << 2,
+    F_Echo = 1 << 4,
 };
 
 struct ScreenBuffer {

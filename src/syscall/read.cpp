@@ -1,14 +1,9 @@
 #include <nyan/syscall.h>
 
-#include "../keyboard/buffer.hpp"
 #include "../task/guard.hpp"
+#include "../tty/entry.hpp"
 
 namespace nyan::syscall {
-
-static bool empty() {
-    task::InterruptGuard guard;
-    return keyboard::buffer.empty();
-}
 
 ssize_t read(int fd, void* buf, size_t size) {
     if (fd != 0) {
@@ -20,11 +15,13 @@ ssize_t read(int fd, void* buf, size_t size) {
     if (size > INT_MAX) {
         return -SYS_EINVAL;
     }
-    while (empty()) {
-        keyboard::waitList.wait();
+    if (fd == 0) {
+        tty::activeTty->syncWaitInput();
+        task::InterruptGuard guard;
+        return tty::activeTty->inputBuffer.popSome(static_cast<uint8_t*>(buf), size);
+    } else {
+        return -SYS_EBADF;
     }
-    task::InterruptGuard guard;
-    return keyboard::buffer.popSome(static_cast<uint8_t*>(buf), size);
 }
 
 }  // namespace nyan::syscall
