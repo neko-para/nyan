@@ -21,6 +21,23 @@ bool readline(char* buf, size_t len) {
     }
 }
 
+void processArgv(char** argv, char* buf) {
+    while (*buf) {
+        if (*buf == ' ') {
+            buf++;
+            continue;
+        }
+        *argv++ = buf;
+        char* next = strchr(buf, ' ');
+        if (!next) {
+            break;
+        }
+        *next++ = 0;
+        buf = next;
+    }
+    *argv = 0;
+}
+
 extern "C" int main() {
     char buf[256];
     fputs("> ", stdout);
@@ -28,8 +45,13 @@ extern "C" int main() {
         if (!strcmp(buf, "exit")) {
             break;
         } else {
-            const char* args[] = {"arg1", "arg2arg2", 0};
-            auto pid = spawn(buf, args);
+            char* argv[128];
+            processArgv(argv, buf);
+            if (!argv[0]) {
+                fputs("\n> ", stdout);
+                continue;
+            }
+            auto pid = spawn(argv[0], argv);
             if (pid <= 0) {
                 fputs("launch failed\n", stdout);
             } else {

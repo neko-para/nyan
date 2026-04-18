@@ -21,6 +21,7 @@ void* brk(const void* addr) {
             pageDir.alloc(currentPage, true);
         }
     }
+    task::currentTask->brkAddr = vAddr;
     return vAddr.as<void>();
 }
 
