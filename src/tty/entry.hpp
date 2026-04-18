@@ -31,5 +31,8 @@ extern Tty* activeTty;
 extern Tty allTtys[count];
 
 void load();
+void switchTo(Tty* tty);
+
+bool startShellOn(Tty* tty);
 
 }  // namespace nyan::tty

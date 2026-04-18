@@ -23,11 +23,8 @@ namespace nyan {
 int logic(void*) {
     arch::kprint("kernel end {#010x}\n", paging::VirtualAddress(&_end).kernelToPhysical().addr);
 
-    const char* argv[] = {0};
-    auto tcb = task::createElfTask(data::programs[0].data, data::programs[0].size, argv);
-    auto pid = task::addTask(tcb);
-
-    syscall::waitpid(pid, 0, 0);
+    tty::startShellOn(tty::activeTty);
+    syscall::waitpid(tty::activeTty->currentPid, 0, 0);
     return 0;
 }
 

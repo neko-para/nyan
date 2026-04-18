@@ -1,6 +1,7 @@
 #include "entry.hpp"
 
 #include "../arch/utils.hpp"
+#include "../data/embed.hpp"
 #include "../task/guard.hpp"
 
 namespace nyan::tty {
@@ -134,12 +135,39 @@ void Tty::syncWaitInput() {
 
 void load() {
     for (auto& tty : allTtys) {
+        tty.currentPid = -1;
         tty.currentAttr = vga::makeAttr(vga::C_LightGray, vga::C_Black);
         tty.flags = F_ShowCursor | F_Canonical | F_Echo;
+        tty.clear();
     }
     activeTty = &allTtys[0];
-    activeTty->clear();
     activeTty->activate();
+}
+
+void switchTo(Tty* tty) {
+    if (tty->flags & F_Active) {
+        return;
+    }
+
+    task::InterruptGuard guard;
+    activeTty->deactivate();
+    activeTty = tty;
+    tty->activate();
+    if (tty->currentPid == -1) {
+        startShellOn(tty);
+    }
+}
+
+bool startShellOn(Tty* tty) {
+    if (tty->currentPid != -1) {
+        return false;
+    }
+
+    const char* argv[] = {"sh", 0};
+    auto tcb = task::createElfTask(data::programs[0].data, data::programs[0].size, argv);
+    auto pid = task::addTask(tcb);
+    tty->currentPid = pid;
+    return true;
 }
 
 }  // namespace nyan::tty

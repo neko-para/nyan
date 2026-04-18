@@ -23,6 +23,17 @@ void load() {
     interrupt::unmask(1);
 }
 
+static void handle(const Message& msg) {
+    if (!(msg.flag & F_Release) && (msg.flag & F_Ctrl) && (msg.flag & F_Alt)) {
+        if (msg.key >= SC_F1 && msg.key <= SC_F2) {
+            tty::switchTo(&tty::allTtys[msg.key - SC_F1]);
+            return;
+        }
+    }
+
+    tty::activeTty->input(msg);
+}
+
 bool push(uint8_t dat) {
     static int state = 0;
 
@@ -35,13 +46,13 @@ bool push(uint8_t dat) {
                 return false;
             } else {
                 msg = merge(dat);
-                tty::activeTty->input(msg);
+                handle(msg);
                 return true;
             }
         case 1:
             msg = merge(0xE000 | dat);
             state = 0;
-            tty::activeTty->input(msg);
+            handle(msg);
             return true;
         default:
             return false;
