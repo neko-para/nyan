@@ -2,6 +2,8 @@
 
 #include "instr.hpp"
 
+#include "../task/guard.hpp"
+
 namespace nyan::arch {
 
 inline void enableSse() {
@@ -31,6 +33,7 @@ inline void kputs(const char* str) {
 }
 
 inline void kputs(const char* str, size_t len) {
+    task::InterruptGuard guard;
     while (len--) {
         kput(*str++);
     }

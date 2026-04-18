@@ -3,12 +3,14 @@
 #include <sys/types.h>
 
 #include "../lib/format.hpp"
+#include "../task/guard.hpp"
 #include "utils.hpp"
 
 namespace nyan::arch {
 
 template <typename... Args>
 void kprint(lib::format_string<std::type_identity_t<Args>...> fmt, Args&&... args) {
+    task::InterruptGuard guard;
     lib::format_to(lib::wrap_iterator<&kput>{}, fmt, std::forward<Args>(args)...);
 }
 

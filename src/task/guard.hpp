@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../arch/io.hpp"
+#include "../arch/instr.hpp"
 
 namespace nyan::task {
 

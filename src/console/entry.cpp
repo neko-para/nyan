@@ -3,6 +3,7 @@
 #include <nyan/syscall.h>
 #include <sys/wait.h>
 
+#include "../arch/io.hpp"
 #include "../arch/utils.hpp"
 #include "../data/embed.hpp"
 #include "../keyboard/message.hpp"
@@ -131,16 +132,19 @@ task::InterruptGuard Tty::syncWaitInput() {
 
 int consoleDeamon(void* param) {
     Tty* tty = static_cast<Tty*>(param);
+    // ???
+    arch::kprint("tty {}: deamon entered, pid {}\n", tty - allTtys, task::currentTask->pid);
 
     while (true) {
         const char* argv[] = {"sh", 0};
         auto tcb = task::createElfTask(data::programs[0].data, data::programs[0].size, argv);
         tcb->tty = tty;
         auto pid = task::addTask(tcb);
+        arch::kprint("tty {}: shell started, pid {}\n", tty - allTtys, pid);
 
         int stat = 0;
         syscall::waitpid(pid, &stat, 0);
-        tty->print("\nshell exited, stat {} exit code {}\n", stat, WEXITSTATUS(stat));
+        tty->print("\ntty {}: shell exited, stat {} exit code {}\n", tty - allTtys, stat, WEXITSTATUS(stat));
     }
 }
 
@@ -158,7 +162,8 @@ void loadDeamons() {
     for (auto& tty : allTtys) {
         auto tcb = task::createTask(consoleDeamon, &tty);
         tcb->tty = &tty;
-        task::addTask(tcb);
+        auto pid = task::addTask(tcb);
+        arch::kprint("tty {} deamon started, pid {}\n", &tty - allTtys, pid);
     }
 }
 
