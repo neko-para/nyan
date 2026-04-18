@@ -132,7 +132,6 @@ task::InterruptGuard Tty::syncWaitInput() {
 
 int consoleDeamon(void* param) {
     Tty* tty = static_cast<Tty*>(param);
-    // ???
     arch::kprint("tty {}: deamon entered, pid {}\n", tty - allTtys, task::currentTask->pid);
 
     while (true) {

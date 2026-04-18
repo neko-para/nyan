@@ -217,7 +217,7 @@ __attribute__((noinline)) void yield() {
         auto next = pendingTasks.popFront();
         if (currentTask->state == State::S_Running) {
             currentTask->state = State::S_Ready;
-            if (currentTask != KP_Idle) {
+            if (currentTask->pid != KP_Idle) {
                 pendingTasks.pushBack(currentTask.head);
             }
         }
@@ -278,13 +278,13 @@ void sleep(uint64_t ms) {
     yield();
 }
 
-void checkSleep() {
+void checkSleep(bool needYield) {
     InterruptGuard guard;
     while (sleepTasks && sleepTasks.head->sleepInfo.time < timer::msSinceBoot) {
         auto task = sleepTasks.popFront();
         pendingTasks.pushBack(task);
     }
-    if (timer::msSinceBoot % 10 == 0 && currentTask) {
+    if (needYield && currentTask) {
         yield();
     }
 }
