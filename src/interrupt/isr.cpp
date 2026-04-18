@@ -38,7 +38,7 @@ void fillEntries(Entry* entry) {
     setEntry(entry[0], defaultHandlerNe<0>);
     setEntry(entry[1], defaultHandlerNe<1>);
     setEntry(entry[2], defaultHandlerNe<2>);
-    setEntry(entry[3], defaultHandlerNe<3>);
+    entry[3] = makeEntry(reinterpret_cast<uint32_t>(defaultHandlerNe<3>), 0x08, A_GateInterrupt | A_Ring3 | A_Present);
     setEntry(entry[4], defaultHandlerNe<4>);
     setEntry(entry[5], defaultHandlerNe<5>);
     setEntry(entry[6], defaultHandlerNe<6>);

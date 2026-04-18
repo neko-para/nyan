@@ -12,7 +12,9 @@ namespace nyan::interrupt {
 
 template <uint32_t Id>
 void defaultHandlerImpl(Frame* frame, uint32_t error) {
-    if constexpr (Id == E_PageFault) {
+    if constexpr (Id == E_GeneralProtectionFault) {
+        arch::kfatal("General Protection Fault: selector {#4x}", error);
+    } else if constexpr (Id == E_PageFault) {
         arch::kprint("Page Fault: {#010x} {}\n", arch::cr2(), error);
         arch::kprint("  pid={}\n", task::currentTask->pid);
         arch::kprint("  eip={#010x}\n", frame->eip);
@@ -33,7 +35,15 @@ void defaultHandlerImpl(Frame* frame, uint32_t error) {
 
 template <uint32_t Id>
 void defaultHandlerImplNe(Frame*) {
-    arch::kfatal("Exception {}", Id);
+    if constexpr (Id == E_Breakpoint) {
+        // TODO: SIGTRAP for Id 3
+        arch::kputs("Breakpoint hit\n");
+        arch::cli();
+        arch::hlt();
+        arch::sti();
+    } else {
+        arch::kfatal("Exception {}", Id);
+    }
 }
 
 template void defaultHandlerImplNe<0>(Frame*);
