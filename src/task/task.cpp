@@ -278,13 +278,13 @@ void sleep(uint64_t ms) {
     yield();
 }
 
-void checkSleep(bool needYield) {
+void checkSleep() {
     InterruptGuard guard;
     while (sleepTasks && sleepTasks.head->sleepInfo.time < timer::msSinceBoot) {
         auto task = sleepTasks.popFront();
         pendingTasks.pushBack(task);
     }
-    if (needYield && currentTask) {
+    if ((timer::msSinceBoot % 10 == 0) && currentTask) {
         yield();
     }
 }
