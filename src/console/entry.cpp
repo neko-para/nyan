@@ -8,6 +8,8 @@
 #include "../data/embed.hpp"
 #include "../keyboard/message.hpp"
 #include "../task/guard.hpp"
+#include "../task/task.hpp"
+#include "../task/tcb.hpp"
 
 namespace nyan::console {
 

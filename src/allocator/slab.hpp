@@ -25,7 +25,7 @@ struct SlabChunk : public lib::ListBase<SlabChunkTag> {
 };
 
 struct SlabHeader : public lib::ListBase<SlabHeaderTag> {
-    lib::List<SlabChunk> first_chunk;
+    lib::List<SlabChunkTag> first_chunk;
     uint16_t chunk_size;  // 1 << chunk_size
     uint16_t used_count;
     SlabCache* cache;
@@ -47,8 +47,8 @@ struct SlabHeader : public lib::ListBase<SlabHeaderTag> {
 };
 
 struct SlabCache {
-    lib::List<SlabHeader> full_slabs;
-    lib::List<SlabHeader> used_slabs;
+    lib::List<SlabHeaderTag> full_slabs;
+    lib::List<SlabHeaderTag> used_slabs;
 };
 
 struct SlabManager {

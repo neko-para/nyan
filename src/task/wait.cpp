@@ -1,6 +1,7 @@
 #include "wait.hpp"
 
 #include "guard.hpp"
+#include "task.hpp"
 #include "tcb.hpp"
 
 namespace nyan::task {

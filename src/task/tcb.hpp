@@ -4,40 +4,14 @@
 
 #include "../lib/containers.hpp"
 #include "../lib/list.hpp"
+#include "forward.hpp"
+#include "wait.hpp"
 
 namespace nyan::console {
 struct Tty;
 }
 
 namespace nyan::task {
-
-struct TaskControlBlock;
-struct WaitList;
-
-struct TaskControlBlockTag {
-    using type = TaskControlBlock;
-};
-
-struct TaskControlBlockChildTag {
-    using type = TaskControlBlock;
-    constexpr static bool bidi = true;
-};
-
-enum class State : uint16_t {
-    S_Ready,
-    S_Running,
-    S_Exited,
-    // TODO: signal
-
-    S_Blocked,
-};
-
-enum class BlockReason : uint16_t {
-    BR_Unknown,
-    BR_Sleep,
-    BR_WaitInput,
-    BR_WaitTask,
-};
 
 struct TaskControlBlockMetaInfo {
     uint32_t userEsp;
@@ -64,14 +38,14 @@ struct TaskControlBlock : public TaskControlBlockMetaInfo,
                           public lib::ListBase<TaskControlBlockTag, TaskControlBlockChildTag> {
     pid_t parentPid;
     pid_t groupPid;
-    lib::TailList<TaskControlBlock> childTasks;
+    lib::TailList<TaskControlBlockChildTag> childTasks;
 
     lib::string name;
     paging::VirtualAddress brkAddr;
     console::Tty* tty{};
     lib::vector<uint32_t> pages;
     // TODO: 处理这里的指针问题
-    WaitList* wait{};
+    WaitList wait;
     union {
         ExitInfo exitInfo;
         BlockSleepInfo sleepInfo;
@@ -82,6 +56,6 @@ struct TaskControlBlock : public TaskControlBlockMetaInfo,
     void dump();
 };
 
-extern lib::List<TaskControlBlock> currentTask asm("currentTask");
+extern lib::List<TaskControlBlockTag> currentTask asm("currentTask");
 
 }  // namespace nyan::task

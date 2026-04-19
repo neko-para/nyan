@@ -48,16 +48,17 @@ struct ListBase : public ListNode<Tags>... {
     using TheTag = std::tuple_element_t<0, AllTags>;
 };
 
-template <typename Base>
+template <typename Tag>
 struct List {
+    using Base = tag_target_t<Tag>;
+
     Base* head{};
 
     operator bool() const noexcept { return head; }
 
     auto operator->() const noexcept { return head; }
 
-    template <same_as_any_in_tuple<typename Base::AllTags> Tag = Base::TheTag>
-    void pushFront(tag_target_t<Tag>* item) noexcept {
+    void pushFront(Base* item) noexcept {
         item->ListNode<Tag>::next = head;
         if constexpr (tag_is_bidi<Tag>) {
             if (head) {
@@ -68,8 +69,7 @@ struct List {
         head = item;
     }
 
-    template <same_as_any_in_tuple<typename Base::AllTags> Tag = Base::TheTag>
-    tag_target_t<Tag>* popFront() noexcept {
+    Base* popFront() noexcept {
         if (!head) {
             return nullptr;
         }
@@ -83,9 +83,9 @@ struct List {
         return item;
     }
 
-    template <same_as_any_in_tuple<typename Base::AllTags> Tag = Base::TheTag>
+    Base* take(Base* item) noexcept
         requires tag_is_bidi<Tag>
-    tag_target_t<Tag>* take(tag_target_t<Tag>* item) noexcept {
+    {
         if (item->ListNode<Tag>::prev) {
             item->ListNode<Tag>::prev->ListNode<Tag>::next = item->ListNode<Tag>::next;
         } else {
@@ -98,37 +98,36 @@ struct List {
     }
 };
 
-template <typename Base>
-struct TailList : public List<Base> {
+template <typename Tag>
+struct TailList : public List<Tag> {
+    using Base = tag_target_t<Tag>;
+
     Base* tail{};
 
-    template <same_as_any_in_tuple<typename Base::AllTags> Tag = Base::TheTag>
-    void pushFront(tag_target_t<Tag>* item) noexcept {
+    void pushFront(Base* item) noexcept {
         if (!tail) {
             tail = item;
         }
-        List<Base>::template pushFront<Tag>(item);
+        List<Tag>::pushFront(item);
     }
 
-    template <same_as_any_in_tuple<typename Base::AllTags> Tag = Base::TheTag>
-    tag_target_t<Tag>* popFront() noexcept {
-        if (List<Base>::head == tail) {
+    Base* popFront() noexcept {
+        if (List<Tag>::head == tail) {
             tail = nullptr;
         }
-        return List<Base>::template popFront<Tag>();
+        return List<Tag>::popFront();
     }
 
-    template <same_as_any_in_tuple<typename Base::AllTags> Tag = Base::TheTag>
+    Base* take(Base* item) noexcept
         requires tag_is_bidi<Tag>
-    tag_target_t<Tag>* take(tag_target_t<Tag>* item) noexcept {
+    {
         if (tail == item) {
             tail = item->ListNode<Tag>::prev;
         }
-        return List<Base>::template take<Tag>(item);
+        return List<Tag>::take(item);
     }
 
-    template <same_as_any_in_tuple<typename Base::AllTags> Tag = Base::TheTag>
-    void pushBack(tag_target_t<Tag>* item) noexcept {
+    void pushBack(Base* item) noexcept {
         if (tail) {
             tail->ListNode<Tag>::next = item;
         }
@@ -137,20 +136,20 @@ struct TailList : public List<Base> {
             item->ListNode<Tag>::prev = tail;
         }
         if (!tail) {
-            List<Base>::head = item;
+            List<Tag>::head = item;
         }
         tail = item;
     }
 
-    template <same_as_any_in_tuple<typename Base::AllTags> Tag = Base::TheTag>
+    tag_target_t<Tag>* popBack() noexcept
         requires tag_is_bidi<Tag>
-    tag_target_t<Tag>* popBack() noexcept {
+    {
         if (!tail) {
             return nullptr;
         }
-        if (List<Base>::head == tail) {
+        if (List<Tag>::head == tail) {
             auto item = tail;
-            List<Base>::head = tail = nullptr;
+            List<Tag>::head = tail = nullptr;
             return item;
         }
         auto item = tail;
@@ -159,11 +158,9 @@ struct TailList : public List<Base> {
         return item;
     }
 
-    template <same_as_any_in_tuple<typename Base::AllTags> Tag = Base::TheTag, typename Base2>
-        requires same_as_any_in_tuple<Tag, typename Base2::AllTags>
-    void appendBack(TailList<Base2>& list) noexcept {
+    void appendBack(TailList<Tag>& list) noexcept {
         if (!tail) {
-            List<Base>::head = list.head;
+            List<Tag>::head = list.head;
             tail = list.tail;
             list.head = nullptr;
             list.tail = nullptr;

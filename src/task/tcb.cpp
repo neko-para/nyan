@@ -6,7 +6,7 @@
 
 namespace nyan::task {
 
-lib::List<TaskControlBlock> currentTask asm("currentTask");
+lib::List<TaskControlBlockTag> currentTask asm("currentTask");
 
 void TaskControlBlock::dump() {
     switch (state) {

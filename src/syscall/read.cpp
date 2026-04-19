@@ -2,6 +2,7 @@
 
 #include "../console/entry.hpp"
 #include "../task/guard.hpp"
+#include "../task/tcb.hpp"
 
 namespace nyan::syscall {
 

@@ -13,8 +13,8 @@
 
 namespace nyan::task {
 
-lib::TailList<TaskControlBlock> pendingTasks;
-lib::TailList<TaskControlBlock> sleepTasks;
+lib::TailList<TaskControlBlockTag> pendingTasks;
+lib::TailList<TaskControlBlockTag> sleepTasks;
 
 void load() {
     setupKnownTasks();
@@ -58,7 +58,7 @@ TaskControlBlock* createTask(int (*func)(void* param), void* param) {
     tcb->pages.push_back(kernelStack.userBase.addr);
     tcb->pages.push_back(stack.userBase.addr);
 
-    currentTask->childTasks.pushBack<TaskControlBlockChildTag>(tcb);
+    currentTask->childTasks.pushBack(tcb);
 
     return tcb;
 }
@@ -133,7 +133,7 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t, const char* const* argv) 
     tcb->brkAddr = brkAddr;
     tcb->pages.push_back(kernelStack.userBase.addr);
 
-    currentTask->childTasks.pushBack<TaskControlBlockChildTag>(tcb);
+    currentTask->childTasks.pushBack(tcb);
 
     return tcb;
 }
@@ -158,15 +158,11 @@ pid_t addTask(TaskControlBlock* task) {
     currentTask->state = State::S_Exited;
     currentTask->exitInfo.code = code;
     if (currentTask->childTasks) {
-        allTasks[KP_Init]->childTasks.appendBack<TaskControlBlockChildTag>(currentTask->childTasks);
-        if (allTasks[KP_Init]->wait) {
-            allTasks[KP_Init]->wait->wakeOne();
-        }
+        allTasks[KP_Init]->childTasks.appendBack(currentTask->childTasks);
+        allTasks[KP_Init]->wait.wakeOne();
     }
     if (auto parent = findTask(currentTask->parentPid)) {
-        if (parent->wait) {
-            parent->wait->wakeOne();
-        }
+        parent->wait.wakeOne();
     }
     if (pendingTasks) {
         switchToTask(pendingTasks.popFront());
@@ -192,11 +188,7 @@ bool freeTask(pid_t pid, int* code) {
     }
 
     auto parentTask = findTask(task->parentPid);
-    parentTask->childTasks.take<TaskControlBlockChildTag>(task);
-
-    if (task->wait) {
-        allocator::freeAs(task->wait);
-    }
+    parentTask->childTasks.take(task);
 
     for (auto page : task->pages) {
         allocator::frameFree(reinterpret_cast<void*>(page));

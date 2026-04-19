@@ -51,7 +51,7 @@ void setupKnownTasks() {
     task->name = "idle";
     allTasks[KP_Idle] = task;
 
-    initTask->childTasks.take<TaskControlBlockChildTag>(task);
+    initTask->childTasks.take(task);
 }
 
 TaskControlBlock* findTask(pid_t pid) {

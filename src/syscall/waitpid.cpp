@@ -44,11 +44,8 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
                 return 0;
             }
 
-            if (!task::currentTask->wait) {
-                task::currentTask->wait = allocator::allocAs<task::WaitList>();
-            }
             task::currentTask->waitInfo = {pid};
-            task::currentTask->wait->wait(task::BlockReason::BR_WaitTask);
+            task::currentTask->wait.wait(task::BlockReason::BR_WaitTask);
         }
     } else if (pid == 0) {
         // wait any child in same group
@@ -67,11 +64,8 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
                     return 0;
                 }
 
-                if (!task::currentTask->wait) {
-                    task::currentTask->wait = allocator::allocAs<task::WaitList>();
-                }
                 task::currentTask->waitInfo = {pid};
-                task::currentTask->wait->wait(task::BlockReason::BR_WaitTask);
+                task::currentTask->wait.wait(task::BlockReason::BR_WaitTask);
             } else {
                 if (stat_loc) {
                     // TODO: signal
