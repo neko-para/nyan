@@ -24,6 +24,9 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
         // wait any child
         while (true) {
             task::InterruptGuard guard;
+            if (!task::currentTask->childTasks) {
+                return -SYS_ECHILD;
+            }
             for (auto tcb = task::currentTask->childTasks.head; tcb;
                  tcb = tcb->ListNode<task::TaskControlBlockChildTag>::next) {
                 if (tcb->ended()) {
@@ -55,7 +58,7 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
         while (true) {
             task::InterruptGuard guard;
             auto tcb = task::findTask(pid);
-            if (!tcb) {
+            if (!tcb || tcb->parentPid != task::currentTask->pid) {
                 return -SYS_ECHILD;
             }
 

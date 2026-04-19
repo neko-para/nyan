@@ -34,20 +34,24 @@ pid_t allocPid(TaskControlBlock* task) {
 void setupKnownTasks() {
     std::fill_n(allTasks, MaxTaskCount, nullptr);
 
-    TaskControlBlock* self = allocator::allocAs<TaskControlBlock>();
-    self->cr3 = paging::kernelPageDirectory.cr3();
-    self->state = State::S_Running;
-    self->pid = KP_Init;
-    self->name = "init";
-    self->parentPid = KP_Invalid;
-    self->groupPid = KP_Init;
-    currentTask = {self};
-    allTasks[KP_Init] = self;
+    TaskControlBlock* initTask = allocator::allocAs<TaskControlBlock>();
+    initTask->cr3 = paging::kernelPageDirectory.cr3();
+    initTask->state = State::S_Running;
+    initTask->pid = KP_Init;
+    initTask->name = "init";
+    initTask->parentPid = KP_Invalid;
+    initTask->groupPid = KP_Init;
+    currentTask = {initTask};
+    allTasks[KP_Init] = initTask;
 
     auto task = createTask(idleTask);
+    task->parentPid = KP_Invalid;
+    task->groupPid = KP_Idle;
     task->pid = KP_Idle;
     task->name = "idle";
     allTasks[KP_Idle] = task;
+
+    initTask->childTasks.take<TaskControlBlockChildTag>(task);
 }
 
 TaskControlBlock* findTask(pid_t pid) {

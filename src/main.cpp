@@ -60,7 +60,13 @@ extern "C" void kmain(boot::BootInfo* info) {
     task::yield();
 
     for (;;) {
-        syscall::waitpid(-1, 0, 0);
+        auto ret = syscall::waitpid(-1, 0, 0);
+        if (ret == -SYS_ECHILD) {
+            if (!task::currentTask->wait) {
+                task::currentTask->wait = allocator::allocAs<task::WaitList>();
+            }
+            task::currentTask->wait->wait(task::BlockReason::BR_WaitTask);
+        }
     }
 }
 

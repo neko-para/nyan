@@ -137,9 +137,7 @@ int consoleDeamon(void* param) {
 
     while (true) {
         const char* argv[] = {"sh", 0};
-        auto tcb = task::createElfTask(data::programs[0].data, data::programs[0].size, argv);
-        tcb->tty = tty;
-        auto pid = task::addTask(tcb);
+        auto pid = syscall::spawn("sh", argv);
         arch::kprint("tty {}: shell started, pid {}\n", id, pid);
 
         int stat = 0;
