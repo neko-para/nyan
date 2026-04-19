@@ -2,8 +2,8 @@
 
 #include <algorithm>
 
+#include "../arch/guard.hpp"
 #include "../paging/directory.hpp"
-#include "guard.hpp"
 #include "task.hpp"
 #include "tcb.hpp"
 
@@ -20,7 +20,7 @@ static int idleTask(void*) {
 }
 
 pid_t allocPid(TaskControlBlock* task) {
-    InterruptGuard guard;
+    arch::InterruptGuard guard;
     for (pid_t p = KP_FirstUser; p < MaxTaskCount; p++) {
         if (!allTasks[p]) {
             allTasks[p] = task;

@@ -2,7 +2,7 @@
 
 #include "instr.hpp"
 
-#include "../task/guard.hpp"
+#include "../arch/guard.hpp"
 
 namespace nyan::arch {
 
@@ -33,7 +33,7 @@ inline void kputs(const char* str) {
 }
 
 inline void kputs(const char* str, size_t len) {
-    task::InterruptGuard guard;
+    arch::InterruptGuard guard;
     while (len--) {
         kput(*str++);
     }

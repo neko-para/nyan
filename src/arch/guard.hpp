@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../arch/instr.hpp"
+#include "instr.hpp"
 
-namespace nyan::task {
+namespace nyan::arch {
 
 struct InterruptGuard {
     uint32_t flags;
@@ -35,4 +35,4 @@ struct InterruptGuard {
     }
 };
 
-}  // namespace nyan::task
+}  // namespace nyan::arch

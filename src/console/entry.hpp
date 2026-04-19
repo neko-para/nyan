@@ -7,7 +7,7 @@ namespace nyan::keyboard {
 struct Message;
 }
 
-namespace nyan::task {
+namespace nyan::arch {
 struct InterruptGuard;
 }
 
@@ -29,7 +29,7 @@ struct Tty : public ScreenBuffer {
     void input(const keyboard::Message& msg);
 
     bool inputEmpty();
-    task::InterruptGuard syncWaitInput();
+    arch::InterruptGuard syncWaitInput();
 };
 
 extern Tty* activeTty;

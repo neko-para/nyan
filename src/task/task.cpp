@@ -1,11 +1,11 @@
 #include "task.hpp"
 
 #include "../allocator/utils.hpp"
+#include "../arch/guard.hpp"
 #include "../elf/entry.hpp"
 #include "../paging/directory.hpp"
 #include "../paging/translator.hpp"
 #include "../timer/load.hpp"
-#include "guard.hpp"
 #include "stack.hpp"
 #include "switch.hpp"
 #include "tcb.hpp"
@@ -139,7 +139,7 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t, const char* const* argv) 
 }
 
 pid_t addTask(TaskControlBlock* task) {
-    InterruptGuard guard;
+    arch::InterruptGuard guard;
     pendingTasks.pushBack(task);
     if (task->pid == KP_Invalid) {
         return allocPid(task);
@@ -207,7 +207,7 @@ bool freeTask(pid_t pid, int* code) {
 }
 
 __attribute__((noinline)) void yield() {
-    InterruptGuard guard;
+    arch::InterruptGuard guard;
     if (pendingTasks) {
         auto next = pendingTasks.popFront();
         if (currentTask->state == State::S_Running) {
@@ -225,7 +225,7 @@ __attribute__((noinline)) void yield() {
 }
 
 void block(BlockReason reason) {
-    InterruptGuard guard;
+    arch::InterruptGuard guard;
     currentTask->state = State::S_Blocked;
     currentTask->blockReason = reason;
     yield();
@@ -239,7 +239,7 @@ void unblock(TaskControlBlock* task) {
     task->blockReason = BlockReason::BR_Unknown;
 
     {
-        InterruptGuard guard;
+        arch::InterruptGuard guard;
         pendingTasks.pushBack(task);
     }
 }
@@ -247,7 +247,7 @@ void unblock(TaskControlBlock* task) {
 void sleep(uint64_t ms) {
     auto currTs = timer::msSinceBoot + ms;
 
-    InterruptGuard guard;
+    arch::InterruptGuard guard;
     currentTask->state = State::S_Blocked;
     currentTask->blockReason = BlockReason::BR_Sleep;
     currentTask->sleepInfo.time = currTs;
@@ -274,7 +274,7 @@ void sleep(uint64_t ms) {
 }
 
 void checkSleep() {
-    InterruptGuard guard;
+    arch::InterruptGuard guard;
     while (sleepTasks && sleepTasks.head->sleepInfo.time < timer::msSinceBoot) {
         auto task = sleepTasks.popFront();
         pendingTasks.pushBack(task);

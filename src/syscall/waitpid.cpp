@@ -2,7 +2,7 @@
 
 #include <sys/wait.h>
 
-#include "../task/guard.hpp"
+#include "../arch/guard.hpp"
 #include "../task/pid.hpp"
 #include "../task/task.hpp"
 #include "../task/tcb.hpp"
@@ -23,7 +23,7 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
     } else if (pid == -1) {
         // wait any child
         while (true) {
-            task::InterruptGuard guard;
+            arch::InterruptGuard guard;
             if (!task::currentTask->childTasks) {
                 return -SYS_ECHILD;
             }
@@ -53,7 +53,7 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
     } else {
         // wait pid
         while (true) {
-            task::InterruptGuard guard;
+            arch::InterruptGuard guard;
             auto tcb = task::findTask(pid);
             if (!tcb || tcb->parentPid != task::currentTask->pid) {
                 return -SYS_ECHILD;

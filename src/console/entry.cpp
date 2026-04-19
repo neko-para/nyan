@@ -3,11 +3,11 @@
 #include <nyan/syscall.h>
 #include <sys/wait.h>
 
+#include "../arch/guard.hpp"
 #include "../arch/io.hpp"
 #include "../arch/utils.hpp"
 #include "../data/embed.hpp"
 #include "../keyboard/message.hpp"
-#include "../task/guard.hpp"
 #include "../task/task.hpp"
 #include "../task/tcb.hpp"
 
@@ -35,7 +35,7 @@ void Tty::input(const keyboard::Message& msg) {
         arch::qemuQuit();
     }
 
-    task::InterruptGuard guard;
+    arch::InterruptGuard guard;
     if (flags & F_Canonical) {
         switch (msg.code) {
             case keyboard::SC_UP:
@@ -118,13 +118,13 @@ void Tty::input(const keyboard::Message& msg) {
 }
 
 bool Tty::inputEmpty() {
-    task::InterruptGuard guard;
+    arch::InterruptGuard guard;
     return inputBuffer.empty();
 }
 
-task::InterruptGuard Tty::syncWaitInput() {
+arch::InterruptGuard Tty::syncWaitInput() {
     while (true) {
-        task::InterruptGuard guard;
+        arch::InterruptGuard guard;
         if (!inputBuffer.empty()) {
             return guard;
         }
@@ -173,7 +173,7 @@ void switchTo(Tty* tty) {
         return;
     }
 
-    task::InterruptGuard guard;
+    arch::InterruptGuard guard;
     activeTty->deactivate();
     activeTty = tty;
     tty->activate();

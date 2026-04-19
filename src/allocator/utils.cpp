@@ -1,8 +1,8 @@
 #include "utils.hpp"
 
+#include "../arch/guard.hpp"
 #include "../paging/directory.hpp"
 #include "../paging/entry.hpp"
-#include "../task/guard.hpp"
 #include "frame.hpp"
 #include "load.hpp"
 #include "physicalFrame.hpp"
@@ -12,7 +12,7 @@
 namespace nyan::allocator {
 
 paging::PhysicalAddress physicalFrameAlloc() {
-    task::InterruptGuard guard;
+    arch::InterruptGuard guard;
 
     auto offset = poolManager->alloc();
     physicalFrameManager->info[offset] = {.ref = 1};
@@ -20,14 +20,14 @@ paging::PhysicalAddress physicalFrameAlloc() {
 }
 
 void physicalFrameRetain(paging::PhysicalAddress addr) {
-    task::InterruptGuard guard;
+    arch::InterruptGuard guard;
 
     auto offset = PoolManager::pageFor(addr.addr);
     physicalFrameManager->info[offset].ref += 1;
 }
 
 void physicalFrameRelease(paging::PhysicalAddress addr) {
-    task::InterruptGuard guard;
+    arch::InterruptGuard guard;
 
     auto offset = PoolManager::pageFor(addr.addr);
     physicalFrameManager->info[offset].ref -= 1;
@@ -37,21 +37,21 @@ void physicalFrameRelease(paging::PhysicalAddress addr) {
 }
 
 paging::VirtualAddress virtualFrameAlloc() {
-    task::InterruptGuard guard;
+    arch::InterruptGuard guard;
 
     auto virtualOffset = frameManager->alloc();
     return paging::VirtualAddress{FrameManager::frameAt(virtualOffset)};
 }
 
 void virtualFrameFree(paging::VirtualAddress addr) {
-    task::InterruptGuard guard;
+    arch::InterruptGuard guard;
 
     auto virtualOffset = FrameManager::frameFor(addr.addr);
     frameManager->free(virtualOffset);
 }
 
 void* frameAlloc() {
-    task::InterruptGuard guard;
+    arch::InterruptGuard guard;
 
     auto physicalAddr = physicalFrameAlloc();
     auto virtualAddr = virtualFrameAlloc();
@@ -61,7 +61,7 @@ void* frameAlloc() {
 }
 
 void frameFree(void* frame) {
-    task::InterruptGuard guard;
+    arch::InterruptGuard guard;
 
     paging::VirtualAddress virtualAddr = paging::VirtualAddress{frame};
     paging::PhysicalAddress physicalAddr;
@@ -74,7 +74,7 @@ void frameFree(void* frame) {
 }
 
 void* alloc(size_t size, size_t align) {
-    task::InterruptGuard guard;
+    arch::InterruptGuard guard;
     return slabManager->alloc(std::max(size, align));
 }
 
@@ -82,7 +82,7 @@ void free(void* addr) {
     if (!addr) {
         return;
     }
-    task::InterruptGuard guard;
+    arch::InterruptGuard guard;
     slabManager->free(addr);
 }
 

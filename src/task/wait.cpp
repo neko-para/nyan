@@ -1,19 +1,19 @@
 #include "wait.hpp"
 
-#include "guard.hpp"
+#include "../arch/guard.hpp"
 #include "task.hpp"
 #include "tcb.hpp"
 
 namespace nyan::task {
 
 void WaitList::wait(BlockReason reason) noexcept {
-    InterruptGuard guard;
+    arch::InterruptGuard guard;
     list.pushBack(currentTask.head);
     block(reason);
 }
 
 bool WaitList::wakeOne() noexcept {
-    InterruptGuard guard;
+    arch::InterruptGuard guard;
     if (auto task = list.popFront()) {
         unblock(task);
         return true;
@@ -22,7 +22,7 @@ bool WaitList::wakeOne() noexcept {
 }
 
 void WaitList::wakeAll() noexcept {
-    InterruptGuard guard;
+    arch::InterruptGuard guard;
     while (auto task = list.popFront()) {
         unblock(task);
     }
