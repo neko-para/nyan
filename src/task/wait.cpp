@@ -5,10 +5,10 @@
 
 namespace nyan::task {
 
-void WaitList::wait() noexcept {
+void WaitList::wait(BlockReason reason) noexcept {
     InterruptGuard guard;
     list.pushBack(currentTask.head);
-    block(BlockReason::BR_WaitInput);
+    block(reason);
 }
 
 bool WaitList::wakeOne() noexcept {

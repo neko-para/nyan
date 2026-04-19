@@ -6,6 +6,7 @@
 #include "../task/pid.hpp"
 #include "../task/task.hpp"
 #include "../task/tcb.hpp"
+#include "../task/wait.hpp"
 
 namespace nyan::syscall {
 
@@ -21,7 +22,31 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
         return -SYS_ENOSYS;
     } else if (pid == -1) {
         // wait any child
-        return -SYS_ENOSYS;
+        while (true) {
+            task::InterruptGuard guard;
+            for (auto tcb = task::currentTask->childTasks.head; tcb;
+                 tcb = tcb->ListNode<task::TaskControlBlockChildTag>::next) {
+                if (tcb->ended()) {
+                    if (stat_loc) {
+                        // TODO: signal
+                        *stat_loc = ((tcb->exitInfo.code & 0xFF) << 8) | 0;
+                    }
+                    auto findPid = tcb->pid;
+                    task::freeTask(findPid, 0);
+                    return findPid;
+                }
+            }
+
+            if (options & WNOHANG) {
+                return 0;
+            }
+
+            if (!task::currentTask->wait) {
+                task::currentTask->wait = allocator::allocAs<task::WaitList>();
+            }
+            task::currentTask->waitInfo = {pid};
+            task::currentTask->wait->wait(task::BlockReason::BR_WaitTask);
+        }
     } else if (pid == 0) {
         // wait any child in same group
         return -SYS_ENOSYS;
@@ -39,9 +64,11 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
                     return 0;
                 }
 
-                tcb->waitingTasks.pushFront(task::currentTask.head);
+                if (!task::currentTask->wait) {
+                    task::currentTask->wait = allocator::allocAs<task::WaitList>();
+                }
                 task::currentTask->waitInfo = {pid};
-                task::block(task::BlockReason::BR_WaitTask);
+                task::currentTask->wait->wait(task::BlockReason::BR_WaitTask);
             } else {
                 if (stat_loc) {
                     // TODO: signal

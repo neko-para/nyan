@@ -12,9 +12,15 @@ struct Tty;
 namespace nyan::task {
 
 struct TaskControlBlock;
+struct WaitList;
 
 struct TaskControlBlockTag {
     using type = TaskControlBlock;
+};
+
+struct TaskControlBlockChildTag {
+    using type = TaskControlBlock;
+    constexpr static bool bidi = true;
 };
 
 enum class State : uint16_t {
@@ -54,12 +60,18 @@ struct BlockWaitInfo {
     pid_t pid;
 };
 
-struct TaskControlBlock : public TaskControlBlockMetaInfo, public lib::ListBase<TaskControlBlockTag> {
+struct TaskControlBlock : public TaskControlBlockMetaInfo,
+                          public lib::ListBase<TaskControlBlockTag, TaskControlBlockChildTag> {
+    pid_t parentPid;
+    pid_t groupPid;
+    lib::TailList<TaskControlBlock> childTasks;
+
     lib::string name;
     paging::VirtualAddress brkAddr;
     console::Tty* tty{};
     lib::vector<uint32_t> pages;
-    lib::List<TaskControlBlock> waitingTasks;
+    // TODO: 处理这里的指针问题
+    WaitList* wait{};
     union {
         ExitInfo exitInfo;
         BlockSleepInfo sleepInfo;

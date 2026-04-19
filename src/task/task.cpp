@@ -9,13 +9,12 @@
 #include "stack.hpp"
 #include "switch.hpp"
 #include "tcb.hpp"
+#include "wait.hpp"
 
 namespace nyan::task {
 
 lib::TailList<TaskControlBlock> pendingTasks;
 lib::TailList<TaskControlBlock> sleepTasks;
-
-uint32_t aliveTaskCount = 0;
 
 void load() {
     setupKnownTasks();
@@ -23,9 +22,6 @@ void load() {
 
 __attribute__((noinline)) void taskWrapper(int (*func)(void* param), void* param) {
     currentTask->state = State::S_Running;
-    if (currentTask->pid != KP_Idle) {
-        aliveTaskCount++;
-    }
     arch::sti();
 
     auto code = func(param);
@@ -56,9 +52,13 @@ TaskControlBlock* createTask(int (*func)(void* param), void* param) {
     tcb->state = State::S_Ready;
     tcb->pid = KP_Invalid;
 
+    tcb->parentPid = currentTask->pid;
+    tcb->groupPid = currentTask->groupPid;
     tcb->brkAddr = 0x400000_va;
     tcb->pages.push_back(kernelStack.userBase.addr);
     tcb->pages.push_back(stack.userBase.addr);
+
+    currentTask->childTasks.pushBack<TaskControlBlockChildTag>(tcb);
 
     return tcb;
 }
@@ -127,9 +127,13 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t, const char* const* argv) 
     tcb->state = State::S_Ready;
     tcb->pid = KP_Invalid;
 
+    tcb->parentPid = currentTask->pid;
+    tcb->groupPid = currentTask->groupPid;
     tcb->name = lib::format("elf_{}", argv[0] ? argv[0] : "unknown");
     tcb->brkAddr = brkAddr;
     tcb->pages.push_back(kernelStack.userBase.addr);
+
+    currentTask->childTasks.pushBack<TaskControlBlockChildTag>(tcb);
 
     return tcb;
 }
@@ -144,40 +148,32 @@ pid_t addTask(TaskControlBlock* task) {
     }
 }
 
-__attribute__((noinline)) void initYield() {
-    TaskControlBlock* self = allocator::allocAs<TaskControlBlock>();
-    self->cr3 = paging::kernelPageDirectory.cr3();
-    self->pid = KP_Init;
-    self->state = State::S_Blocked;
-    currentTask.pushFront(self);
-    allTasks[KP_Init] = self;
-
-    auto task = pendingTasks.popFront();
-    switchToTask(task);
-    self->state = State::S_Running;
-}
-
 [[noreturn]] void exitTask(int code) {
     arch::cli();
+
+    if (currentTask->pid == KP_Init) {
+        arch::kfatal("init task cannot exit!");
+    }
+
     currentTask->state = State::S_Exited;
     currentTask->exitInfo.code = code;
-    aliveTaskCount--;
-    while (auto tcb = currentTask->waitingTasks.popFront()) {
-        unblock(tcb);
+    if (currentTask->childTasks) {
+        allTasks[KP_Init]->childTasks.appendBack<TaskControlBlockChildTag>(currentTask->childTasks);
+        if (allTasks[KP_Init]->wait) {
+            allTasks[KP_Init]->wait->wakeOne();
+        }
+    }
+    if (auto parent = findTask(currentTask->parentPid)) {
+        if (parent->wait) {
+            parent->wait->wakeOne();
+        }
     }
     if (pendingTasks) {
         switchToTask(pendingTasks.popFront());
-    } else if (aliveTaskCount == 0) {
-        switchToTask(allTasks[KP_Init]);
     } else {
         switchToTask(allTasks[KP_Idle]);
     }
     arch::kfatal("exited task rescheduled!");
-}
-
-pid_t runTask(int (*func)(void* param), void* param) {
-    auto task = createTask(func, param);
-    return addTask(task);
 }
 
 bool freeTask(pid_t pid, int* code) {
@@ -193,6 +189,13 @@ bool freeTask(pid_t pid, int* code) {
     }
     if (code) {
         *code = task->exitInfo.code;
+    }
+
+    auto parentTask = findTask(task->parentPid);
+    parentTask->childTasks.take<TaskControlBlockChildTag>(task);
+
+    if (task->wait) {
+        allocator::freeAs(task->wait);
     }
 
     for (auto page : task->pages) {

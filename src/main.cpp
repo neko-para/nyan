@@ -20,14 +20,6 @@ extern uint8_t _end;
 
 namespace nyan {
 
-int logic(void*) {
-    arch::kprint("kernel end {#010x}\n", paging::VirtualAddress(&_end).kernelToPhysical().addr);
-
-    console::loadDeamons();
-
-    return 0;
-}
-
 extern "C" void kmain(boot::BootInfo* info) {
     arch::enableSse();
     paging::clearIdentityPaging();
@@ -61,31 +53,14 @@ extern "C" void kmain(boot::BootInfo* info) {
     }
 
     task::load();
-    task::addTask(task::createTask(logic));
-    task::initYield();
 
-    arch::sti();
-    arch::kprint("all tasks finished.\n");
+    console::loadDeamons();
 
-    console::activeTty->print("all tasks finished. freeing...\n");
-    for (int i = 0; i < task::MaxTaskCount; i++) {
-        if (task::allTasks[i]) {
-            task::allTasks[i]->dump();
-            if (task::allTasks[i]->state == task::State::S_Exited) {
-                task::freeTask(i, nullptr);
-            }
-        }
-    }
-
-    console::activeTty->print("after free\n");
-    for (int i = 0; i < task::MaxTaskCount; i++) {
-        if (task::allTasks[i]) {
-            task::allTasks[i]->dump();
-        }
-    }
+    arch::kprint("kernel end {#010x}\n", paging::VirtualAddress(&_end).kernelToPhysical().addr);
+    task::yield();
 
     for (;;) {
-        arch::hlt();
+        syscall::waitpid(-1, 0, 0);
     }
 }
 

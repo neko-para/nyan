@@ -2,6 +2,7 @@
 
 #include <algorithm>
 
+#include "../paging/directory.hpp"
 #include "guard.hpp"
 #include "task.hpp"
 #include "tcb.hpp"
@@ -33,8 +34,19 @@ pid_t allocPid(TaskControlBlock* task) {
 void setupKnownTasks() {
     std::fill_n(allTasks, MaxTaskCount, nullptr);
 
+    TaskControlBlock* self = allocator::allocAs<TaskControlBlock>();
+    self->cr3 = paging::kernelPageDirectory.cr3();
+    self->state = State::S_Running;
+    self->pid = KP_Init;
+    self->name = "init";
+    self->parentPid = KP_Invalid;
+    self->groupPid = KP_Init;
+    currentTask = {self};
+    allTasks[KP_Init] = self;
+
     auto task = createTask(idleTask);
     task->pid = KP_Idle;
+    task->name = "idle";
     allTasks[KP_Idle] = task;
 }
 

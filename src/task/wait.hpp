@@ -10,7 +10,7 @@ struct WaitList {
 
     bool empty() noexcept { return !list.head; }
 
-    void wait() noexcept;
+    void wait(BlockReason reason) noexcept;
     bool wakeOne() noexcept;
     void wakeAll() noexcept;
 };

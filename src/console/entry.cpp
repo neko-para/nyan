@@ -126,7 +126,7 @@ task::InterruptGuard Tty::syncWaitInput() {
         if (!inputBuffer.empty()) {
             return guard;
         }
-        waitList.wait();
+        waitList.wait(task::BlockReason::BR_WaitInput);
     }
 }
 

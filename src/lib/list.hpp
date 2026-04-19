@@ -124,7 +124,7 @@ struct TailList : public List<Base> {
         if (tail == item) {
             tail = item->ListNode<Tag>::prev;
         }
-        return List<Base>::template take<Tag>();
+        return List<Base>::template take<Tag>(item);
     }
 
     template <same_as_any_in_tuple<typename Base::AllTags> Tag = Base::TheTag>
@@ -157,6 +157,25 @@ struct TailList : public List<Base> {
         tail->ListNode<Tag>::prev->ListNode<Tag>::next = nullptr;
         tail = tail->ListNode<Tag>::prev;
         return item;
+    }
+
+    template <same_as_any_in_tuple<typename Base::AllTags> Tag = Base::TheTag, typename Base2>
+        requires same_as_any_in_tuple<Tag, typename Base2::AllTags>
+    void appendBack(TailList<Base2>& list) noexcept {
+        if (!tail) {
+            List<Base>::head = list.head;
+            tail = list.tail;
+            list.head = nullptr;
+            list.tail = nullptr;
+            return;
+        } else if (!list.head) {
+            return;
+        }
+        tail->ListNode<Tag>::next = list.head;
+        list.head->ListNode<Tag>::prev = tail;
+        tail = list.tail;
+        list.head = nullptr;
+        list.tail = nullptr;
     }
 };
 
