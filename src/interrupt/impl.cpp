@@ -4,7 +4,6 @@
 
 #include "../arch/io.hpp"
 #include "../lib/format.hpp"
-#include "../task/task.hpp"
 #include "../task/tcb.hpp"
 
 namespace nyan::interrupt {

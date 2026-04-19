@@ -4,8 +4,7 @@
 
 namespace nyan::syscall {
 
-int nanosleep(const timespec* rqtp, timespec* rmtp) {
-    std::ignore = rmtp;
+int nanosleep(const timespec* rqtp, [[maybe_unused]] timespec* rmtp) {
     if (!rqtp) {
         return -SYS_EFAULT;
     }
