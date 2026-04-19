@@ -1,6 +1,7 @@
 #pragma once
 
 #include <nyan/errno.h>
+#include <sys/signal.h>
 #include <sys/types.h>
 
 __NYAN_SYSCALL_BEGIN__
@@ -23,8 +24,14 @@ pid_t __NYAN_SYSCALL__(waitpid)(pid_t pid, int* stat_loc, int options);
 // 20
 pid_t __NYAN_SYSCALL__(getpid)();
 
+// 37
+int __NYAN_SYSCALL__(kill)(pid_t pid, int sig);
+
 // 45
 void* __NYAN_SYSCALL__(brk)(const void* addr);
+
+// 48
+sighandler_t __NYAN_SYSCALL__(signal)(int sig, sighandler_t handler);
 
 // 162
 int __NYAN_SYSCALL__(nanosleep)(const struct timespec* rqtp, struct timespec* rmtp);

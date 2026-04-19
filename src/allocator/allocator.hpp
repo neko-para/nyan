@@ -19,12 +19,19 @@ struct SlabAllocator {
     SlabAllocator(const SlabAllocator<U>&) noexcept {}
 
     value_type* allocate(size_type n) const noexcept {
-        return static_cast<value_type*>(alloc(n * sizeof(value_type), alignof(value_type)));
+        return static_cast<value_type*>(slabAlloc(n * sizeof(value_type), alignof(value_type)));
     }
-    void deallocate(value_type* ptr, size_type) const noexcept { free(ptr); }
+    void deallocate(value_type* ptr, size_type) const noexcept { slabFree(ptr); }
 
     bool operator==(const SlabAllocator<T>&) const { return true; }
     bool operator!=(const SlabAllocator<T>&) const { return false; }
+};
+
+template <typename T>
+struct SlabAllocatorDeletor {
+    constexpr SlabAllocatorDeletor() noexcept = default;
+
+    constexpr void operator()(T* ptr) const noexcept { freeAs<T>(ptr); }
 };
 
 }  // namespace nyan::allocator

@@ -26,4 +26,7 @@ void unblock(TaskControlBlock* task);
 void sleep(uint64_t ms);
 void checkSleep();
 
+void sendSignal(TaskControlBlock* task, int sig);
+bool checkSignal(TaskControlBlock* task);
+
 }  // namespace nyan::task

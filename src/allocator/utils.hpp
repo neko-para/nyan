@@ -16,8 +16,8 @@ void virtualFrameFree(paging::VirtualAddress addr);
 
 void* frameAlloc();
 void frameFree(void* frame);
-void* alloc(size_t size, size_t align);
-void free(void* addr);
+void* slabAlloc(size_t size, size_t align);
+void slabFree(void* addr);
 
 template <typename T, typename... Args>
 inline T* frameAllocAs(Args&&... args) noexcept {
@@ -32,13 +32,13 @@ inline void frameFreeAs(T* frame) noexcept {
 
 template <typename T, typename... Args>
 inline T* allocAs(Args&&... args) noexcept {
-    return new (alloc(sizeof(T), alignof(T))) T(std::forward<Args>(args)...);
+    return new (slabAlloc(sizeof(T), alignof(T))) T(std::forward<Args>(args)...);
 }
 
 template <typename T>
 inline void freeAs(T* frame) noexcept {
     frame->~T();
-    free(frame);
+    slabFree(frame);
 }
 
 }  // namespace nyan::allocator

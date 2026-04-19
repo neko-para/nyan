@@ -1,6 +1,7 @@
 #pragma once
 
 #include <deque>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -14,5 +15,7 @@ template <typename T>
 using vector = std::vector<T, allocator::SlabAllocator<T>>;
 template <typename T>
 using deque = std::deque<T, allocator::SlabAllocator<T>>;
+template <typename T>
+using unique_ptr = std::unique_ptr<T, allocator::SlabAllocatorDeletor<T>>;
 
 }  // namespace nyan::lib

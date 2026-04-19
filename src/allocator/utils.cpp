@@ -73,12 +73,12 @@ void frameFree(void* frame) {
     physicalFrameRelease(physicalAddr);
 }
 
-void* alloc(size_t size, size_t align) {
+void* slabAlloc(size_t size, size_t align) {
     arch::InterruptGuard guard;
     return slabManager->alloc(std::max(size, align));
 }
 
-void free(void* addr) {
+void slabFree(void* addr) {
     if (!addr) {
         return;
     }

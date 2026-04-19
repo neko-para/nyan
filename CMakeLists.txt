@@ -68,6 +68,7 @@ set(syscall_srcs
     src/syscall/write.cpp
     src/syscall/waitpid.cpp
     src/syscall/getpid.cpp
+    src/syscall/kill.cpp
     src/syscall/brk.cpp
     src/syscall/nanosleep.cpp)
 

@@ -51,3 +51,5 @@
 #define SIGIO SIGPOLL  /* I/O now possible (4.2 BSD).  */
 #define SIGIOT SIGABRT /* IOT instruction, abort() on a PDP-11.  */
 #define SIGCLD SIGCHLD /* Old System V name */
+
+#define NSIG 32

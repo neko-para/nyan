@@ -1,5 +1,7 @@
 #include "task.hpp"
 
+#include <bit>
+
 #include "../allocator/utils.hpp"
 #include "../arch/guard.hpp"
 #include "../elf/entry.hpp"
@@ -282,6 +284,28 @@ void checkSleep() {
     if ((timer::msSinceBoot % 10 == 0) && currentTask) {
         yield();
     }
+}
+
+void sendSignal(TaskControlBlock* task, int sig) {
+    arch::InterruptGuard guard;
+    if (task->signalMask & (1 << sig)) {
+        arch::kprint("signal {} masked for pid {}\n", sig, task->pid);
+        return;
+    }
+    task->pendingSignals |= 1 << sig;
+    if (task->state == State::S_Blocked) {
+        unblock(task);
+    }
+}
+
+bool checkSignal(TaskControlBlock* task) {
+    arch::InterruptGuard guard;
+    if (!task->pendingSignals) {
+        return false;
+    }
+    auto sig = std::countr_zero(task->pendingSignals);
+    // TODO: process
+    return true;
 }
 
 }  // namespace nyan::task

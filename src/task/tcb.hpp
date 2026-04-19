@@ -1,5 +1,6 @@
 #pragma once
 
+#include <sys/signal.h>
 #include <sys/types.h>
 
 #include "../lib/containers.hpp"
@@ -40,7 +41,9 @@ struct TaskControlBlock : public TaskControlBlockMetaInfo,
     pid_t groupPid{KP_Invalid};
     lib::TailList<TaskControlBlockChildTag> childTasks;
 
-    uint32_t signal{};
+    sigset_t pendingSignals{};
+    sigset_t signalMask{};
+    lib::unique_ptr<std::array<sigaction, NSIG>> signalActions;
 
     lib::string name;
     paging::VirtualAddress brkAddr;
