@@ -31,4 +31,13 @@ enum class BlockReason : uint16_t {
     BR_WaitTask,
 };
 
+enum KnownPid : pid_t {
+    KP_Invalid = -1,
+
+    KP_Init = 1,
+    KP_Idle = 2,
+
+    KP_FirstUser = 16,
+};
+
 }  // namespace nyan::task

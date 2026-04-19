@@ -36,15 +36,16 @@ struct BlockWaitInfo {
 
 struct TaskControlBlock : public TaskControlBlockMetaInfo,
                           public lib::ListBase<TaskControlBlockTag, TaskControlBlockChildTag> {
-    pid_t parentPid;
-    pid_t groupPid;
+    pid_t parentPid{KP_Invalid};
+    pid_t groupPid{KP_Invalid};
     lib::TailList<TaskControlBlockChildTag> childTasks;
+
+    uint32_t signal{};
 
     lib::string name;
     paging::VirtualAddress brkAddr;
     console::Tty* tty{};
     lib::vector<uint32_t> pages;
-    // TODO: 处理这里的指针问题
     WaitList wait;
     union {
         ExitInfo exitInfo;

@@ -1,25 +1,19 @@
 #pragma once
 
+#include <sys/signal.h>
 #include <sys/types.h>
 
 #ifdef __BUILDING_NYAN__
 #error "kernel shouldn't include this header"
 #endif
 
-struct FILE;
-
-#define stdin ((FILE*)0)
-#define stdout ((FILE*)1)
-#define stderr ((FILE*)2)
-
-#define EOF -1
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int fputc(int ch, FILE* file);
-int fputs(const char* str, FILE* file);
+__sighandler_t signal(int sig, __sighandler_t handler);
+int kill(pid_t pid, int sig);
+int raise(int sig);
 
 #ifdef __cplusplus
 }

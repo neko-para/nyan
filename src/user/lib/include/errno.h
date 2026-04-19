@@ -1,408 +1,413 @@
 #pragma once
 
+#include <nyan/errno.h>
 #include <sys/types.h>
 
+#ifdef __BUILDING_NYAN__
+#error "kernel shouldn't include this header"
+#endif
+
 // Operation not permitted
-#define EPERM 1
+#define EPERM SYS_EPERM
 
 // No such file or directory
-#define ENOENT 2
+#define ENOENT SYS_ENOENT
 
 // No such process
-#define ESRCH 3
+#define ESRCH SYS_ESRCH
 
 // Interrupted system call
-#define EINTR 4
+#define EINTR SYS_EINTR
 
 // Input/output error
-#define EIO 5
+#define EIO SYS_EIO
 
 // No such device or address
-#define ENXIO 6
+#define ENXIO SYS_ENXIO
 
 // Argument list too long
-#define E2BIG 7
+#define E2BIG SYS_E2BIG
 
 // Exec format error
-#define ENOEXEC 8
+#define ENOEXEC SYS_ENOEXEC
 
 // Bad file descriptor
-#define EBADF 9
+#define EBADF SYS_EBADF
 
 // No child processes
-#define ECHILD 10
+#define ECHILD SYS_ECHILD
 
 // Resource temporarily unavailable
-#define EAGAIN 11
+#define EAGAIN SYS_EAGAIN
 
 // Cannot allocate memory
-#define ENOMEM 12
+#define ENOMEM SYS_ENOMEM
 
 // Permission denied
-#define EACCES 13
+#define EACCES SYS_EACCES
 
 // Bad address
-#define EFAULT 14
+#define EFAULT SYS_EFAULT
 
 // Block device required
-#define ENOTBLK 15
+#define ENOTBLK SYS_ENOTBLK
 
 // Device or resource busy
-#define EBUSY 16
+#define EBUSY SYS_EBUSY
 
 // File exists
-#define EEXIST 17
+#define EEXIST SYS_EEXIST
 
 // Invalid cross-device link
-#define EXDEV 18
+#define EXDEV SYS_EXDEV
 
 // No such device
-#define ENODEV 19
+#define ENODEV SYS_ENODEV
 
 // Not a directory
-#define ENOTDIR 20
+#define ENOTDIR SYS_ENOTDIR
 
 // Is a directory
-#define EISDIR 21
+#define EISDIR SYS_EISDIR
 
 // Invalid argument
-#define EINVAL 22
+#define EINVAL SYS_EINVAL
 
 // Too many open files in system
-#define ENFILE 23
+#define ENFILE SYS_ENFILE
 
 // Too many open files
-#define EMFILE 24
+#define EMFILE SYS_EMFILE
 
 // Inappropriate ioctl for device
-#define ENOTTY 25
+#define ENOTTY SYS_ENOTTY
 
 // Text file busy
-#define ETXTBSY 26
+#define ETXTBSY SYS_ETXTBSY
 
 // File too large
-#define EFBIG 27
+#define EFBIG SYS_EFBIG
 
 // No space left on device
-#define ENOSPC 28
+#define ENOSPC SYS_ENOSPC
 
 // Illegal seek
-#define ESPIPE 29
+#define ESPIPE SYS_ESPIPE
 
 // Read-only file system
-#define EROFS 30
+#define EROFS SYS_EROFS
 
 // Too many links
-#define EMLINK 31
+#define EMLINK SYS_EMLINK
 
 // Broken pipe
-#define EPIPE 32
+#define EPIPE SYS_EPIPE
 
 // Numerical argument out of domain
-#define EDOM 33
+#define EDOM SYS_EDOM
 
 // Numerical result out of range
-#define ERANGE 34
+#define ERANGE SYS_ERANGE
 
 // Resource deadlock avoided
-#define EDEADLK 35
+#define EDEADLK SYS_EDEADLK
 
 // File name too long
-#define ENAMETOOLONG 36
+#define ENAMETOOLONG SYS_ENAMETOOLONG
 
 // No locks available
-#define ENOLCK 37
+#define ENOLCK SYS_ENOLCK
 
 // Function not implemented
-#define ENOSYS 38
+#define ENOSYS SYS_ENOSYS
 
 // Directory not empty
-#define ENOTEMPTY 39
+#define ENOTEMPTY SYS_ENOTEMPTY
 
 // Too many levels of symbolic links
-#define ELOOP 40
+#define ELOOP SYS_ELOOP
 
 // Resource temporarily unavailable
-#define EWOULDBLOCK 11
+#define EWOULDBLOCK SYS_EWOULDBLOCK
 
 // No message of desired type
-#define ENOMSG 42
+#define ENOMSG SYS_ENOMSG
 
 // Identifier removed
-#define EIDRM 43
+#define EIDRM SYS_EIDRM
 
 // Channel number out of range
-#define ECHRNG 44
+#define ECHRNG SYS_ECHRNG
 
 // Level 2 not synchronized
-#define EL2NSYNC 45
+#define EL2NSYNC SYS_EL2NSYNC
 
 // Level 3 halted
-#define EL3HLT 46
+#define EL3HLT SYS_EL3HLT
 
 // Level 3 reset
-#define EL3RST 47
+#define EL3RST SYS_EL3RST
 
 // Link number out of range
-#define ELNRNG 48
+#define ELNRNG SYS_ELNRNG
 
 // Protocol driver not attached
-#define EUNATCH 49
+#define EUNATCH SYS_EUNATCH
 
 // No CSI structure available
-#define ENOCSI 50
+#define ENOCSI SYS_ENOCSI
 
 // Level 2 halted
-#define EL2HLT 51
+#define EL2HLT SYS_EL2HLT
 
 // Invalid exchange
-#define EBADE 52
+#define EBADE SYS_EBADE
 
 // Invalid request descriptor
-#define EBADR 53
+#define EBADR SYS_EBADR
 
 // Exchange full
-#define EXFULL 54
+#define EXFULL SYS_EXFULL
 
 // No anode
-#define ENOANO 55
+#define ENOANO SYS_ENOANO
 
 // Invalid request code
-#define EBADRQC 56
+#define EBADRQC SYS_EBADRQC
 
 // Invalid slot
-#define EBADSLT 57
+#define EBADSLT SYS_EBADSLT
 
 // Resource deadlock avoided
-#define EDEADLOCK 35
+#define EDEADLOCK SYS_EDEADLOCK
 
 // Bad font file format
-#define EBFONT 59
+#define EBFONT SYS_EBFONT
 
 // Device not a stream
-#define ENOSTR 60
+#define ENOSTR SYS_ENOSTR
 
 // No data available
-#define ENODATA 61
+#define ENODATA SYS_ENODATA
 
 // Timer expired
-#define ETIME 62
+#define ETIME SYS_ETIME
 
 // Out of streams resources
-#define ENOSR 63
+#define ENOSR SYS_ENOSR
 
 // Machine is not on the network
-#define ENONET 64
+#define ENONET SYS_ENONET
 
 // Package not installed
-#define ENOPKG 65
+#define ENOPKG SYS_ENOPKG
 
 // Object is remote
-#define EREMOTE 66
+#define EREMOTE SYS_EREMOTE
 
 // Link has been severed
-#define ENOLINK 67
+#define ENOLINK SYS_ENOLINK
 
 // Advertise error
-#define EADV 68
+#define EADV SYS_EADV
 
 // Srmount error
-#define ESRMNT 69
+#define ESRMNT SYS_ESRMNT
 
 // Communication error on send
-#define ECOMM 70
+#define ECOMM SYS_ECOMM
 
 // Protocol error
-#define EPROTO 71
+#define EPROTO SYS_EPROTO
 
 // Multihop attempted
-#define EMULTIHOP 72
+#define EMULTIHOP SYS_EMULTIHOP
 
 // RFS specific error
-#define EDOTDOT 73
+#define EDOTDOT SYS_EDOTDOT
 
 // Bad message
-#define EBADMSG 74
+#define EBADMSG SYS_EBADMSG
 
 // Value too large for defined data type
-#define EOVERFLOW 75
+#define EOVERFLOW SYS_EOVERFLOW
 
 // Name not unique on network
-#define ENOTUNIQ 76
+#define ENOTUNIQ SYS_ENOTUNIQ
 
 // File descriptor in bad state
-#define EBADFD 77
+#define EBADFD SYS_EBADFD
 
 // Remote address changed
-#define EREMCHG 78
+#define EREMCHG SYS_EREMCHG
 
 // Can not access a needed shared library
-#define ELIBACC 79
+#define ELIBACC SYS_ELIBACC
 
 // Accessing a corrupted shared library
-#define ELIBBAD 80
+#define ELIBBAD SYS_ELIBBAD
 
 // .lib section in a.out corrupted
-#define ELIBSCN 81
+#define ELIBSCN SYS_ELIBSCN
 
 // Attempting to link in too many shared libraries
-#define ELIBMAX 82
+#define ELIBMAX SYS_ELIBMAX
 
 // Cannot exec a shared library directly
-#define ELIBEXEC 83
+#define ELIBEXEC SYS_ELIBEXEC
 
 // Invalid or incomplete multibyte or wide character
-#define EILSEQ 84
+#define EILSEQ SYS_EILSEQ
 
 // Interrupted system call should be restarted
-#define ERESTART 85
+#define ERESTART SYS_ERESTART
 
 // Streams pipe error
-#define ESTRPIPE 86
+#define ESTRPIPE SYS_ESTRPIPE
 
 // Too many users
-#define EUSERS 87
+#define EUSERS SYS_EUSERS
 
 // Socket operation on non-socket
-#define ENOTSOCK 88
+#define ENOTSOCK SYS_ENOTSOCK
 
 // Destination address required
-#define EDESTADDRREQ 89
+#define EDESTADDRREQ SYS_EDESTADDRREQ
 
 // Message too long
-#define EMSGSIZE 90
+#define EMSGSIZE SYS_EMSGSIZE
 
 // Protocol wrong type for socket
-#define EPROTOTYPE 91
+#define EPROTOTYPE SYS_EPROTOTYPE
 
 // Protocol not available
-#define ENOPROTOOPT 92
+#define ENOPROTOOPT SYS_ENOPROTOOPT
 
 // Protocol not supported
-#define EPROTONOSUPPORT 93
+#define EPROTONOSUPPORT SYS_EPROTONOSUPPORT
 
 // Socket type not supported
-#define ESOCKTNOSUPPORT 94
+#define ESOCKTNOSUPPORT SYS_ESOCKTNOSUPPORT
 
 // Operation not supported
-#define EOPNOTSUPP 95
+#define EOPNOTSUPP SYS_EOPNOTSUPP
 
 // Protocol family not supported
-#define EPFNOSUPPORT 96
+#define EPFNOSUPPORT SYS_EPFNOSUPPORT
 
 // Address family not supported by protocol
-#define EAFNOSUPPORT 97
+#define EAFNOSUPPORT SYS_EAFNOSUPPORT
 
 // Address already in use
-#define EADDRINUSE 98
+#define EADDRINUSE SYS_EADDRINUSE
 
 // Cannot assign requested address
-#define EADDRNOTAVAIL 99
+#define EADDRNOTAVAIL SYS_EADDRNOTAVAIL
 
 // Network is down
-#define ENETDOWN 100
+#define ENETDOWN SYS_ENETDOWN
 
 // Network is unreachable
-#define ENETUNREACH 101
+#define ENETUNREACH SYS_ENETUNREACH
 
 // Network dropped connection on reset
-#define ENETRESET 102
+#define ENETRESET SYS_ENETRESET
 
 // Software caused connection abort
-#define ECONNABORTED 103
+#define ECONNABORTED SYS_ECONNABORTED
 
 // Connection reset by peer
-#define ECONNRESET 104
+#define ECONNRESET SYS_ECONNRESET
 
 // No buffer space available
-#define ENOBUFS 105
+#define ENOBUFS SYS_ENOBUFS
 
 // Transport endpoint is already connected
-#define EISCONN 106
+#define EISCONN SYS_EISCONN
 
 // Transport endpoint is not connected
-#define ENOTCONN 107
+#define ENOTCONN SYS_ENOTCONN
 
 // Cannot send after transport endpoint shutdown
-#define ESHUTDOWN 108
+#define ESHUTDOWN SYS_ESHUTDOWN
 
 // Too many references: cannot splice
-#define ETOOMANYREFS 109
+#define ETOOMANYREFS SYS_ETOOMANYREFS
 
 // Connection timed out
-#define ETIMEDOUT 110
+#define ETIMEDOUT SYS_ETIMEDOUT
 
 // Connection refused
-#define ECONNREFUSED 111
+#define ECONNREFUSED SYS_ECONNREFUSED
 
 // Host is down
-#define EHOSTDOWN 112
+#define EHOSTDOWN SYS_EHOSTDOWN
 
 // No route to host
-#define EHOSTUNREACH 113
+#define EHOSTUNREACH SYS_EHOSTUNREACH
 
 // Operation already in progress
-#define EALREADY 114
+#define EALREADY SYS_EALREADY
 
 // Operation now in progress
-#define EINPROGRESS 115
+#define EINPROGRESS SYS_EINPROGRESS
 
 // Stale file handle
-#define ESTALE 116
+#define ESTALE SYS_ESTALE
 
 // Structure needs cleaning
-#define EUCLEAN 117
+#define EUCLEAN SYS_EUCLEAN
 
 // Not a XENIX named type file
-#define ENOTNAM 118
+#define ENOTNAM SYS_ENOTNAM
 
 // No XENIX semaphores available
-#define ENAVAIL 119
+#define ENAVAIL SYS_ENAVAIL
 
 // Is a named type file
-#define EISNAM 120
+#define EISNAM SYS_EISNAM
 
 // Remote I/O error
-#define EREMOTEIO 121
+#define EREMOTEIO SYS_EREMOTEIO
 
 // Disk quota exceeded
-#define EDQUOT 122
+#define EDQUOT SYS_EDQUOT
 
 // No medium found
-#define ENOMEDIUM 123
+#define ENOMEDIUM SYS_ENOMEDIUM
 
 // Wrong medium type
-#define EMEDIUMTYPE 124
+#define EMEDIUMTYPE SYS_EMEDIUMTYPE
 
 // Operation canceled
-#define ECANCELED 125
+#define ECANCELED SYS_ECANCELED
 
 // Required key not available
-#define ENOKEY 126
+#define ENOKEY SYS_ENOKEY
 
 // Key has expired
-#define EKEYEXPIRED 127
+#define EKEYEXPIRED SYS_EKEYEXPIRED
 
 // Key has been revoked
-#define EKEYREVOKED 128
+#define EKEYREVOKED SYS_EKEYREVOKED
 
 // Key was rejected by service
-#define EKEYREJECTED 129
+#define EKEYREJECTED SYS_EKEYREJECTED
 
 // Owner died
-#define EOWNERDEAD 130
+#define EOWNERDEAD SYS_EOWNERDEAD
 
 // State not recoverable
-#define ENOTRECOVERABLE 131
+#define ENOTRECOVERABLE SYS_ENOTRECOVERABLE
 
 // Operation not possible due to RF-kill
-#define ERFKILL 132
+#define ERFKILL SYS_ERFKILL
 
 // Memory page has hardware error
-#define EHWPOISON 133
+#define EHWPOISON SYS_EHWPOISON
 
 // Operation not supported
-#define ENOTSUP 95
+#define ENOTSUP SYS_ENOTSUP
 
 extern int __errno;
 

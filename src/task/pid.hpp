@@ -2,16 +2,9 @@
 
 #include <sys/types.h>
 
+#include "forward.hpp"
+
 namespace nyan::task {
-
-enum KnownPid : pid_t {
-    KP_Invalid = -1,
-
-    KP_Init = 1,
-    KP_Idle = 2,
-
-    KP_FirstUser = 16,
-};
 
 struct TaskControlBlock;
 
