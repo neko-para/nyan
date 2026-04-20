@@ -3,6 +3,10 @@
 #include <bits/signum.h>
 #include <sys/types.h>
 
+#define SA_RESTART 0x10000000
+#define SA_NODEFER 0x40000000
+#define SA_RESETHAND 0x80000000
+
 __NYAN_BEGIN__
 
 typedef void (*sighandler_t)(int);

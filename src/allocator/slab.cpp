@@ -40,11 +40,13 @@ void* SlabManager::alloc(size_t size) noexcept {
             auto slab = cache->used_slabs.popFront();
             cache->full_slabs.pushFront(slab);
         }
+        memset(ret, 0, size);
         return ret;
     } else {
         auto slab = frameAllocAs<SlabHeader>(chunk_size, cache);
         auto ret = slab->alloc();
         cache->used_slabs.pushFront(slab);
+        memset(ret, 0, size);
         return ret;
     }
 }

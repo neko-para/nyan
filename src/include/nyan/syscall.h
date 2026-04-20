@@ -33,6 +33,9 @@ void* __NYAN_SYSCALL__(brk)(const void* addr);
 // 48
 sighandler_t __NYAN_SYSCALL__(signal)(int sig, sighandler_t handler);
 
+// 119
+void __NYAN_SYSCALL__(sigreturn)(void* frame);
+
 // 162
 int __NYAN_SYSCALL__(nanosleep)(const struct timespec* rqtp, struct timespec* rmtp);
 

@@ -5,7 +5,7 @@
 
 namespace nyan::syscall {
 
-int sys_kill(pid_t pid, int sig) {
+int kill(pid_t pid, int sig) {
     if (sig >= NSIG) {
         return -SYS_EINVAL;
     }

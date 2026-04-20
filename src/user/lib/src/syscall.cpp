@@ -71,8 +71,16 @@ pid_t sys_getpid() {
     return syscall<20, pid_t>();
 }
 
+int sys_kill(pid_t pid, int sig) {
+    return syscall<37, int>(pid, sig);
+}
+
 void* sys_brk(const void* addr) {
     return syscall<45, void*>(addr);
+}
+
+sighandler_t sys_signal(int sig, sighandler_t handler) {
+    return syscall<48, sighandler_t>(sig, handler);
 }
 
 int sys_nanosleep(const timespec* rqtp, timespec* rmtp) {

@@ -57,6 +57,7 @@ void* frameAlloc() {
     auto virtualAddr = virtualFrameAlloc();
     paging::kernelPageDirectory.map(virtualAddr, physicalAddr, paging::PTE_Present | paging::PTE_ReadWrite);
     virtualAddr.invlpg();
+    memset(virtualAddr.as<void>(), 0, 4096);
     return virtualAddr.as<void>();
 }
 

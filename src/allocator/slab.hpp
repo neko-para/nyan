@@ -69,7 +69,7 @@ struct SlabManager {
             size = 16;
         }
         chunk_size = std::bit_width(size - 1) + 1;
-        return &caches[chunk_size - 4];
+        return &caches[chunk_size - 5];
     }
 
     void* alloc(size_t size) noexcept;

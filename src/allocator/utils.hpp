@@ -26,6 +26,9 @@ inline T* frameAllocAs(Args&&... args) noexcept {
 
 template <typename T>
 inline void frameFreeAs(T* frame) noexcept {
+    if (!frame) {
+        return;
+    }
     frame->~T();
     frameFree(frame);
 }
@@ -37,6 +40,9 @@ inline T* allocAs(Args&&... args) noexcept {
 
 template <typename T>
 inline void freeAs(T* frame) noexcept {
+    if (!frame) {
+        return;
+    }
     frame->~T();
     slabFree(frame);
 }

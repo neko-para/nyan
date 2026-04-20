@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-__sighandler_t signal(int sig, __sighandler_t handler);
+sighandler_t signal(int sig, sighandler_t handler);
 int kill(pid_t pid, int sig);
 int raise(int sig);
 

@@ -16,9 +16,13 @@ target_include_directories(kernel_header INTERFACE SYSTEM src/include)
 
 add_library(
   user STATIC
-  src/user/lib/src/start.s src/user/lib/src/syscall.cpp
-  src/user/lib/src/unistd.cpp src/user/lib/src/string.cpp
-  src/user/lib/src/stdio.cpp src/user/lib/src/errno.cpp)
+  src/user/lib/src/start.s
+  src/user/lib/src/syscall.cpp
+  src/user/lib/src/unistd.cpp
+  src/user/lib/src/signal.cpp
+  src/user/lib/src/string.cpp
+  src/user/lib/src/stdio.cpp
+  src/user/lib/src/errno.cpp)
 target_include_directories(user PUBLIC src/user/lib/include)
 target_link_libraries(user PUBLIC kernel_header)
 
@@ -58,6 +62,7 @@ add_user_program(sh src/user/entry/sh.cpp)
 add_user_program(true src/user/entry/true.cpp)
 add_user_program(false src/user/entry/false.cpp)
 add_user_program(echo src/user/entry/echo.cpp)
+add_user_program(test src/user/entry/test.cpp)
 
 # kernel
 
@@ -70,6 +75,8 @@ set(syscall_srcs
     src/syscall/getpid.cpp
     src/syscall/kill.cpp
     src/syscall/brk.cpp
+    src/syscall/signal.cpp
+    src/syscall/sigreturn.cpp
     src/syscall/nanosleep.cpp)
 
 add_executable(
@@ -90,6 +97,7 @@ add_executable(
   src/paging/directory.cpp
   src/paging/kernel.cpp
   src/task/switch.s
+  src/task/trampoline.s
   src/task/pid.cpp
   src/task/task.cpp
   src/task/tcb.cpp

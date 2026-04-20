@@ -11,14 +11,12 @@ DECLARE_PROGRAM_DATA(sh)
 DECLARE_PROGRAM_DATA(true)
 DECLARE_PROGRAM_DATA(false)
 DECLARE_PROGRAM_DATA(echo)
+DECLARE_PROGRAM_DATA(test)
 
 namespace nyan::data {
 
-EmbedProgram programs[4] = {
-    DECLARE_PROGRAM(sh),
-    DECLARE_PROGRAM(true),
-    DECLARE_PROGRAM(false),
-    DECLARE_PROGRAM(echo),
+EmbedProgram programs[5] = {
+    DECLARE_PROGRAM(sh), DECLARE_PROGRAM(true), DECLARE_PROGRAM(false), DECLARE_PROGRAM(echo), DECLARE_PROGRAM(test),
 };
 
 }

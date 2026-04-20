@@ -19,14 +19,14 @@ void load(uint32_t hz) {
     interrupt::unmask(0);
 }
 
-void hit() {
+void hit(interrupt::SyscallFrame* frame) {
     msSinceBoot += 1;
 
     if (msSinceBoot % 1000 == 0) {
         arch::kput('.');
     }
 
-    task::checkSleep();
+    task::checkSleep(frame);
 }
 
 }  // namespace nyan::timer

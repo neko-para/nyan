@@ -4,6 +4,7 @@
 
 #include "../arch/io.hpp"
 #include "../lib/format.hpp"
+#include "../task/task.hpp"
 #include "../task/tcb.hpp"
 
 namespace nyan::interrupt {
@@ -154,30 +155,42 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
     switch (frame->eax) {
         case 1:
             CALL(exit)
-            return;
+            break;
         case 2:
             CALL(spawn)
-            return;
+            break;
         case 3:
             CALL(read)
-            return;
+            break;
         case 4:
             CALL(write)
-            return;
+            break;
         case 7:
             CALL(waitpid)
-            return;
+            break;
         case 20:
             CALL(getpid)
-            return;
+            break;
+        case 37:
+            CALL(kill)
+            break;
         case 45:
             CALL(brk)
-            return;
+            break;
+        case 48:
+            CALL(signal)
+            break;
+        case 119:
+            syscall::sigreturn(frame);
+            break;
         case 162:
             CALL(nanosleep)
-            return;
+            break;
+        default:
+            frame->eax = -SYS_ENOSYS;
     }
-    frame->eax = -SYS_ENOSYS;
+
+    task::checkSignal(task::currentTask.head, frame);
 }
 
 }  // namespace nyan::interrupt

@@ -4,6 +4,10 @@
 
 #include "pid.hpp"
 
+namespace nyan::interrupt {
+struct SyscallFrame;
+}
+
 namespace nyan::task {
 
 struct TaskControlBlock;
@@ -24,9 +28,9 @@ void block(BlockReason reason);
 void unblock(TaskControlBlock* task);
 
 void sleep(uint64_t ms);
-void checkSleep();
+void checkSleep(interrupt::SyscallFrame* frame);
 
 void sendSignal(TaskControlBlock* task, int sig);
-bool checkSignal(TaskControlBlock* task);
+bool checkSignal(TaskControlBlock* task, interrupt::SyscallFrame* frame);
 
 }  // namespace nyan::task

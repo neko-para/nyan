@@ -39,6 +39,13 @@ SECTIONS
         *(.bss*)
     }
 
+    .trampoline ALIGN(4) : AT (ADDR (.trampoline) - 0xC0000000)
+    {
+        __trampoline_load_start = .;
+        *(.trampoline)
+        __trampoline_load_end = .;
+    }
+
     _end = .;
 
     . = 0xC0400000;

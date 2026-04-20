@@ -2,15 +2,7 @@
 #include <nyan/syscall.h>
 #include <unistd.h>
 
-template <typename T>
-static T wrapRet(T ret) {
-    if (ret < 0) {
-        errno = -ret;
-        return -1;
-    } else {
-        return ret;
-    }
-}
+#include "utils.hpp"
 
 extern "C" {
 

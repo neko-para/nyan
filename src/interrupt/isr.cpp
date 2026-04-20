@@ -18,9 +18,10 @@ __attribute__((interrupt)) void defaultHandlerNe(Frame* frame) {
     defaultHandlerImplNe<Id>(frame);
 }
 
-__attribute__((interrupt)) void timerHandler(Frame*) {
+__attribute__((interrupt)) void timerHandler(Frame* frame) {
     end(0);
-    timer::hit();
+    // TODO: 这里需要重写wrapper
+    timer::hit(0);
 }
 
 __attribute__((interrupt)) void keyboardHandler(Frame*) {

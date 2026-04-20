@@ -8,9 +8,11 @@
 #include "../paging/directory.hpp"
 #include "../paging/translator.hpp"
 #include "../timer/load.hpp"
+#include "signal.hpp"
 #include "stack.hpp"
 #include "switch.hpp"
 #include "tcb.hpp"
+#include "trampoline.h"
 #include "wait.hpp"
 
 namespace nyan::task {
@@ -18,8 +20,21 @@ namespace nyan::task {
 lib::TailList<TaskControlBlockTag> pendingTasks;
 lib::TailList<TaskControlBlockTag> sleepTasks;
 
+void loadTrampoline() {
+    paging::kernelPageDirectory.set(paging::kernelPageDirectory.at(1023), 1023,
+                                    paging::PDE_Present | paging::PDE_ReadWrite | paging::PDE_User);
+    paging::kernelPageDirectory.map(0xFFFFF000_va, allocator::physicalFrameAlloc(),
+                                    paging::PTE_Present | paging::PTE_ReadWrite | paging::PTE_User);
+    0xFFFFF000_va .invlpg();
+    void* frame = 0xFFFFF000_va .as<void*>();
+    std::memset(frame, 0, 4096);
+    std::memcpy(frame, trampoline_start, trampoline_end - trampoline_start);
+    // TODO: 这里可以配置完成后把readwrite干掉
+}
+
 void load() {
     setupKnownTasks();
+    loadTrampoline();
 }
 
 __attribute__((noinline)) void taskWrapper(int (*func)(void* param), void* param) {
@@ -275,13 +290,17 @@ void sleep(uint64_t ms) {
     yield();
 }
 
-void checkSleep() {
+void checkSleep(interrupt::SyscallFrame* frame) {
     arch::InterruptGuard guard;
     while (sleepTasks && sleepTasks.head->sleepInfo.time < timer::msSinceBoot) {
         auto task = sleepTasks.popFront();
         pendingTasks.pushBack(task);
     }
     if ((timer::msSinceBoot % 10 == 0) && currentTask) {
+        // TODO: 之后处理
+        if (frame) {
+            checkSignal(currentTask.head, frame);
+        }
         yield();
     }
 }
@@ -298,13 +317,53 @@ void sendSignal(TaskControlBlock* task, int sig) {
     }
 }
 
-bool checkSignal(TaskControlBlock* task) {
+void defaultSignalLogic(int sig) {
+    switch (sig) {
+        case SIGCHLD:
+        case SIGURG:
+        case SIGWINCH:
+            break;
+        default:
+            // TODO: fill signal
+            exitTask(255);
+            break;
+    }
+}
+
+bool checkSignal(TaskControlBlock* task, interrupt::SyscallFrame* frame) {
+    // TODO: 假设一定来自用户态. 需要有个地方检查frame->cs
     arch::InterruptGuard guard;
     if (!task->pendingSignals) {
         return false;
     }
     auto sig = std::countr_zero(task->pendingSignals);
-    // TODO: process
+    task->pendingSignals &= ~(1 << sig);
+    if (!currentTask->signalActions) {
+        defaultSignalLogic(sig);
+    } else {
+        const auto& entry = currentTask->signalActions->operator[](sig);
+        if (entry.sa_handler == SIG_IGN) {
+            ;
+        } else if (entry.sa_handler == SIG_DFL) {
+            defaultSignalLogic(sig);
+        } else {
+            auto mask = currentTask->signalMask;
+            currentTask->signalMask |= entry.sa_mask;
+
+            // TODO: 这里关闭了中断, 需要检查是否跨页了.
+            auto esp = frame->user_esp;
+            esp -= sizeof(task::SignalFrame);
+            auto userFrame = reinterpret_cast<task::SignalFrame*>(esp);
+            userFrame->retAddr = (0xFFFFF000_va + (sigreturn_trampoline - trampoline_start)).addr;
+            userFrame->signal = sig;
+            userFrame->oldMask = mask;
+            userFrame->frame = *frame;
+
+            frame->eip = reinterpret_cast<uint32_t>(entry.sa_handler);
+            frame->user_esp = esp;
+            return true;
+        }
+    }
     return true;
 }
 
