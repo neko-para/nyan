@@ -17,12 +17,13 @@ target_include_directories(kernel_header INTERFACE SYSTEM src/include)
 add_library(
   user STATIC
   src/user/lib/src/start.s
-  src/user/lib/src/syscall.cpp
-  src/user/lib/src/unistd.cpp
+  src/user/lib/src/errno.cpp
   src/user/lib/src/signal.cpp
-  src/user/lib/src/string.cpp
   src/user/lib/src/stdio.cpp
-  src/user/lib/src/errno.cpp)
+  src/user/lib/src/stdlib.cpp
+  src/user/lib/src/string.cpp
+  src/user/lib/src/syscall.cpp
+  src/user/lib/src/unistd.cpp)
 target_include_directories(user PUBLIC src/user/lib/include)
 target_link_libraries(user PUBLIC kernel_header)
 
@@ -62,6 +63,7 @@ add_user_program(sh src/user/entry/sh.cpp)
 add_user_program(true src/user/entry/true.cpp)
 add_user_program(false src/user/entry/false.cpp)
 add_user_program(echo src/user/entry/echo.cpp)
+add_user_program(kill src/user/entry/kill.cpp)
 add_user_program(test src/user/entry/test.cpp)
 
 # kernel

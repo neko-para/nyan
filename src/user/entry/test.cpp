@@ -4,13 +4,15 @@
 
 void action(int sig) {
     fputs("action come", stderr);
-    // exit(sig);
+    exit(sig);
 }
 
 extern "C" int main() {
     signal(SIGUSR1, action);
 
-    raise(SIGUSR1);
+    while (true) {
+        ;
+    }
 
     return 0;
 }
