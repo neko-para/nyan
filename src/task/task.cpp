@@ -299,7 +299,7 @@ void checkSleep(interrupt::SyscallFrame* frame) {
     if ((timer::msSinceBoot % 10 == 0) && currentTask) {
         // TODO: 之后处理
         if (frame) {
-            checkSignal(currentTask.head, frame);
+            checkSignal(frame);
         }
         yield();
     }
@@ -330,14 +330,14 @@ void defaultSignalLogic(int sig) {
     }
 }
 
-bool checkSignal(TaskControlBlock* task, interrupt::SyscallFrame* frame) {
+bool checkSignal(interrupt::SyscallFrame* frame) {
     // TODO: 假设一定来自用户态. 需要有个地方检查frame->cs
     arch::InterruptGuard guard;
-    if (!task->pendingSignals) {
+    if (!currentTask->pendingSignals) {
         return false;
     }
-    auto sig = std::countr_zero(task->pendingSignals);
-    task->pendingSignals &= ~(1 << sig);
+    auto sig = std::countr_zero(currentTask->pendingSignals);
+    currentTask->pendingSignals &= ~(1u << sig);
     if (!currentTask->signalActions) {
         defaultSignalLogic(sig);
     } else {

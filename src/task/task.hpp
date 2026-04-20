@@ -31,6 +31,6 @@ void sleep(uint64_t ms);
 void checkSleep(interrupt::SyscallFrame* frame);
 
 void sendSignal(TaskControlBlock* task, int sig);
-bool checkSignal(TaskControlBlock* task, interrupt::SyscallFrame* frame);
+bool checkSignal(interrupt::SyscallFrame* frame);
 
 }  // namespace nyan::task

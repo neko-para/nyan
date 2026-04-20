@@ -190,7 +190,7 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             frame->eax = -SYS_ENOSYS;
     }
 
-    task::checkSignal(task::currentTask.head, frame);
+    task::checkSignal(frame);
 }
 
 }  // namespace nyan::interrupt
