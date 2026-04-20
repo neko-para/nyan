@@ -3,8 +3,8 @@
 #include <unistd.h>
 
 void action(int sig) {
-    fputs("action come", stderr);
-    exit(sig);
+    fputs("action come\n", stderr);
+    exit(0);
 }
 
 extern "C" int main() {

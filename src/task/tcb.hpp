@@ -24,7 +24,7 @@ struct TaskControlBlockMetaInfo {
 };
 
 struct ExitInfo {
-    int code;
+    int stat;
 };
 
 struct BlockSleepInfo {

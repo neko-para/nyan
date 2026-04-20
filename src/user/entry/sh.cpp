@@ -3,6 +3,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "utils.hpp"
+
 bool readline(char* buf, size_t len) {
     char* ptr = buf;
     while (true) {
@@ -57,10 +59,14 @@ extern "C" int main() {
             } else {
                 int stat;
                 if (pid == waitpid(pid, &stat, 0)) {
-                    if (0 == WEXITSTATUS(stat)) {
-                        fputs("return 0\n", stdout);
+                    if (WIFEXITED(stat)) {
+                        fputs("exit with ", stdout);
+                        printNum(WEXITSTATUS(stat), stdout);
+                        fputc('\n', stdout);
                     } else {
-                        fputs("return none 0\n", stdout);
+                        fputs("signal with ", stdout);
+                        printNum(WTERMSIG(stat), stdout);
+                        fputc('\n', stdout);
                     }
                 } else {
                     fputs("wait failed\n", stdout);

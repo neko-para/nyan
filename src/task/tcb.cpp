@@ -1,4 +1,5 @@
 #include "tcb.hpp"
+#include <sys/wait.h>
 
 #include "../console/entry.hpp"
 #include "../timer/load.hpp"
@@ -17,7 +18,11 @@ void TaskControlBlock::dump() {
             console::activeTty->print("task {} running\n", pid);
             break;
         case task::State::S_Exited:
-            console::activeTty->print("task {} exited with {}\n", pid, exitInfo.code);
+            if (WTERMSIG(exitInfo.stat)) {
+                console::activeTty->print("task {} signal with {}\n", pid, WTERMSIG(exitInfo.stat));
+            } else {
+                console::activeTty->print("task {} exit with {}\n", pid, WEXITSTATUS(exitInfo.stat));
+            }
             break;
         case task::State::S_Blocked:
             switch (blockReason) {

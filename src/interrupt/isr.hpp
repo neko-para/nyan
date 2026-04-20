@@ -88,6 +88,8 @@ void defaultHandlerImplNe(Frame*);
 
 extern "C" void syscallHandler();
 extern "C" void syscallHandlerImpl(SyscallFrame* frame);
+extern "C" void timerHandler();
+extern "C" void timerHandlerImpl(SyscallFrame* frame);
 
 void fillEntries(Entry* entry);
 

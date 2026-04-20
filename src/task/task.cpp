@@ -165,7 +165,7 @@ pid_t addTask(TaskControlBlock* task) {
     }
 }
 
-[[noreturn]] void exitTask(int code) {
+[[noreturn]] void exitTask(int code, int sig) {
     arch::cli();
 
     if (currentTask->pid == KP_Init) {
@@ -173,7 +173,7 @@ pid_t addTask(TaskControlBlock* task) {
     }
 
     currentTask->state = State::S_Exited;
-    currentTask->exitInfo.code = code;
+    currentTask->exitInfo.stat = (code << 8) | sig;
     if (currentTask->childTasks) {
         allTasks[KP_Init]->childTasks.appendBack(currentTask->childTasks);
         allTasks[KP_Init]->wait.wakeOne();
@@ -189,7 +189,7 @@ pid_t addTask(TaskControlBlock* task) {
     arch::kfatal("exited task rescheduled!");
 }
 
-bool freeTask(pid_t pid, int* code) {
+bool freeTask(pid_t pid, int* stat) {
     arch::kprint("free task pid = {} current = {} {}\n", pid, currentTask->pid, currentTask->name);
     auto task = allTasks[pid];
     if (!task) {
@@ -200,8 +200,8 @@ bool freeTask(pid_t pid, int* code) {
         arch::kprint("Task {} not exited!\n", pid);
         return false;
     }
-    if (code) {
-        *code = task->exitInfo.code;
+    if (stat) {
+        *stat = task->exitInfo.stat;
     }
 
     auto parentTask = findTask(task->parentPid);
@@ -297,8 +297,7 @@ void checkSleep(interrupt::SyscallFrame* frame) {
         pendingTasks.pushBack(task);
     }
     if ((timer::msSinceBoot % 10 == 0) && currentTask) {
-        // TODO: 之后处理
-        if (frame) {
+        if ((frame->cs & 0x3) == 3) {
             checkSignal(frame);
         }
         yield();
@@ -324,8 +323,7 @@ void defaultSignalLogic(int sig) {
         case SIGWINCH:
             break;
         default:
-            // TODO: fill signal
-            exitTask(255);
+            exitTask(255, sig);
             break;
     }
 }

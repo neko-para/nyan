@@ -30,12 +30,8 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
             for (auto tcb = task::currentTask->childTasks.head; tcb;
                  tcb = tcb->ListNode<task::TaskControlBlockChildTag>::next) {
                 if (tcb->ended()) {
-                    if (stat_loc) {
-                        // TODO: signal
-                        *stat_loc = ((tcb->exitInfo.code & 0xFF) << 8) | 0;
-                    }
                     auto findPid = tcb->pid;
-                    task::freeTask(findPid, 0);
+                    task::freeTask(findPid, stat_loc);
                     return findPid;
                 }
             }
@@ -67,11 +63,7 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
                 task::currentTask->waitInfo = {pid};
                 task::currentTask->wait.wait(task::BlockReason::BR_WaitTask);
             } else {
-                if (stat_loc) {
-                    // TODO: signal
-                    *stat_loc = ((tcb->exitInfo.code & 0xFF) << 8) | 0;
-                }
-                task::freeTask(pid, 0);
+                task::freeTask(pid, stat_loc);
                 return pid;
             }
         }

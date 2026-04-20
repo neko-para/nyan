@@ -6,6 +6,8 @@
 #include "../lib/format.hpp"
 #include "../task/task.hpp"
 #include "../task/tcb.hpp"
+#include "../timer/load.hpp"
+#include "load.hpp"
 
 namespace nyan::interrupt {
 
@@ -191,6 +193,11 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
     }
 
     task::checkSignal(frame);
+}
+
+extern "C" void timerHandlerImpl(SyscallFrame* frame) {
+    end(0);
+    timer::hit(frame);
 }
 
 }  // namespace nyan::interrupt
