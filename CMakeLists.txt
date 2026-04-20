@@ -59,12 +59,13 @@ function(add_user_program NAME SOURCE)
       PARENT_SCOPE)
 endfunction()
 
-add_user_program(sh src/user/entry/sh.cpp)
-add_user_program(true src/user/entry/true.cpp)
-add_user_program(false src/user/entry/false.cpp)
-add_user_program(echo src/user/entry/echo.cpp)
-add_user_program(kill src/user/entry/kill.cpp)
-add_user_program(test src/user/entry/test.cpp)
+file(GLOB user_srcs src/user/entry/*.cpp)
+
+foreach(user_src ${user_srcs})
+  get_filename_component(user_prog_name ${user_src} NAME_WLE)
+  message("Add user program ${user_src} as ${user_prog_name}")
+  add_user_program(${user_prog_name} ${user_src})
+endforeach()
 
 # kernel
 
