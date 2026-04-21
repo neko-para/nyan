@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdarg.h>
 #include <sys/types.h>
 
 #ifdef __BUILDING_NYAN__
@@ -31,6 +32,16 @@ extern "C" {
 
 int fputc(int ch, FILE* file);
 int fputs(const char* str, FILE* file);
+
+int printf(const char* format, ...) __attribute__((format(printf, 1, 2)));
+int fprintf(FILE* file, const char* format, ...) __attribute__((format(printf, 2, 3)));
+int sprintf(char* buf, const char* format, ...) __attribute__((format(printf, 2, 3)));
+int snprintf(char* buf, size_t bufsz, const char* format, ...) __attribute__((format(printf, 3, 4)));
+
+int vprintf(const char* format, va_list lst);
+int vfprintf(FILE* file, const char* format, va_list lst);
+int vsprintf(char* buf, const char* format, va_list lst);
+int vsnprintf(char* buf, size_t bufsz, const char* format, va_list lst);
 
 #ifdef __cplusplus
 }
