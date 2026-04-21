@@ -8,11 +8,22 @@
 
 struct FILE;
 
-#define stdin ((FILE*)0)
-#define stdout ((FILE*)1)
-#define stderr ((FILE*)2)
+#ifdef __cplusplus
+extern "C" FILE* __stdin;
+extern "C" FILE* __stdout;
+extern "C" FILE* __stderr;
+#else
+extern FILE* __stdin;
+extern FILE* __stdout;
+extern FILE* __stderr;
+#endif
+
+#define stdin (__stdin)
+#define stdout (__stdout)
+#define stderr (__stderr)
 
 #define EOF -1
+#define BUFSIZ 8192
 
 #ifdef __cplusplus
 extern "C" {
