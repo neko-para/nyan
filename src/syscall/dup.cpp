@@ -1,6 +1,5 @@
 #include <nyan/syscall.h>
 
-#include "../arch/guard.hpp"
 #include "../task/tcb.hpp"
 
 namespace nyan::syscall {
@@ -15,7 +14,7 @@ int dup(int fd) {
     }
 
     for (size_t i = 3; i < task::MAXFD; i++) {
-        auto& fileObjSlot = task::currentTask->fdTable[fd];
+        auto& fileObjSlot = task::currentTask->fdTable[i];
         if (fileObjSlot) {
             continue;
         }

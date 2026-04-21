@@ -12,6 +12,7 @@ struct InterruptGuard {
         arch::cli();
     }
     ~InterruptGuard() {
+        // i386下一定有效值一定非0
         if (flags) {
             arch::setFlags(flags);
         }

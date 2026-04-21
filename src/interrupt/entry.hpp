@@ -34,6 +34,7 @@ inline Entry makeEntry(uint32_t isr, uint16_t cs, uint8_t attr) {
     Entry entry;
     entry.isr_lo = isr & 0xFFFF;
     entry.kernel_cs = cs;
+    entry._ = 0;
     entry.attr = attr;
     entry.isr_hi = (isr >> 16) & 0xFFFF;
     return entry;

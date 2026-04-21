@@ -54,6 +54,9 @@ void ScreenBuffer::putcImpl(char ch) {
         return;
     } else if (ch == '\t') {
         colPtr += 4 - (colPtr & 3);
+        if (colPtr == width) {
+            goto putLF;
+        }
         return;
     }
 

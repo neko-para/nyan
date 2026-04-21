@@ -172,6 +172,9 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
         case 4:
             CALL(write)
             break;
+        case 6:
+            CALL(close);
+            break;
         case 7:
             CALL(waitpid)
             break;

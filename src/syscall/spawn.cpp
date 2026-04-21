@@ -12,6 +12,7 @@ pid_t spawn(const char* name, const char* const* argv) {
         const auto& prog = data::programs[i];
         if (std::string_view{prog.name} == name) {
             auto task = task::createElfTask(prog.data, prog.size, argv);
+            // TODO: close-on-exec
             task->fdTable = task::currentTask->fdTable;
             task->tty = task::currentTask->tty;
             auto pid = task::addTask(task);

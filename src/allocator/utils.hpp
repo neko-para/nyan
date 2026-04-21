@@ -21,6 +21,7 @@ void slabFree(void* addr);
 
 template <typename T, typename... Args>
 inline T* frameAllocAs(Args&&... args) noexcept {
+    static_assert(sizeof(T) <= 4096);
     return new (frameAlloc()) T(std::forward<Args>(args)...);
 }
 
@@ -35,6 +36,7 @@ inline void frameFreeAs(T* frame) noexcept {
 
 template <typename T, typename... Args>
 inline T* allocAs(Args&&... args) noexcept {
+    static_assert(sizeof(T) <= 512);
     return new (slabAlloc(sizeof(T), alignof(T))) T(std::forward<Args>(args)...);
 }
 

@@ -273,8 +273,9 @@ void sleep(uint64_t ms) {
     if (!sleepTasks.head) {
         sleepTasks.pushBack(currentTask.head);
     } else if (currTs <= sleepTasks.head->sleepInfo.time) {
-        currentTask.pushFront(currentTask.head);
+        sleepTasks.pushFront(currentTask.head);
     } else {
+        // TODO: 优化list迭代和插入逻辑
         for (auto head = sleepTasks.head; head->ListNode<TaskControlBlockTag>::next;
              head = head->ListNode<TaskControlBlockTag>::next) {
             auto next = head->ListNode<TaskControlBlockTag>::next;

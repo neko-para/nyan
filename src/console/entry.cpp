@@ -91,10 +91,10 @@ void Tty::input(const keyboard::Message& msg, interrupt::SyscallFrame*) {
                 inputBuffer.append("\x1B[B", 3);
                 break;
             case keyboard::SC_LEFT:
-                inputBuffer.append("\x1B[C", 3);
+                inputBuffer.append("\x1B[D", 3);
                 break;
             case keyboard::SC_RIGHT:
-                inputBuffer.append("\x1B[D", 3);
+                inputBuffer.append("\x1B[C", 3);
                 break;
             case keyboard::SC_DELETE:
                 inputBuffer.append("\x1B[3~", 4);
@@ -161,7 +161,7 @@ int consoleDeamon(void* param) {
 
 void load() {
     for (auto& tty : allTtys) {
-        tty = new Tty;
+        tty = allocator::frameAllocAs<Tty>();
         tty->clear();
     }
     activeTty = allTtys[0];

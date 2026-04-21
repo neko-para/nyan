@@ -22,10 +22,6 @@ void load(uint32_t hz) {
 void hit(interrupt::SyscallFrame* frame) {
     msSinceBoot += 1;
 
-    if (msSinceBoot % 1000 == 0) {
-        arch::kput('.');
-    }
-
     task::checkSleep(frame);
 }
 

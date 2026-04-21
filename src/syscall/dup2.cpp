@@ -1,6 +1,5 @@
 #include <nyan/syscall.h>
 
-#include "../arch/guard.hpp"
 #include "../task/tcb.hpp"
 
 namespace nyan::syscall {

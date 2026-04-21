@@ -23,15 +23,7 @@ extern "C" void kmain(boot::BootInfo* info) {
     arch::enableSse();
     paging::clearIdentityPaging();
 
-    console::load();
-
     __libc_init_array();
-
-    gdt::load();
-    interrupt::load();
-
-    timer::load();
-    keyboard::load();
 
     info = paging::PhysicalAddress(info).kernelToVirtual().as<boot::BootInfo>();
     auto mmap_count = info->mmap_length / sizeof(boot::MMapEntry);
@@ -50,6 +42,14 @@ extern "C" void kmain(boot::BootInfo* info) {
         allocator::load(upper);
         break;
     }
+
+    console::load();
+
+    gdt::load();
+    interrupt::load();
+
+    timer::load();
+    keyboard::load();
 
     task::load();
 

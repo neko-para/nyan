@@ -7,7 +7,7 @@ extern "C" int main(int argc, char* argv[]) {
         return 1;
     } else {
         int arg1 = atoi(argv[1]);
-        if (arg1 < 0 && argc >= 2) {
+        if (arg1 < 0 && argc >= 3) {
             int arg2 = atoi(argv[2]);
             if (arg2 > 0) {
                 return kill(arg2, -arg1);
