@@ -6,20 +6,11 @@
 #include "utils.hpp"
 
 bool readline(char* buf, size_t len) {
-    char* ptr = buf;
-    while (true) {
-        auto count = read(0, ptr, len - (ptr - buf));
-        if (count <= 0) {
-            *ptr = 0;
-            return ptr != buf;
-        }
-        for (ssize_t i = 0; i < count; i++) {
-            if (ptr[i] == '\n') {
-                ptr[i] = 0;
-                return true;
-            }
-        }
-        ptr += count;
+    if (fgets(buf, len, stdin)) {
+        buf[strlen(buf) - 1] = 0;
+        return true;
+    } else {
+        return false;
     }
 }
 
@@ -43,7 +34,6 @@ void processArgv(char** argv, char* buf) {
 extern "C" int main() {
     char buf[256];
     fputs("> ", stdout);
-    // TODO: 之后换成fgets/scanf的话, 本身会自动flush
     fflush(stdout);
     while (readline(buf, 255)) {
         if (!strcmp(buf, "exit")) {
@@ -53,6 +43,7 @@ extern "C" int main() {
             processArgv(argv, buf);
             if (!argv[0]) {
                 fputs("\n> ", stdout);
+                fflush(stdout);
                 continue;
             }
             auto pid = spawn(argv[0], argv);

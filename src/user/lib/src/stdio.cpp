@@ -111,22 +111,25 @@ void __init_stdio() {
     __stderr = &__stderr_obj;
 
     stdin->fd = 0;
-    stdin->flags = F_FullBuf;
+    stdin->flags = F_In | F_FullBuf;
     stdin->buf = stdin_buffer;
     stdin->buf_size = BUFSIZ;
     stdin->buf_pos = 0;
+    stdin->buf_end = 0;
 
     stdout->fd = 1;
     stdout->flags = F_Out | F_LineBuf;
     stdout->buf = stdout_buffer;
     stdout->buf_size = BUFSIZ;
     stdout->buf_pos = 0;
+    stdout->buf_end = 0;
 
     stderr->fd = 2;
     stderr->flags = F_Out | F_NoBuf;
     stderr->buf = 0;
     stderr->buf_size = 0;
     stderr->buf_pos = 0;
+    stderr->buf_end = 0;
 }
 
 void __fini_stdio() {
@@ -135,6 +138,7 @@ void __fini_stdio() {
 
 int fputc(int ch, FILE* file) {
     if (!(file->flags & F_Out)) {
+        errno = EBADF;
         file->flags |= F_Err;
         return EOF;
     }
@@ -163,6 +167,7 @@ int fputc(int ch, FILE* file) {
 
 int fputs(const char* str, FILE* file) {
     if (!(file->flags & F_Out)) {
+        errno = EBADF;
         file->flags |= F_Err;
         return EOF;
     }
@@ -217,6 +222,70 @@ int fputs(const char* str, FILE* file) {
     return 0;
 }
 
+char* fgets(char* buf, int size, FILE* file) {
+    if (!file) {
+        errno = EINVAL;
+        return 0;
+    }
+    if (!(file->flags & F_In)) {
+        errno = EBADF;
+        file->flags |= F_Err;
+        return 0;
+    }
+    if (size <= 0) {
+        errno = EINVAL;
+        return 0;
+    }
+
+    if (file->bufMode() == F_NoBuf) {
+        // TODO: impl
+        file->flags |= F_Err;
+        return 0;
+    }
+
+    auto cur = buf;
+    size_t restSize = size - 1;
+    while (true) {
+        if (file->buf_pos == file->buf_end) {
+            auto ret = read(file->fd, file->buf, file->buf_size);
+            if (ret < 0) {
+                file->flags |= F_Err;
+                if (cur != buf) {
+                    *cur = 0;
+                    return buf;
+                }
+                return 0;
+            } else if (ret == 0) {
+                file->buf_pos = 0;
+                file->buf_end = 0;
+                file->flags |= F_Eof;
+                if (cur != buf) {
+                    *cur = 0;
+                    return buf;
+                }
+                return 0;
+            } else {
+                file->buf_pos = 0;
+                file->buf_end = ret;
+            }
+        }
+
+        auto start = file->buf + file->buf_pos;
+        auto ptr = static_cast<char*>(memchr(start, '\n', file->buf_end - file->buf_pos));
+        auto fill = ptr ? (ptr + 1) : (file->buf + file->buf_end);
+        size_t rest = fill - start;
+        size_t len = min(rest, restSize);
+        memcpy(cur, start, len);
+        cur += len;
+        restSize -= len;
+        file->buf_pos += len;
+        if (ptr || restSize == 0) {
+            *cur = 0;
+            return buf;
+        }
+    }
+}
+
 int fflush(FILE* file) {
     if (!file) {
         __FLUSH(stdout);
@@ -238,6 +307,36 @@ int fflush(FILE* file) {
             }
         }
         return 0;
+    } else {
+        return 0;
+    }
+}
+
+void clearerr(FILE* file) {
+    if (file) {
+        file->flags &= ~(F_Err | F_Eof);
+    }
+}
+
+int feof(FILE* file) {
+    if (file) {
+        return !!(file->flags & F_Eof);
+    } else {
+        return 0;
+    }
+}
+
+int ferror(FILE* file) {
+    if (file) {
+        return !!(file->flags & F_Err);
+    } else {
+        return 0;
+    }
+}
+
+int fileno(FILE* file) {
+    if (file) {
+        return file->fd;
     } else {
         return 0;
     }

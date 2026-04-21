@@ -33,7 +33,13 @@ extern "C" {
 int fputc(int ch, FILE* file);
 int fputs(const char* str, FILE* file);
 
+char* fgets(char* buf, int size, FILE* file);
+
 int fflush(FILE* file);
+void clearerr(FILE* file);
+int feof(FILE* file);
+int ferror(FILE* file);
+int fileno(FILE* file);
 
 int printf(const char* format, ...) __attribute__((format(printf, 1, 2)));
 int fprintf(FILE* file, const char* format, ...) __attribute__((format(printf, 2, 3)));

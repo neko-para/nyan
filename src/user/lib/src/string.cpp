@@ -50,6 +50,18 @@ void* memset(void* dst, int value, size_t size) {
     return dst;
 }
 
+void* memchr(const void* src, int ch, size_t size) {
+    auto psrc = static_cast<const uint8_t*>(src);
+    uint8_t pat = static_cast<uint8_t>(ch);
+    while (size--) {
+        if (*psrc == pat) {
+            return const_cast<uint8_t*>(psrc);
+        }
+        psrc++;
+    }
+    return 0;
+}
+
 char* strcat(char* dst, const char* src) {
     auto pdst = dst;
     while (*pdst) {
