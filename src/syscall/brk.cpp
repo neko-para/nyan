@@ -6,6 +6,7 @@
 
 namespace nyan::syscall {
 
+// TODO: 支持收缩
 void* brk(const void* addr) {
     auto vAddr = paging::VirtualAddress{addr};
     if (!vAddr || vAddr < task::currentTask->brkAddr) {

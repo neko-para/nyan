@@ -12,6 +12,7 @@ struct WaitList {
 
     bool empty() noexcept { return !list.head; }
 
+    // TODO: 被信号唤醒需要返回
     void wait(BlockReason reason) noexcept;
     bool wakeOne() noexcept;
     void wakeAll() noexcept;

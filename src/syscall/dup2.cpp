@@ -15,7 +15,6 @@ int dup2(int fd, int newFd) {
     if (newFd < 0 || static_cast<size_t>(newFd) >= task::MAXFD) {
         return -SYS_EBADF;
     }
-    arch::InterruptGuard guard;
     auto& fileObj = task::currentTask->fdTable[fd];
     if (!fileObj) {
         return -SYS_EBADF;

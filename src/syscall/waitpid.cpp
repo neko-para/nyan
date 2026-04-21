@@ -23,7 +23,6 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
     } else if (pid == -1) {
         // wait any child
         while (true) {
-            arch::InterruptGuard guard;
             if (!task::currentTask->childTasks) {
                 return -SYS_ECHILD;
             }
@@ -49,7 +48,6 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
     } else {
         // wait pid
         while (true) {
-            arch::InterruptGuard guard;
             auto tcb = task::findTask(pid);
             if (!tcb || tcb->parentPid != task::currentTask->pid) {
                 return -SYS_ECHILD;

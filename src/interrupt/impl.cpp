@@ -157,6 +157,8 @@ static void dump(SyscallFrame* frame, const char (&name)[N]) {
     call(frame, syscall::func);
 
 extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
+    // 简单处理, syscall中不可重入中断
+    arch::InterruptGuard guard;
     switch (frame->eax) {
         case 1:
             CALL(exit)
