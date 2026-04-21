@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <stdlib.h>
 
 extern "C" {
@@ -11,7 +12,7 @@ int atoi(const char* str) {
     } else if (*str == '+') {
         str++;
     }
-    while (*str >= '0' && *str <= '9') {
+    while (isdigit(*str)) {
         value *= 10;
         value += *str++ - '0';
     }
