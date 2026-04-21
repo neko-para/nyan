@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include "../task/wait.hpp"
 #include "buffer.hpp"
 
@@ -33,7 +35,7 @@ struct Tty : public ScreenBuffer {
     void input(const keyboard::Message& msg, interrupt::SyscallFrame* frame);
 
     bool inputEmpty();
-    arch::InterruptGuard syncWaitInput();
+    std::optional<arch::InterruptGuard> syncWaitInput();
 };
 
 extern Tty* activeTty;

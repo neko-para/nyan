@@ -28,11 +28,14 @@ int DebugConObj::ioctl(uint32_t req, uint32_t param) const noexcept {
 }
 
 ssize_t TtyObj::read(void* buf, size_t size) const noexcept {
-    auto guard = tty->syncWaitInput();
-    auto result = std::min(tty->inputBuffer.size(), size);
-    std::copy_n(tty->inputBuffer.data(), result, static_cast<uint8_t*>(buf));
-    tty->inputBuffer.erase(0, result);
-    return result;
+    if (auto guard = tty->syncWaitInput()) {
+        auto result = std::min(tty->inputBuffer.size(), size);
+        std::copy_n(tty->inputBuffer.data(), result, static_cast<uint8_t*>(buf));
+        tty->inputBuffer.erase(0, result);
+        return result;
+    } else {
+        return -SYS_EINTR;
+    }
 }
 
 ssize_t TtyObj::write(const void* buf, size_t size) const noexcept {

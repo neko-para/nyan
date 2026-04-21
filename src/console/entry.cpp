@@ -119,7 +119,7 @@ void Tty::input(const keyboard::Message& msg, interrupt::SyscallFrame*) {
         }
     }
 
-    waitList.wakeOne();
+    waitList.wakeOne(task::WakeReason::WR_Normal);
 }
 
 bool Tty::inputEmpty() {
@@ -127,13 +127,15 @@ bool Tty::inputEmpty() {
     return inputBuffer.empty();
 }
 
-arch::InterruptGuard Tty::syncWaitInput() {
+std::optional<arch::InterruptGuard> Tty::syncWaitInput() {
     while (true) {
         arch::InterruptGuard guard;
         if (!inputBuffer.empty()) {
             return guard;
         }
-        waitList.wait(task::BlockReason::BR_WaitInput);
+        if (waitList.wait(task::BlockReason::BR_WaitInput) == task::WakeReason::WR_Signal) {
+            return std::nullopt;
+        }
     }
 }
 

@@ -177,10 +177,12 @@ pid_t addTask(TaskControlBlock* task) {
     currentTask->exitInfo.stat = (code << 8) | sig;
     if (currentTask->childTasks) {
         allTasks[KP_Init]->childTasks.appendBack(currentTask->childTasks);
-        allTasks[KP_Init]->wait.wakeOne();
+        // 这里是不是应该走信号
+        allTasks[KP_Init]->wait.wakeOne(WakeReason::WR_Normal);
     }
     if (auto parent = findTask(currentTask->parentPid)) {
-        parent->wait.wakeOne();
+        // 这里是不是应该走信号
+        parent->wait.wakeOne(WakeReason::WR_Normal);
     }
     if (pendingTasks) {
         switchToTask(pendingTasks.popFront());
@@ -246,15 +248,17 @@ void block(BlockReason reason) {
     arch::InterruptGuard guard;
     currentTask->state = State::S_Blocked;
     currentTask->blockReason = reason;
+    currentTask->wakeReason = WakeReason::WR_Normal;
     yield();
 }
 
-void unblock(TaskControlBlock* task) {
+void unblock(TaskControlBlock* task, WakeReason reason) {
     if (task->state != State::S_Blocked) {
         return;
     }
     task->state = State::S_Ready;
     task->blockReason = BlockReason::BR_Unknown;
+    task->wakeReason = reason;
 
     {
         arch::InterruptGuard guard;
@@ -318,7 +322,7 @@ void sendSignal(TaskControlBlock* task, int sig) {
     }
     task->pendingSignals |= 1u << sig;
     if (task->state == State::S_Blocked) {
-        unblock(task);
+        unblock(task, WakeReason::WR_Signal);
     }
 }
 

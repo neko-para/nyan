@@ -21,6 +21,7 @@ struct TaskControlBlockMetaInfo {
     uint32_t kernelEsp;
     State state;
     BlockReason blockReason;
+    WakeReason wakeReason;
     pid_t pid;
 };
 

@@ -31,6 +31,11 @@ enum class BlockReason : uint16_t {
     BR_WaitTask,
 };
 
+enum class WakeReason : uint16_t {
+    WR_Normal,
+    WR_Signal,
+};
+
 enum KnownPid : pid_t {
     KP_Invalid = -1,
 

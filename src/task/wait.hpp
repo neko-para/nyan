@@ -12,10 +12,9 @@ struct WaitList {
 
     bool empty() noexcept { return !list.head; }
 
-    // TODO: 被信号唤醒需要返回
-    void wait(BlockReason reason) noexcept;
-    bool wakeOne() noexcept;
-    void wakeAll() noexcept;
+    WakeReason wait(BlockReason reason) noexcept;
+    bool wakeOne(WakeReason reason) noexcept;
+    void wakeAll(WakeReason reason) noexcept;
 };
 
 }  // namespace nyan::task

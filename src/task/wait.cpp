@@ -6,25 +6,28 @@
 
 namespace nyan::task {
 
-void WaitList::wait(BlockReason reason) noexcept {
+WakeReason WaitList::wait(BlockReason reason) noexcept {
     arch::InterruptGuard guard;
     list.pushBack(currentTask.head);
     block(reason);
+    auto wakeReason = currentTask->wakeReason;
+    currentTask->wakeReason = WakeReason::WR_Normal;
+    return wakeReason;
 }
 
-bool WaitList::wakeOne() noexcept {
+bool WaitList::wakeOne(WakeReason reason) noexcept {
     arch::InterruptGuard guard;
     if (auto task = list.popFront()) {
-        unblock(task);
+        unblock(task, reason);
         return true;
     }
     return false;
 }
 
-void WaitList::wakeAll() noexcept {
+void WaitList::wakeAll(WakeReason reason) noexcept {
     arch::InterruptGuard guard;
     while (auto task = list.popFront()) {
-        unblock(task);
+        unblock(task, reason);
     }
 }
 

@@ -40,7 +40,9 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
             }
 
             task::currentTask->waitInfo = {pid};
-            task::currentTask->wait.wait(task::BlockReason::BR_WaitTask);
+            if (task::currentTask->wait.wait(task::BlockReason::BR_WaitTask) == task::WakeReason::WR_Signal) {
+                return -SYS_EINTR;
+            }
         }
     } else if (pid == 0) {
         // wait any child in same group
@@ -59,7 +61,9 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
                 }
 
                 task::currentTask->waitInfo = {pid};
-                task::currentTask->wait.wait(task::BlockReason::BR_WaitTask);
+                if (task::currentTask->wait.wait(task::BlockReason::BR_WaitTask) == task::WakeReason::WR_Signal) {
+                    return -SYS_EINTR;
+                }
             } else {
                 task::freeTask(pid, stat_loc);
                 return pid;
