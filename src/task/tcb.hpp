@@ -5,6 +5,7 @@
 
 #include "../lib/containers.hpp"
 #include "../lib/list.hpp"
+#include "fd.hpp"
 #include "forward.hpp"
 #include "wait.hpp"
 
@@ -35,6 +36,9 @@ struct BlockWaitInfo {
     pid_t pid;
 };
 
+// TODO: 这玩意是不是要动态?
+constexpr size_t MAXFD = 16;
+
 struct TaskControlBlock : public TaskControlBlockMetaInfo,
                           public lib::ListBase<TaskControlBlockTag, TaskControlBlockChildTag> {
     pid_t parentPid{KP_Invalid};
@@ -44,6 +48,8 @@ struct TaskControlBlock : public TaskControlBlockMetaInfo,
     sigset_t pendingSignals{};
     sigset_t signalMask{};
     lib::unique_ptr<std::array<sigaction, NSIG>> signalActions;
+
+    std::array<lib::Ref<FdObj>, MAXFD> fdTable;
 
     lib::string name;
     paging::VirtualAddress brkAddr;

@@ -99,19 +99,7 @@ target_include_directories(kernel_embed PRIVATE src)
 
 # kernel
 
-set(syscall_srcs
-    src/syscall/exit.cpp
-    src/syscall/spawn.cpp
-    src/syscall/read.cpp
-    src/syscall/write.cpp
-    src/syscall/waitpid.cpp
-    src/syscall/getpid.cpp
-    src/syscall/kill.cpp
-    src/syscall/brk.cpp
-    src/syscall/signal.cpp
-    src/syscall/sigreturn.cpp
-    src/syscall/ioctl.cpp
-    src/syscall/nanosleep.cpp)
+file(GLOB syscall_srcs src/syscall/*.cpp)
 
 add_executable(
   kernel
@@ -131,6 +119,7 @@ add_executable(
   src/paging/kernel.cpp
   src/task/switch.s
   src/task/trampoline.s
+  src/task/fd.cpp
   src/task/pid.cpp
   src/task/task.cpp
   src/task/tcb.cpp
@@ -138,6 +127,7 @@ add_executable(
   src/timer/load.cpp
   src/console/buffer.cpp
   src/console/entry.cpp
+  src/lib/clang.cpp
   src/lib/libcxx.cpp
   src/lib/libc.cpp
   ${syscall_srcs})

@@ -18,6 +18,9 @@ ssize_t __NYAN_SYSCALL__(read)(int fd, void* buf, size_t size);
 // 4
 ssize_t __NYAN_SYSCALL__(write)(int fd, const void* buf, size_t size);
 
+// 6
+int __NYAN_SYSCALL__(close)(int fd);
+
 // 7
 pid_t __NYAN_SYSCALL__(waitpid)(pid_t pid, int* stat_loc, int options);
 

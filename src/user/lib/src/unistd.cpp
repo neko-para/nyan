@@ -23,6 +23,10 @@ ssize_t write(int fd, const void* buf, size_t size) {
     return wrapRet(sys_write(fd, buf, size));
 }
 
+int close(int fd) {
+    return wrapRet(sys_close(fd));
+}
+
 pid_t waitpid(pid_t pid, int* stat_loc, int options) {
     return wrapRet(sys_waitpid(pid, stat_loc, options));
 }

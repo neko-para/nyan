@@ -63,6 +63,10 @@ ssize_t sys_write(int fd, const void* buf, size_t size) {
     return syscall<4, ssize_t>(fd, buf, size);
 }
 
+int sys_close(int fd) {
+    return syscall<6, int>(fd);
+}
+
 pid_t sys_waitpid(pid_t pid, int* stat_loc, int options) {
     return syscall<7, pid_t>(pid, stat_loc, options);
 }

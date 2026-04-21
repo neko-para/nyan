@@ -1,7 +1,5 @@
 #include <nyan/syscall.h>
 
-#include "../arch/guard.hpp"
-#include "../console/entry.hpp"
 #include "../task/tcb.hpp"
 
 namespace nyan::syscall {
@@ -13,19 +11,18 @@ ssize_t read(int fd, void* buf, size_t size) {
     if (size > INT_MAX) {
         return -SYS_EINVAL;
     }
-    if (fd == 0) {
-        if (auto tty = task::currentTask->tty) {
-            auto guard = tty->syncWaitInput();
-            auto result = std::min(tty->inputBuffer.size(), size);
-            std::copy_n(tty->inputBuffer.data(), result, static_cast<uint8_t*>(buf));
-            tty->inputBuffer.erase(0, result);
-            return result;
-        } else {
-            return -SYS_EBADF;
-        }
-    } else {
+    if (fd < 0 || static_cast<size_t>(fd) >= task::MAXFD) {
         return -SYS_EBADF;
     }
+    const auto& fileObj = task::currentTask->fdTable[fd];
+    if (!fileObj) {
+        return -SYS_EBADF;
+    }
+    auto mode = fileObj->mode & O_ACCMODE;
+    if (mode != O_RDONLY && mode != O_RDWR) {
+        return -SYS_EBADF;
+    }
+    return fileObj->read(buf, size);
 }
 
 }  // namespace nyan::syscall
