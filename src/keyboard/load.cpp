@@ -23,7 +23,7 @@ void load() {
     interrupt::unmask(1);
 }
 
-static void handle(const Message& msg) {
+static void handle(const Message& msg, interrupt::SyscallFrame* frame) {
     if (!(msg.flag & F_Release) && (msg.flag & F_Ctrl) && (msg.flag & F_Alt)) {
         if (msg.key >= SC_F1 && msg.key <= SC_F2) {
             console::switchTo(console::allTtys[msg.key - SC_F1]);
@@ -31,10 +31,10 @@ static void handle(const Message& msg) {
         }
     }
 
-    console::activeTty->input(msg);
+    console::activeTty->input(msg, frame);
 }
 
-bool push(uint8_t dat) {
+bool push(uint8_t dat, interrupt::SyscallFrame* frame) {
     static int state = 0;
 
     Message msg;
@@ -46,13 +46,13 @@ bool push(uint8_t dat) {
                 return false;
             } else {
                 msg = merge(dat);
-                handle(msg);
+                handle(msg, frame);
                 return true;
             }
         case 1:
             msg = merge(0xE000 | dat);
             state = 0;
-            handle(msg);
+            handle(msg, frame);
             return true;
         default:
             return false;

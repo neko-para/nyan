@@ -49,3 +49,29 @@ timerHandler:
     popw %ds
     popal
     iret
+
+.global keyboardHandler
+.type keyboardHandler, @function
+keyboardHandler:
+    pushal
+    pushw %ds
+    pushw %es
+    pushw %fs
+    pushw %gs
+
+    movw $0x10, %ax
+    movw %ax, %ds
+    movw %ax, %es
+    movw %ax, %fs
+    movw %ax, %gs
+
+    pushl %esp
+    call keyboardHandlerImpl 
+    addl $4, %esp
+
+    popw %gs
+    popw %fs
+    popw %es
+    popw %ds
+    popal
+    iret

@@ -24,14 +24,16 @@ void Tty::deactivate() {
     flags &= ~F_Active;
 }
 
-void Tty::input(const keyboard::Message& msg) {
+void Tty::input(const keyboard::Message& msg, interrupt::SyscallFrame*) {
     if (msg.flag & keyboard::F_Release) {
         return;
     }
 
     if (msg.flag & keyboard::F_Ctrl && msg.code == keyboard::SC_C) {
-        // TODO: kill current process
-        arch::qemuQuit();
+        if (auto task = task::findTask(foregroundPid)) {
+            task::sendSignal(task, SIGINT);
+        }
+        return;
     }
 
     arch::InterruptGuard guard;

@@ -57,6 +57,7 @@ extern "C" int main() {
             if (pid <= 0) {
                 fputs("launch failed\n", stdout);
             } else {
+                tcsetpgrp(0, pid);
                 int stat;
                 if (pid == waitpid(pid, &stat, 0)) {
                     if (WIFEXITED(stat)) {
@@ -71,6 +72,7 @@ extern "C" int main() {
                 } else {
                     fputs("wait failed\n", stdout);
                 }
+                tcsetpgrp(0, getpid());
             }
         }
         fputs("\n> ", stdout);

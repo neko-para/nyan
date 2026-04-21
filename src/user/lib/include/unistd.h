@@ -27,6 +27,8 @@ void* sbrk(intptr_t increment);
 
 int nanosleep(const struct timespec* rqtp, struct timespec* rmtp);
 
+int tcsetpgrp(int fd, pid_t pgid);
+
 #ifdef __cplusplus
 }
 #endif

@@ -18,6 +18,7 @@ add_library(
   user STATIC
   src/user/lib/src/start.s
   src/user/lib/src/errno.cpp
+  src/user/lib/src/ioctl.cpp
   src/user/lib/src/signal.cpp
   src/user/lib/src/stdio.cpp
   src/user/lib/src/stdlib.cpp
@@ -109,6 +110,7 @@ set(syscall_srcs
     src/syscall/brk.cpp
     src/syscall/signal.cpp
     src/syscall/sigreturn.cpp
+    src/syscall/ioctl.cpp
     src/syscall/nanosleep.cpp)
 
 add_executable(

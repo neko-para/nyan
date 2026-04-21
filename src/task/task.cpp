@@ -5,6 +5,7 @@
 #include "../allocator/utils.hpp"
 #include "../arch/guard.hpp"
 #include "../elf/entry.hpp"
+#include "../gdt/load.hpp"
 #include "../paging/directory.hpp"
 #include "../paging/translator.hpp"
 #include "../timer/load.hpp"
@@ -297,7 +298,7 @@ void checkSleep(interrupt::SyscallFrame* frame) {
         pendingTasks.pushBack(task);
     }
     if ((timer::msSinceBoot % 10 == 0) && currentTask) {
-        if ((frame->cs & 0x3) == 3) {
+        if (gdt::isRing3(frame->cs)) {
             checkSignal(frame);
         }
         yield();

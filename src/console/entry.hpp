@@ -11,12 +11,16 @@ namespace nyan::arch {
 struct InterruptGuard;
 }
 
+namespace nyan::interrupt {
+struct SyscallFrame;
+}
+
 namespace nyan::console {
 
 constexpr size_t count = 2;
 
 struct Tty : public ScreenBuffer {
-    // pid_t currentPid;
+    pid_t foregroundPid{task::KP_Invalid};
 
     lib::string lineBuffer;
 
@@ -26,7 +30,7 @@ struct Tty : public ScreenBuffer {
     void activate();
     void deactivate();
 
-    void input(const keyboard::Message& msg);
+    void input(const keyboard::Message& msg, interrupt::SyscallFrame* frame);
 
     bool inputEmpty();
     arch::InterruptGuard syncWaitInput();

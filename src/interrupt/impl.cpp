@@ -2,7 +2,10 @@
 
 #include <nyan/syscall.h>
 
+#include "../arch/instr.hpp"
 #include "../arch/io.hpp"
+#include "../gdt/load.hpp"
+#include "../keyboard/load.hpp"
 #include "../lib/format.hpp"
 #include "../task/task.hpp"
 #include "../task/tcb.hpp"
@@ -182,6 +185,9 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
         case 48:
             CALL(signal)
             break;
+        case 54:
+            CALL(ioctl);
+            break;
         case 119:
             syscall::sigreturn(frame);
             break;
@@ -198,6 +204,16 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
 extern "C" void timerHandlerImpl(SyscallFrame* frame) {
     end(0);
     timer::hit(frame);
+}
+
+extern "C" void keyboardHandlerImpl(SyscallFrame* frame) {
+    end(1);
+    uint8_t ch = arch::inb(0x60);
+    keyboard::push(ch, frame);
+
+    if (gdt::isRing3(frame->cs)) {
+        task::checkSignal(frame);
+    }
 }
 
 }  // namespace nyan::interrupt

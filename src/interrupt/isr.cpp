@@ -1,10 +1,6 @@
 #include "isr.hpp"
 
-#include "../arch/instr.hpp"
-#include "../keyboard/load.hpp"
-#include "../timer/load.hpp"
 #include "entry.hpp"
-#include "load.hpp"
 
 namespace nyan::interrupt {
 
@@ -16,12 +12,6 @@ __attribute__((interrupt)) void defaultHandler(Frame* frame, uint32_t error) {
 template <uint32_t Id>
 __attribute__((interrupt)) void defaultHandlerNe(Frame* frame) {
     defaultHandlerImplNe<Id>(frame);
-}
-
-__attribute__((interrupt)) void keyboardHandler(Frame*) {
-    end(1);
-    uint8_t ch = arch::inb(0x60);
-    keyboard::push(ch);
 }
 
 template <typename F>

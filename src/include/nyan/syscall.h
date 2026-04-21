@@ -33,6 +33,9 @@ void* __NYAN_SYSCALL__(brk)(const void* addr);
 // 48
 sighandler_t __NYAN_SYSCALL__(signal)(int sig, sighandler_t handler);
 
+// 54
+int __NYAN_SYSCALL__(ioctl)(int fd, uint32_t request, uint32_t param);
+
 // 119
 void __NYAN_SYSCALL__(sigreturn)(void* frame);
 

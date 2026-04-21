@@ -90,6 +90,8 @@ extern "C" void syscallHandler();
 extern "C" void syscallHandlerImpl(SyscallFrame* frame);
 extern "C" void timerHandler();
 extern "C" void timerHandlerImpl(SyscallFrame* frame);
+extern "C" void keyboardHandler();
+extern "C" void keyboardHandlerImpl(SyscallFrame* frame);
 
 void fillEntries(Entry* entry);
 

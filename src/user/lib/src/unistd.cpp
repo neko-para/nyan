@@ -1,5 +1,6 @@
 #include <errno.h>
 #include <nyan/syscall.h>
+#include <sys/ioctl.h>
 #include <unistd.h>
 
 #include "utils.hpp"
@@ -55,5 +56,9 @@ void* sbrk(intptr_t increment) {
 
 int nanosleep(const struct timespec* rqtp, struct timespec* rmtp) {
     return wrapRet(sys_nanosleep(rqtp, rmtp));
+}
+
+int tcsetpgrp(int fd, pid_t pgid) {
+    return ioctl(fd, TIOCSPGRP, pgid);
 }
 }

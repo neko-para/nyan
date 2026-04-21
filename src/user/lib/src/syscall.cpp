@@ -83,6 +83,10 @@ sighandler_t sys_signal(int sig, sighandler_t handler) {
     return syscall<48, sighandler_t>(sig, handler);
 }
 
+int sys_ioctl(int fd, uint32_t request, uint32_t param) {
+    return syscall<54, int>(fd, request, param);
+}
+
 int sys_nanosleep(const timespec* rqtp, timespec* rmtp) {
     return syscall<162, int>(rqtp, rmtp);
 }
