@@ -60,12 +60,41 @@ function(add_user_program NAME SOURCE)
 endfunction()
 
 file(GLOB user_srcs src/user/entry/*.cpp)
+set(EMBED_DECL "")
+set(EMBED_INIT "")
 
 foreach(user_src ${user_srcs})
   get_filename_component(user_prog_name ${user_src} NAME_WLE)
   message("Add user program ${user_src} as ${user_prog_name}")
   add_user_program(${user_prog_name} ${user_src})
+
+  string(APPEND EMBED_DECL "DECLARE_PROGRAM_DATA(${user_prog_name})\n")
+  string(APPEND EMBED_INIT "    DECLARE_PROGRAM(${user_prog_name}),\n")
 endforeach()
+
+file(
+  WRITE ${CMAKE_BINARY_DIR}/generated/embed.cpp
+  "#include \"data/embed.hpp\"
+#include \"data/macro.hpp\"
+
+${EMBED_DECL}
+namespace nyan::data {
+
+const EmbedProgram programs[] = {
+${EMBED_INIT}};
+const size_t programCount = sizeof(programs) / sizeof(programs[0]);
+
+}  // namespace nyan::data
+")
+
+add_library(kernel_embed STATIC ${CMAKE_BINARY_DIR}/generated/embed.cpp)
+target_link_libraries(kernel_embed PRIVATE kernel_header
+                                           ${USER_PROGRAM_OBJECTS})
+foreach(target ${USER_PROGRAM_TARGETS})
+  add_dependencies(kernel_embed ${target})
+endforeach()
+
+target_include_directories(kernel_embed PRIVATE src)
 
 # kernel
 
@@ -89,7 +118,6 @@ add_executable(
   src/allocator/load.cpp
   src/allocator/slab.cpp
   src/allocator/utils.cpp
-  src/data/embed.cpp
   src/gdt/load.cpp
   src/interrupt/impl.cpp
   src/interrupt/isr.cpp
@@ -135,11 +163,7 @@ set_source_files_properties(src/interrupt/isr.cpp
 set_target_properties(kernel PROPERTIES LINK_DEPENDS
                                         ${CMAKE_CURRENT_LIST_DIR}/src/linker.ld)
 
-foreach(target ${USER_PROGRAM_TARGETS})
-  add_dependencies(kernel ${target})
-endforeach()
-
 target_link_directories(kernel PRIVATE sysroot/usr/lib/generic
                         sysroot/usr/lib/i686-none-elf)
-target_link_libraries(kernel PRIVATE kernel_header c clang_rt.builtins-i386
-                                     ${USER_PROGRAM_OBJECTS})
+target_link_libraries(kernel PRIVATE kernel_header kernel_embed c
+                                     clang_rt.builtins-i386)

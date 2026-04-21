@@ -10,6 +10,7 @@ struct EmbedProgram {
     char name[8];
 };
 
-extern EmbedProgram programs[6];
+extern const EmbedProgram programs[];
+extern const size_t programCount;
 
 }  // namespace nyan::data
