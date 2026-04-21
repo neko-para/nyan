@@ -79,6 +79,10 @@ int sys_kill(pid_t pid, int sig) {
     return syscall<37, int>(pid, sig);
 }
 
+int sys_dup(int fd) {
+    return syscall<41, int>(fd);
+}
+
 void* sys_brk(const void* addr) {
     return syscall<45, void*>(addr);
 }
@@ -89,6 +93,10 @@ sighandler_t sys_signal(int sig, sighandler_t handler) {
 
 int sys_ioctl(int fd, uint32_t request, uint32_t param) {
     return syscall<54, int>(fd, request, param);
+}
+
+int sys_dup2(int fd, int newFd) {
+    return syscall<63, int>(fd, newFd);
 }
 
 int sys_nanosleep(const timespec* rqtp, timespec* rmtp) {

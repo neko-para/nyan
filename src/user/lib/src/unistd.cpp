@@ -27,6 +27,14 @@ int close(int fd) {
     return wrapRet(sys_close(fd));
 }
 
+int dup(int fd) {
+    return wrapRet(sys_dup(fd));
+}
+
+int dup2(int fd, int new_fd) {
+    return wrapRet(sys_dup2(fd, new_fd));
+}
+
 pid_t waitpid(pid_t pid, int* stat_loc, int options) {
     return wrapRet(sys_waitpid(pid, stat_loc, options));
 }

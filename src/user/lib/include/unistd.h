@@ -20,6 +20,9 @@ ssize_t write(int fd, const void* buf, size_t size);
 
 int close(int fd);
 
+int dup(int fd);
+int dup2(int fd, int new_fd);
+
 pid_t waitpid(pid_t pid, int* stat_loc, int options);
 
 pid_t getpid();
