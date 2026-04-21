@@ -177,12 +177,10 @@ pid_t addTask(TaskControlBlock* task) {
     currentTask->exitInfo.stat = (code << 8) | sig;
     if (currentTask->childTasks) {
         allTasks[KP_Init]->childTasks.appendBack(currentTask->childTasks);
-        // 这里是不是应该走信号
-        allTasks[KP_Init]->wait.wakeOne(WakeReason::WR_Normal);
+        sendSignal(allTasks[KP_Init], SIGCHLD);
     }
     if (auto parent = findTask(currentTask->parentPid)) {
-        // 这里是不是应该走信号
-        parent->wait.wakeOne(WakeReason::WR_Normal);
+        sendSignal(parent, SIGCHLD);
     }
     if (pendingTasks) {
         switchToTask(pendingTasks.popFront());
@@ -259,6 +257,10 @@ void unblock(TaskControlBlock* task, WakeReason reason) {
     task->state = State::S_Ready;
     task->blockReason = BlockReason::BR_Unknown;
     task->wakeReason = reason;
+    if (task->blockWaitTarget) {
+        task->blockWaitTarget->take(task);
+        task->blockWaitTarget = nullptr;
+    }
 
     {
         arch::InterruptGuard guard;
@@ -293,6 +295,7 @@ void sleep(uint64_t ms) {
     inserted:;
     }
 
+    // TODO: 支持被信号唤醒的情况
     yield();
 }
 
@@ -310,42 +313,71 @@ void checkSleep(interrupt::SyscallFrame* frame) {
     }
 }
 
+bool isSignalDefaultIgnore(int sig) {
+    return sig == SIGCHLD || sig == SIGURG || sig == SIGWINCH;
+}
+
 void sendSignal(TaskControlBlock* task, int sig) {
     arch::InterruptGuard guard;
     if (task->ended()) {
         arch::kprint("signal {} ignored for pid {} as it is ended\n", sig, task->pid);
         return;
     }
+    task->pendingSignals |= 1u << sig;
     if (task->signalMask & (1u << sig)) {
         arch::kprint("signal {} masked for pid {}\n", sig, task->pid);
         return;
     }
-    task->pendingSignals |= 1u << sig;
     if (task->state == State::S_Blocked) {
         unblock(task, WakeReason::WR_Signal);
     }
 }
 
 void defaultSignalLogic(int sig) {
-    switch (sig) {
-        case SIGCHLD:
-        case SIGURG:
-        case SIGWINCH:
-            break;
-        default:
-            exitTask(255, sig);
-            break;
+    if (isSignalDefaultIgnore(sig)) {
+        return;
     }
+    exitTask(255, sig);
+}
+
+bool peekSignal() {
+    sigset_t sigs = currentTask->pendingSignals & ~currentTask->signalMask;
+    if (!sigs) {
+        return false;
+    }
+
+    while (sigs) {
+        auto sig = std::countr_zero(sigs);
+        sigs ^= 1u << sig;
+        if (!currentTask->signalActions) {
+            if (!isSignalDefaultIgnore(sig)) {
+                return true;
+            }
+        } else {
+            const auto& entry = currentTask->signalActions->operator[](sig);
+            if (entry.sa_handler == SIG_IGN) {
+                continue;
+            } else if (entry.sa_handler == SIG_DFL) {
+                if (!isSignalDefaultIgnore(sig)) {
+                    return true;
+                }
+            } else {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 bool checkSignal(interrupt::SyscallFrame* frame) {
     // TODO: 假设一定来自用户态. 需要有个地方检查frame->cs
     arch::InterruptGuard guard;
-    if (!currentTask->pendingSignals) {
+    sigset_t sigs = currentTask->pendingSignals & ~currentTask->signalMask;
+    if (!sigs) {
         return false;
     }
-    auto sig = std::countr_zero(currentTask->pendingSignals);
-    currentTask->pendingSignals &= ~(1u << sig);
+    auto sig = std::countr_zero(sigs);
+    currentTask->pendingSignals ^= 1u << sig;
     if (!currentTask->signalActions) {
         defaultSignalLogic(sig);
     } else {

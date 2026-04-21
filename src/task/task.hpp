@@ -30,7 +30,9 @@ void unblock(TaskControlBlock* task, WakeReason reason);
 void sleep(uint64_t ms);
 void checkSleep(interrupt::SyscallFrame* frame);
 
+bool isSignalDefaultIgnore(int sig);
 void sendSignal(TaskControlBlock* task, int sig);
+bool peekSignal();  // if needs to EINTR
 bool checkSignal(interrupt::SyscallFrame* frame);
 
 }  // namespace nyan::task

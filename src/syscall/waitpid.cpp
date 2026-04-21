@@ -41,7 +41,9 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
 
             task::currentTask->waitInfo = {pid};
             if (task::currentTask->wait.wait(task::BlockReason::BR_WaitTask) == task::WakeReason::WR_Signal) {
-                return -SYS_EINTR;
+                if (task::peekSignal()) {
+                    return -SYS_EINTR;
+                }
             }
         }
     } else if (pid == 0) {
@@ -62,7 +64,9 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
 
                 task::currentTask->waitInfo = {pid};
                 if (task::currentTask->wait.wait(task::BlockReason::BR_WaitTask) == task::WakeReason::WR_Signal) {
-                    return -SYS_EINTR;
+                    if (task::peekSignal()) {
+                        return -SYS_EINTR;
+                    }
                 }
             } else {
                 task::freeTask(pid, stat_loc);

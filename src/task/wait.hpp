@@ -15,6 +15,8 @@ struct WaitList {
     WakeReason wait(BlockReason reason) noexcept;
     bool wakeOne(WakeReason reason) noexcept;
     void wakeAll(WakeReason reason) noexcept;
+
+    void take(TaskControlBlock* tcb) noexcept;
 };
 
 }  // namespace nyan::task

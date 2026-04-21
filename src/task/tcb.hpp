@@ -62,6 +62,7 @@ struct TaskControlBlock : public TaskControlBlockMetaInfo,
         BlockSleepInfo sleepInfo;
         BlockWaitInfo waitInfo;
     };
+    WaitList* blockWaitTarget{};
 
     bool ended() const noexcept { return state == State::S_Exited; }
     void dump();

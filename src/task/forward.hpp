@@ -8,6 +8,7 @@ struct TaskControlBlock;
 
 struct TaskControlBlockTag {
     using type = TaskControlBlock;
+    constexpr static bool bidi = true;
 };
 
 struct TaskControlBlockChildTag {
