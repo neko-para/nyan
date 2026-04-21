@@ -142,7 +142,7 @@ int fputc(int ch, FILE* file) {
     uint8_t val = static_cast<uint8_t>(ch);
     if (file->bufMode() == F_NoBuf) {
         auto ret = write(file->fd, &val, 1);
-        if (ret < 0) {
+        if (ret <= 0) {
             file->flags |= F_Err;
             return EOF;
         } else {
@@ -168,28 +168,36 @@ int fputs(const char* str, FILE* file) {
     }
 
     if (file->bufMode() == F_NoBuf) {
-        auto ret = write(file->fd, str, strlen(str));
-        if (ret < 0) {
-            file->flags |= F_Err;
-            return EOF;
-        } else {
-            // TODO: check
-            return 0;
+        size_t len = strlen(str);
+        while (len > 0) {
+            auto ret = write(file->fd, str, len);
+            if (ret <= 0) {
+                file->flags |= F_Err;
+                return EOF;
+            } else {
+                len -= ret;
+                str += ret;
+            }
         }
+        return 0;
     }
 
     if (file->bufMode() == F_LineBuf) {
         if (auto ptr = strrchr(str, '\n')) {
             __FLUSH(file);
             ptr++;
-            auto ret = write(file->fd, str, ptr - str);
-            if (ret < 0) {
-                file->flags |= F_Err;
-                return EOF;
-            } else {
-                // TODO: check
+
+            size_t len = ptr - str;
+            while (len > 0) {
+                auto ret = write(file->fd, str, len);
+                if (ret <= 0) {
+                    file->flags |= F_Err;
+                    return EOF;
+                } else {
+                    len -= ret;
+                    str += ret;
+                }
             }
-            str = ptr;
         }
     }
 
@@ -219,15 +227,17 @@ int fflush(FILE* file) {
         return 0;
     }
     if (file->buf && file->buf_pos > 0) {
-        auto ret = write(file->fd, file->buf, file->buf_pos);
-        if (ret < 0) {
-            file->flags |= F_Err;
-            return EOF;
-        } else {
-            // TODO: check ret == buf_pos
-            file->buf_pos = 0;
-            return 0;
+        while (file->buf_pos > 0) {
+            auto ret = write(file->fd, file->buf, file->buf_pos);
+            if (ret <= 0) {
+                file->flags |= F_Err;
+                return EOF;
+            } else {
+                memmove(file->buf, file->buf + ret, file->buf_pos - ret);
+                file->buf_pos -= ret;
+            }
         }
+        return 0;
     } else {
         return 0;
     }

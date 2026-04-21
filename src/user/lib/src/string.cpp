@@ -25,6 +25,23 @@ void* memcpy(void* dst, const void* src, size_t size) {
     return dst;
 }
 
+void* memmove(void* dst, const void* src, size_t size) {
+    auto pdst = reinterpret_cast<uint8_t*>(dst);
+    auto psrc = reinterpret_cast<const uint8_t*>(src);
+    if (pdst < psrc) {
+        while (size--) {
+            *pdst++ = *psrc++;
+        }
+    } else if (pdst > psrc) {
+        pdst += size;
+        psrc += size;
+        while (size--) {
+            *--pdst = *--psrc;
+        }
+    }
+    return dst;
+}
+
 void* memset(void* dst, int value, size_t size) {
     auto pdst = reinterpret_cast<uint8_t*>(dst);
     while (size--) {

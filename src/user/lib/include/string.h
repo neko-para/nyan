@@ -12,6 +12,7 @@ extern "C" {
 
 int memcmp(const void* lhs, const void* rhs, size_t size);
 void* memcpy(void* dst, const void* src, size_t size);
+void* memmove(void* dst, const void* src, size_t size);
 void* memset(void* dst, int value, size_t size);
 
 char* strcat(char* dst, const char* src);
