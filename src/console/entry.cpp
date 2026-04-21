@@ -30,6 +30,10 @@ void Tty::input(const keyboard::Message& msg, interrupt::SyscallFrame*) {
     }
 
     if (msg.flag & keyboard::F_Ctrl && msg.code == keyboard::SC_C) {
+        if (flags & F_Echo) {
+            puts("^C\n", 3);
+        }
+        lineBuffer.clear();
         if (auto task = task::findTask(foregroundPid)) {
             task::sendSignal(task, SIGINT);
         }
@@ -141,6 +145,8 @@ int consoleDeamon(void* param) {
     while (true) {
         const char* argv[] = {"sh", 0};
         auto pid = syscall::spawn("sh", argv);
+        tty->foregroundPid = pid;
+
         arch::kprint("tty {}: shell started, pid {}\n", id, pid);
 
         int stat = 0;

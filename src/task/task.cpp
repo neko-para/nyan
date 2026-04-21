@@ -307,11 +307,15 @@ void checkSleep(interrupt::SyscallFrame* frame) {
 
 void sendSignal(TaskControlBlock* task, int sig) {
     arch::InterruptGuard guard;
-    if (task->signalMask & (1 << sig)) {
+    if (task->ended()) {
+        arch::kprint("signal {} ignored for pid {} as it is ended\n", sig, task->pid);
+        return;
+    }
+    if (task->signalMask & (1u << sig)) {
         arch::kprint("signal {} masked for pid {}\n", sig, task->pid);
         return;
     }
-    task->pendingSignals |= 1 << sig;
+    task->pendingSignals |= 1u << sig;
     if (task->state == State::S_Blocked) {
         unblock(task);
     }
