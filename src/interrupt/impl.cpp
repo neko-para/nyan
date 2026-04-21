@@ -179,6 +179,9 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
         case 37:
             CALL(kill)
             break;
+        case 41:
+            CALL(dup);
+            break;
         case 45:
             CALL(brk)
             break;
@@ -187,6 +190,9 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             break;
         case 54:
             CALL(ioctl);
+            break;
+        case 63:
+            CALL(dup2);
             break;
         case 119:
             syscall::sigreturn(frame);

@@ -30,6 +30,9 @@ pid_t __NYAN_SYSCALL__(getpid)();
 // 37
 int __NYAN_SYSCALL__(kill)(pid_t pid, int sig);
 
+// 41
+int __NYAN_SYSCALL__(dup)(int fd);
+
 // 45
 void* __NYAN_SYSCALL__(brk)(const void* addr);
 
@@ -38,6 +41,9 @@ sighandler_t __NYAN_SYSCALL__(signal)(int sig, sighandler_t handler);
 
 // 54
 int __NYAN_SYSCALL__(ioctl)(int fd, uint32_t request, uint32_t param);
+
+// 63
+int __NYAN_SYSCALL__(dup2)(int fd, int newFd);
 
 // 119
 void __NYAN_SYSCALL__(sigreturn)(void* frame);
