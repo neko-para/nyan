@@ -2,6 +2,5 @@
 _start:
     call __init_libc
     call main
-    movl %eax, %ebx
-    movl $1, %eax
-    int $0x80
+    push %eax
+    call exit

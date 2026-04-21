@@ -43,6 +43,8 @@ void processArgv(char** argv, char* buf) {
 extern "C" int main() {
     char buf[256];
     fputs("> ", stdout);
+    // TODO: 之后换成fgets/scanf的话, 本身会自动flush
+    fflush(stdout);
     while (readline(buf, 255)) {
         if (!strcmp(buf, "exit")) {
             break;
@@ -76,6 +78,7 @@ extern "C" int main() {
             }
         }
         fputs("\n> ", stdout);
+        fflush(stdout);
     }
     return 0;
 }

@@ -17,7 +17,7 @@ target_include_directories(kernel_header INTERFACE SYSTEM src/include)
 add_library(
   user STATIC
   src/user/lib/src/start.s
-  src/user/lib/src/init.cpp
+  src/user/lib/src/libc.cpp
   src/user/lib/src/ctype.cpp
   src/user/lib/src/errno.cpp
   src/user/lib/src/ioctl.cpp

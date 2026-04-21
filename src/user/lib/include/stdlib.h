@@ -6,9 +6,15 @@
 #error "kernel shouldn't include this header"
 #endif
 
+#define EXIT_SUCCESS 0
+#define EXIT_FAILURE 1
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+[[noreturn]] void exit(int code);
+[[noreturn]] void _Exit(int code);
 
 int atoi(const char* str);
 long atol(const char* str);

@@ -7,10 +7,6 @@
 
 extern "C" {
 
-void exit(int code) {
-    sys_exit(code);
-}
-
 pid_t spawn(const char* name, const char* const* argv) {
     return sys_spawn(name, argv);
 }

@@ -33,6 +33,8 @@ extern "C" {
 int fputc(int ch, FILE* file);
 int fputs(const char* str, FILE* file);
 
+int fflush(FILE* file);
+
 int printf(const char* format, ...) __attribute__((format(printf, 1, 2)));
 int fprintf(FILE* file, const char* format, ...) __attribute__((format(printf, 2, 3)));
 int sprintf(char* buf, const char* format, ...) __attribute__((format(printf, 2, 3)));

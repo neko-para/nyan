@@ -1,6 +1,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
+#include <nyan/syscall.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -154,7 +155,18 @@ int strto(T& result, const char* str, char** end, int base) {
 
 }  // namespace
 
+extern "C" void __fini_libc();
+
 extern "C" {
+
+void exit(int code) {
+    __fini_libc();
+    sys_exit(code);
+}
+
+void _Exit(int code) {
+    sys_exit(code);
+}
 
 int atoi(const char* str) {
     long result;
