@@ -22,13 +22,12 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
     } else if (pid == -1) {
         // wait any child
         while (true) {
-            if (!task::currentTask->childTasks) {
+            if (task::currentTask->childTasks.empty()) {
                 return -SYS_ECHILD;
             }
-            for (auto tcb = task::currentTask->childTasks.head; tcb;
-                 tcb = tcb->ListNode<task::TaskControlBlockChildTag>::next) {
-                if (tcb->ended()) {
-                    auto findPid = tcb->pid;
+            for (auto& tcb : task::currentTask->childTasks) {
+                if (tcb.ended()) {
+                    auto findPid = tcb.pid;
                     task::freeTask(findPid, stat_loc);
                     return findPid;
                 }

@@ -8,9 +8,9 @@ namespace nyan::task {
 struct TaskControlBlockTag;
 
 struct WaitList {
-    lib::TailList<TaskControlBlockTag> list;
+    lib::List<TaskControlBlockTag, true> list;
 
-    bool empty() noexcept { return !list.head; }
+    bool empty() noexcept { return list.empty(); }
 
     WakeReason wait(BlockReason reason) noexcept;
     bool wakeOne(WakeReason reason) noexcept;

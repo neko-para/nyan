@@ -18,8 +18,8 @@
 
 namespace nyan::task {
 
-lib::TailList<TaskControlBlockTag> pendingTasks;
-lib::TailList<TaskControlBlockTag> sleepTasks;
+lib::List<TaskControlBlockTag, true> pendingTasks;
+lib::List<TaskControlBlockTag, true> sleepTasks;
 
 void loadTrampoline() {
     paging::kernelPageDirectory.set(paging::kernelPageDirectory.at(1023), 1023,
@@ -76,7 +76,7 @@ TaskControlBlock* createTask(int (*func)(void* param), void* param) {
     tcb->pages.push_back(kernelStack.userBase.addr);
     tcb->pages.push_back(stack.userBase.addr);
 
-    currentTask->childTasks.pushBack(tcb);
+    currentTask->childTasks.push_back(tcb);
 
     return tcb;
 }
@@ -151,14 +151,14 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t, const char* const* argv) 
     tcb->brkAddr = brkAddr;
     tcb->pages.push_back(kernelStack.userBase.addr);
 
-    currentTask->childTasks.pushBack(tcb);
+    currentTask->childTasks.push_back(tcb);
 
     return tcb;
 }
 
 pid_t addTask(TaskControlBlock* task) {
     arch::InterruptGuard guard;
-    pendingTasks.pushBack(task);
+    pendingTasks.push_back(task);
     if (task->pid == KP_Invalid) {
         return allocPid(task);
     } else {
@@ -175,15 +175,17 @@ pid_t addTask(TaskControlBlock* task) {
 
     currentTask->state = State::S_Exited;
     currentTask->exitInfo.stat = (code << 8) | sig;
-    if (currentTask->childTasks) {
-        allTasks[KP_Init]->childTasks.appendBack(currentTask->childTasks);
+    if (!currentTask->childTasks.empty()) {
+        allTasks[KP_Init]->childTasks.splice(allTasks[KP_Init]->childTasks.end(), currentTask->childTasks);
         sendSignal(allTasks[KP_Init], SIGCHLD);
     }
     if (auto parent = findTask(currentTask->parentPid)) {
         sendSignal(parent, SIGCHLD);
     }
-    if (pendingTasks) {
-        switchToTask(pendingTasks.popFront());
+    if (!pendingTasks.empty()) {
+        auto task = pendingTasks.front();
+        pendingTasks.pop_front();
+        switchToTask(task);
     } else {
         switchToTask(allTasks[KP_Idle]);
     }
@@ -206,7 +208,7 @@ bool freeTask(pid_t pid, int* stat) {
     }
 
     auto parentTask = findTask(task->parentPid);
-    parentTask->childTasks.take(task);
+    parentTask->childTasks.erase({task});
 
     for (auto page : task->pages) {
         allocator::frameFree(reinterpret_cast<void*>(page));
@@ -226,12 +228,13 @@ bool freeTask(pid_t pid, int* stat) {
 
 __attribute__((noinline)) void yield() {
     arch::InterruptGuard guard;
-    if (pendingTasks) {
-        auto next = pendingTasks.popFront();
+    if (!pendingTasks.empty()) {
+        auto next = pendingTasks.front();
+        pendingTasks.pop_front();
         if (currentTask->state == State::S_Running) {
             currentTask->state = State::S_Ready;
             if (currentTask->pid != KP_Idle) {
-                pendingTasks.pushBack(currentTask.head);
+                pendingTasks.push_back(currentTask);
             }
         }
         switchToTask(next);
@@ -264,7 +267,7 @@ void unblock(TaskControlBlock* task, WakeReason reason) {
 
     {
         arch::InterruptGuard guard;
-        pendingTasks.pushBack(task);
+        pendingTasks.push_back(task);
     }
 }
 
@@ -276,24 +279,9 @@ void sleep(uint64_t ms) {
     currentTask->blockReason = BlockReason::BR_Sleep;
     currentTask->sleepInfo.time = currTs;
 
-    if (!sleepTasks.head) {
-        sleepTasks.pushBack(currentTask.head);
-    } else if (currTs <= sleepTasks.head->sleepInfo.time) {
-        sleepTasks.pushFront(currentTask.head);
-    } else {
-        // TODO: 优化list迭代和插入逻辑
-        for (auto head = sleepTasks.head; head->ListNode<TaskControlBlockTag>::next;
-             head = head->ListNode<TaskControlBlockTag>::next) {
-            auto next = head->ListNode<TaskControlBlockTag>::next;
-            if (currTs <= next->sleepInfo.time) {
-                head->ListNode<TaskControlBlockTag>::next = currentTask.head;
-                currentTask->ListNode<TaskControlBlockTag>::next = next;
-                goto inserted;
-            }
-        }
-        sleepTasks.pushBack(currentTask.head);
-    inserted:;
-    }
+    auto pos = std::find_if(sleepTasks.begin(), sleepTasks.end(),
+                            [&](const auto& tcb) { return currTs <= tcb.sleepInfo.time; });
+    sleepTasks.insert(pos, currentTask);
 
     // TODO: 支持被信号唤醒的情况
     yield();
@@ -301,9 +289,12 @@ void sleep(uint64_t ms) {
 
 void checkSleep(interrupt::SyscallFrame* frame) {
     arch::InterruptGuard guard;
-    while (sleepTasks && sleepTasks.head->sleepInfo.time < timer::msSinceBoot) {
-        auto task = sleepTasks.popFront();
-        pendingTasks.pushBack(task);
+    while (!sleepTasks.empty()) {
+        auto task = sleepTasks.front();
+        if (task->sleepInfo.time < timer::msSinceBoot) {
+            sleepTasks.pop_front();
+            pendingTasks.push_back(task);
+        }
     }
     if ((timer::msSinceBoot % 10 == 0) && currentTask) {
         if (gdt::isRing3(frame->cs)) {

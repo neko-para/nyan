@@ -14,8 +14,8 @@ struct ListIterator {
 
     __value* __ptr{};
 
-    auto& __next() const noexcept { return __ptr->ListNode::next; }
-    auto& __prev() const noexcept { return __ptr->ListNode::prev; }
+    auto& __next() const noexcept { return __ptr->ListNode<Tag>::next; }
+    auto& __prev() const noexcept { return __ptr->ListNode<Tag>::prev; }
     bool __is_begin() const noexcept { return !__prev(); }
     bool __is_end() const noexcept { return !__ptr; }
     ListIterator<Tag, false> __mutable() const noexcept { return {__ptr}; }
@@ -167,11 +167,7 @@ struct List {
 
     void push_front(value_type* item) noexcept { __insert_inclusive(begin(), item, item); }
 
-    value_type* pop_front() noexcept {
-        auto result = __head;
-        __extract_inclusive(__head, __head);
-        return result;
-    }
+    void pop_front() noexcept { __extract_inclusive(__head, __head); }
 
     void push_back(value_type* item) noexcept
         requires WithTail
@@ -179,12 +175,10 @@ struct List {
         __insert_inclusive(end(), item, item);
     }
 
-    value_type* pop_back() noexcept
+    void pop_back() noexcept
         requires WithTail
     {
-        auto result = __tail;
         __extract_inclusive(__tail, __tail);
-        return result;
     }
 
     iterator erase(const_iterator pos) noexcept {

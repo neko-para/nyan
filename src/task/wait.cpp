@@ -8,7 +8,7 @@ namespace nyan::task {
 
 WakeReason WaitList::wait(BlockReason reason) noexcept {
     arch::InterruptGuard guard;
-    list.pushBack(currentTask.head);
+    list.push_back(currentTask);
     currentTask->blockWaitTarget = this;
     block(reason);
     auto wakeReason = currentTask->wakeReason;
@@ -18,7 +18,9 @@ WakeReason WaitList::wait(BlockReason reason) noexcept {
 
 bool WaitList::wakeOne(WakeReason reason) noexcept {
     arch::InterruptGuard guard;
-    if (auto task = list.popFront()) {
+    if (!list.empty()) {
+        auto task = list.front();
+        list.pop_front();
         task->blockWaitTarget = {};
         unblock(task, reason);
         return true;
@@ -28,7 +30,9 @@ bool WaitList::wakeOne(WakeReason reason) noexcept {
 
 void WaitList::wakeAll(WakeReason reason) noexcept {
     arch::InterruptGuard guard;
-    while (auto task = list.popFront()) {
+    while (!list.empty()) {
+        auto task = list.front();
+        list.pop_front();
         task->blockWaitTarget = {};
         unblock(task, reason);
     }
@@ -36,8 +40,7 @@ void WaitList::wakeAll(WakeReason reason) noexcept {
 
 void WaitList::take(TaskControlBlock* tcb) noexcept {
     arch::InterruptGuard guard;
-    // TODO: 这里为了能take改成了双向链表. 重写下链表的能力, 搞个搜索-删除
-    list.take(tcb);
+    list.erase({tcb});
 }
 
 }  // namespace nyan::task

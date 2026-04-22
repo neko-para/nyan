@@ -8,12 +8,10 @@ struct TaskControlBlock;
 
 struct TaskControlBlockTag {
     using type = TaskControlBlock;
-    constexpr static bool bidi = true;
 };
 
 struct TaskControlBlockChildTag {
     using type = TaskControlBlock;
-    constexpr static bool bidi = true;
 };
 
 enum class State : uint16_t {

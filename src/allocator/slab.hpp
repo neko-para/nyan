@@ -17,15 +17,14 @@ struct SlabChunkTag {
 };
 struct SlabHeaderTag {
     using type = SlabHeader;
-    constexpr static bool bidi = true;
 };
 
-struct SlabChunk : public lib::ListBase<SlabChunkTag> {
+struct SlabChunk : public lib::ListNodes<SlabChunkTag> {
     static SlabChunk* fromAddr(void* addr) noexcept { return static_cast<SlabChunk*>(addr); }
 };
 
-struct SlabHeader : public lib::ListBase<SlabHeaderTag> {
-    lib::List<SlabChunkTag> first_chunk;
+struct SlabHeader : public lib::ListNodes<SlabHeaderTag> {
+    lib::List<SlabChunkTag, false> first_chunk;
     uint16_t chunk_size;  // 1 << chunk_size
     uint16_t used_count;
     SlabCache* cache;
@@ -47,8 +46,8 @@ struct SlabHeader : public lib::ListBase<SlabHeaderTag> {
 };
 
 struct SlabCache {
-    lib::List<SlabHeaderTag> full_slabs;
-    lib::List<SlabHeaderTag> used_slabs;
+    lib::List<SlabHeaderTag, false> full_slabs;
+    lib::List<SlabHeaderTag, false> used_slabs;
 };
 
 struct SlabManager {

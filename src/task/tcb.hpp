@@ -41,10 +41,10 @@ struct BlockWaitInfo {
 constexpr size_t MAXFD = 16;
 
 struct TaskControlBlock : public TaskControlBlockMetaInfo,
-                          public lib::ListBase<TaskControlBlockTag, TaskControlBlockChildTag> {
+                          public lib::ListNodes<TaskControlBlockTag, TaskControlBlockChildTag> {
     pid_t parentPid{KP_Invalid};
     pid_t groupPid{KP_Invalid};
-    lib::TailList<TaskControlBlockChildTag> childTasks;
+    lib::List<TaskControlBlockChildTag, true> childTasks;
 
     sigset_t pendingSignals{};
     sigset_t signalMask{};
@@ -68,6 +68,6 @@ struct TaskControlBlock : public TaskControlBlockMetaInfo,
     void dump();
 };
 
-extern lib::List<TaskControlBlockTag> currentTask asm("currentTask");
+extern TaskControlBlock* currentTask asm("currentTask");
 
 }  // namespace nyan::task
