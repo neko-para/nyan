@@ -5,7 +5,6 @@
 
 #include "../arch/guard.hpp"
 #include "../arch/io.hpp"
-#include "../arch/utils.hpp"
 #include "../keyboard/message.hpp"
 #include "../task/task.hpp"
 #include "../task/tcb.hpp"

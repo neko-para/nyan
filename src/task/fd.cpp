@@ -3,8 +3,7 @@
 #include <nyan/errno.h>
 #include <nyan/ioctls.h>
 
-#include "../arch/guard.hpp"
-#include "../arch/io.hpp"
+#include "../arch/utils.hpp"
 #include "../console/entry.hpp"
 #include "pid.hpp"
 

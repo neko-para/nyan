@@ -14,6 +14,8 @@
 #include "task/tcb.hpp"
 #include "timer/load.hpp"
 
+#include "test.hpp"
+
 extern "C" void __libc_init_array();
 extern uint8_t _end;
 
@@ -54,6 +56,19 @@ extern "C" void kmain(boot::BootInfo* info) {
     task::load();
 
     console::loadDeamons();
+
+    lib::__list::List<Tag, true> lst;
+    for (int i = 0; i < 10; i++) {
+        auto item = allocator::allocAs<Item>();
+        item->value = i;
+        lst.push_back(item);
+    }
+    auto p2 = std::find_if(lst.cbegin(), lst.cend(), [](const auto& item) { return item.value == 2; });
+    auto p5 = std::find_if(lst.cbegin(), lst.cend(), [](const auto& item) { return item.value == 5; });
+    lst.erase(p2, p5);
+    for (const auto& item : lst) {
+        arch::kprint("{p} {}\n", &item, item.value);
+    }
 
     arch::kprint("kernel end {#010x}\n", paging::VirtualAddress(&_end).kernelToPhysical().addr);
     task::yield();

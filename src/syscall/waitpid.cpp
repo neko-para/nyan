@@ -2,7 +2,6 @@
 
 #include <sys/wait.h>
 
-#include "../arch/guard.hpp"
 #include "../task/pid.hpp"
 #include "../task/task.hpp"
 #include "../task/tcb.hpp"

@@ -1,6 +1,6 @@
 #include "load.hpp"
 
-#include "../arch/io.hpp"
+#include "../arch/instr.hpp"
 #include "../interrupt/load.hpp"
 #include "../task/task.hpp"
 
