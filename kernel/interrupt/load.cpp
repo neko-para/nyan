@@ -1,6 +1,6 @@
 #include "load.hpp"
 
-#include "../arch/io.hpp"
+#include "../arch/print.hpp"
 #include "entry.hpp"
 #include "isr.hpp"
 

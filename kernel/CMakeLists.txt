@@ -1,37 +1,8 @@
 # user program
 
-file(GLOB syscall_srcs CONFIGURE_DEPENDS syscall/*.cpp)
+file(GLOB_RECURSE kernel_srcs CONFIGURE_DEPENDS *.cpp *.s)
 
-add_executable(
-  kernel
-  main.cpp
-  boot.s
-  allocator/load.cpp
-  allocator/slab.cpp
-  allocator/utils.cpp
-  gdt/load.cpp
-  interrupt/impl.cpp
-  interrupt/isr.cpp
-  interrupt/load.cpp
-  interrupt/syscall.s
-  keyboard/load.cpp
-  keyboard/message.cpp
-  paging/directory.cpp
-  paging/kernel.cpp
-  task/switch.s
-  task/trampoline.s
-  task/fd.cpp
-  task/pid.cpp
-  task/task.cpp
-  task/tcb.cpp
-  task/wait.cpp
-  timer/load.cpp
-  console/buffer.cpp
-  console/entry.cpp
-  lib/clang.cpp
-  lib/libcxx.cpp
-  lib/libc.cpp
-  ${syscall_srcs})
+add_executable(kernel ${kernel_srcs})
 
 # 不能开启向量化, 会产生内存引用, 提前启用sse也不行
 set_source_files_properties(paging/kernel.cpp PROPERTIES COMPILE_FLAGS

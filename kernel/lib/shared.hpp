@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <concepts>
 
-#include "../allocator/utils.hpp"
+#include "../allocator/alloc.hpp"
 
 namespace nyan::lib {
 

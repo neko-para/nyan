@@ -2,7 +2,7 @@
 
 #include <sys/types.h>
 
-#include "utils.hpp"
+#include "alloc.hpp"
 
 namespace nyan::allocator {
 

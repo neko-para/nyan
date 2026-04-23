@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <bit>
 
-#include "../arch/io.hpp"
+#include "../arch/print.hpp"
 
 namespace nyan::allocator {
 

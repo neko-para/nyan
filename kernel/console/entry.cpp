@@ -4,7 +4,7 @@
 #include <sys/wait.h>
 
 #include "../arch/guard.hpp"
-#include "../arch/io.hpp"
+#include "../arch/print.hpp"
 #include "../keyboard/message.hpp"
 #include "../task/task.hpp"
 #include "../task/tcb.hpp"

@@ -1,6 +1,6 @@
 #include <nyan/syscall.h>
 
-#include "../allocator/utils.hpp"
+#include "../allocator/alloc.hpp"
 #include "../arch/guard.hpp"
 #include "../task/tcb.hpp"
 

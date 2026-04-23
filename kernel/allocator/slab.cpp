@@ -1,6 +1,6 @@
 #include "slab.hpp"
 
-#include "utils.hpp"
+#include "alloc.hpp"
 
 namespace nyan::allocator {
 

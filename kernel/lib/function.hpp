@@ -3,7 +3,7 @@
 #include <string.h>
 #include <type_traits>
 
-#include "../arch/io.hpp"
+#include "../arch/print.hpp"
 
 namespace nyan::lib {
 

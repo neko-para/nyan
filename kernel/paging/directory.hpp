@@ -2,7 +2,7 @@
 
 #include <sys/types.h>
 
-#include "../arch/io.hpp"
+#include "../arch/print.hpp"
 #include "table.hpp"
 
 namespace nyan::paging {

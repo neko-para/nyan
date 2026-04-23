@@ -2,8 +2,9 @@
 #include <string.h>
 
 #include "allocator/load.hpp"
-#include "arch/io.hpp"
-#include "boot/entry.hpp"
+#include "arch/print.hpp"
+#include "arch/sse.hpp"
+#include "boot/multiboot.hpp"
 #include "console/entry.hpp"
 #include "gdt/load.hpp"
 #include "interrupt/load.hpp"

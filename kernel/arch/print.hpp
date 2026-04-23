@@ -3,8 +3,8 @@
 #include <sys/types.h>
 
 #include "../lib/format.hpp"
+#include "debug.hpp"
 #include "guard.hpp"
-#include "utils.hpp"
 
 namespace nyan::arch {
 

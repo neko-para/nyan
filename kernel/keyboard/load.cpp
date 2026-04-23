@@ -2,6 +2,7 @@
 
 #include <sys/types.h>
 
+#include "../arch/port.hpp"
 #include "../console/entry.hpp"
 #include "../interrupt/load.hpp"
 #include "message.hpp"

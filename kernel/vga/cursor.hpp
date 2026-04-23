@@ -2,7 +2,7 @@
 
 #include <sys/types.h>
 
-#include "../arch/instr.hpp"
+#include "../arch/port.hpp"
 #include "buffer.hpp"
 
 namespace nyan::vga {

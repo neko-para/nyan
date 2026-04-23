@@ -2,7 +2,7 @@
 #include <new>
 #include <string>
 
-#include "../arch/io.hpp"
+#include "../arch/debug.hpp"
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 

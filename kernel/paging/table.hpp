@@ -3,7 +3,7 @@
 #include <sys/types.h>
 #include <algorithm>
 
-#include "../allocator/utils.hpp"
+#include "../allocator/alloc.hpp"
 #include "address.hpp"
 #include "entry.hpp"
 

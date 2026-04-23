@@ -2,6 +2,7 @@
 
 #include <optional>
 
+#include "../arch/guard.hpp"
 #include "../task/wait.hpp"
 #include "buffer.hpp"
 

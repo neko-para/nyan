@@ -3,7 +3,7 @@
 #include <sys/types.h>
 #include <algorithm>
 
-#include "../arch/io.hpp"
+#include "../arch/print.hpp"
 
 namespace nyan::allocator {
 

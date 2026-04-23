@@ -1,6 +1,6 @@
 #include <nyan/syscall.h>
 
-#include "../arch/io.hpp"
+#include "../arch/print.hpp"
 #include "../data/embed.hpp"
 #include "../task/task.hpp"
 #include "../task/tcb.hpp"

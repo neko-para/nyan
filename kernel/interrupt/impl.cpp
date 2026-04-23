@@ -3,7 +3,7 @@
 #include <nyan/syscall.h>
 
 #include "../arch/instr.hpp"
-#include "../arch/io.hpp"
+#include "../arch/print.hpp"
 #include "../gdt/load.hpp"
 #include "../keyboard/load.hpp"
 #include "../lib/format.hpp"

@@ -2,7 +2,7 @@
 
 #include <bit>
 
-#include "../allocator/utils.hpp"
+#include "../allocator/alloc.hpp"
 #include "../arch/guard.hpp"
 #include "../elf/entry.hpp"
 #include "../gdt/load.hpp"
