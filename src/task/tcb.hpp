@@ -4,6 +4,7 @@
 #include <sys/types.h>
 
 #include "../lib/containers.hpp"
+#include "../lib/function.hpp"
 #include "../lib/list.hpp"
 #include "fd.hpp"
 #include "forward.hpp"
@@ -62,7 +63,7 @@ struct TaskControlBlock : public TaskControlBlockMetaInfo,
         BlockSleepInfo sleepInfo;
         BlockWaitInfo waitInfo;
     };
-    WaitList* blockWaitTarget{};
+    lib::function<void(TaskControlBlock*)> requestDetach;
 
     bool ended() const noexcept { return state == State::S_Exited; }
     void dump();

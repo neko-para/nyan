@@ -14,7 +14,9 @@ int nanosleep(const timespec* rqtp, [[maybe_unused]] timespec* rmtp) {
     }
 
     int64_t msec = rqtp->tv_sec * 1000 + rqtp->tv_nsec / 1000000;
-    task::sleep(msec);
+    if (task::sleep(msec) == task::WakeReason::WR_Signal) {
+        return -SYS_EINTR;
+    }
     return 0;
 }
 

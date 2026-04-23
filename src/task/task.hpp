@@ -27,7 +27,7 @@ __attribute__((noinline)) void yield();
 void block(BlockReason reason);
 void unblock(TaskControlBlock* task, WakeReason reason);
 
-void sleep(uint64_t ms);
+WakeReason sleep(uint64_t ms);
 void checkSleep(interrupt::SyscallFrame* frame);
 
 bool isSignalDefaultIgnore(int sig);

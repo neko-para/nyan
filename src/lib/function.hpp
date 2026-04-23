@@ -92,6 +92,7 @@ struct function<Ret(Args...), Size> {
         if (vt && vt->move) {
             vt->move(func, f.func);
         }
+        f.vt = nullptr;
     }
 
     ~function() noexcept {
@@ -121,6 +122,7 @@ struct function<Ret(Args...), Size> {
         if (vt && vt->move) {
             vt->move(func, f.func);
         }
+        f.vt = nullptr;
         return *this;
     }
 

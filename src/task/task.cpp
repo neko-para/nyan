@@ -260,9 +260,9 @@ void unblock(TaskControlBlock* task, WakeReason reason) {
     task->state = State::S_Ready;
     task->blockReason = BlockReason::BR_Unknown;
     task->wakeReason = reason;
-    if (task->blockWaitTarget) {
-        task->blockWaitTarget->take(task);
-        task->blockWaitTarget = nullptr;
+    if (auto func = std::move(task->requestDetach)) {
+        task->requestDetach.reset();
+        func(task);
     }
 
     {
@@ -271,7 +271,7 @@ void unblock(TaskControlBlock* task, WakeReason reason) {
     }
 }
 
-void sleep(uint64_t ms) {
+WakeReason sleep(uint64_t ms) {
     auto currTs = timer::msSinceBoot + ms;
 
     arch::InterruptGuard guard;
@@ -282,9 +282,12 @@ void sleep(uint64_t ms) {
     auto pos = std::find_if(sleepTasks.begin(), sleepTasks.end(),
                             [&](const auto& tcb) { return currTs <= tcb.sleepInfo.time; });
     sleepTasks.insert(pos, currentTask);
+    currentTask->requestDetach = +[](TaskControlBlock* task) { sleepTasks.erase({task}); };
 
-    // TODO: 支持被信号唤醒的情况
     yield();
+    auto wakeReason = currentTask->wakeReason;
+    currentTask->wakeReason = WakeReason::WR_Normal;
+    return wakeReason;
 }
 
 void checkSleep(interrupt::SyscallFrame* frame) {
@@ -293,7 +296,10 @@ void checkSleep(interrupt::SyscallFrame* frame) {
         auto task = sleepTasks.front();
         if (task->sleepInfo.time < timer::msSinceBoot) {
             sleepTasks.pop_front();
-            pendingTasks.push_back(task);
+            task->requestDetach.reset();
+            unblock(task, WakeReason::WR_Normal);
+        } else {
+            break;
         }
     }
     if ((timer::msSinceBoot % 10 == 0) && currentTask) {
