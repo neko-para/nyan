@@ -11,10 +11,7 @@
 #include "lib/format.hpp"
 #include "paging/kernel.hpp"
 #include "task/task.hpp"
-#include "task/tcb.hpp"
 #include "timer/load.hpp"
-
-#include "test.hpp"
 
 extern "C" void __libc_init_array();
 extern uint8_t _end;
