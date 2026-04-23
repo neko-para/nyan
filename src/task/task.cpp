@@ -278,8 +278,6 @@ WakeReason sleep(uint64_t ms, uint64_t* rest) {
     auto currTs = timer::msSinceBoot + ms;
 
     arch::InterruptGuard guard;
-    currentTask->state = State::S_Blocked;
-    currentTask->blockReason = BlockReason::BR_Sleep;
     currentTask->sleepInfo.time = currTs;
 
     auto pos = std::find_if(sleepTasks.begin(), sleepTasks.end(),
@@ -288,7 +286,7 @@ WakeReason sleep(uint64_t ms, uint64_t* rest) {
     currentTask->requestDetach = +[](TaskControlBlock* task) { sleepTasks.erase({task}); };
     auto reason = block(BlockReason::BR_Sleep);
     if (rest) {
-        if (currTs >= timer::msSinceBoot) {
+        if (currTs <= timer::msSinceBoot) {
             *rest = 0;
         } else {
             *rest = timer::msSinceBoot - currTs;
