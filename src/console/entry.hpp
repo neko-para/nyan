@@ -29,6 +29,8 @@ struct Tty : public ScreenBuffer {
     lib::string inputBuffer;
     task::WaitList waitList;
 
+    bool pendingEof{};
+
     void activate();
     void deactivate();
 

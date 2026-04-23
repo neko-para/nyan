@@ -28,7 +28,7 @@ void Tty::input(const keyboard::Message& msg, interrupt::SyscallFrame*) {
         return;
     }
 
-    if (msg.flag & keyboard::F_Ctrl && msg.code == keyboard::SC_C) {
+    if (((msg.flag & keyboard::F_Modifiers) == keyboard::F_Ctrl) && msg.code == keyboard::SC_C) {
         if (flags & F_Echo) {
             puts("^C\n", 3);
         }
@@ -71,12 +71,17 @@ void Tty::input(const keyboard::Message& msg, interrupt::SyscallFrame*) {
                         }
                     } else {
                         if (msg.flag & keyboard::F_Ctrl) {
-                            ;
+                            if (msg.code == keyboard::SC_D) {
+                                inputBuffer.append(lineBuffer);
+                                lineBuffer.clear();
+                                pendingEof = true;
+                            }
                         } else {
                             lineBuffer.push_back(msg.ch);
                             if (flags & F_Echo) {
                                 putc(msg.ch);
                             }
+                            // TODO: 不要wake
                         }
                     }
                 }
@@ -130,6 +135,10 @@ std::optional<arch::InterruptGuard> Tty::syncWaitInput() {
     while (true) {
         arch::InterruptGuard guard;
         if (!inputBuffer.empty()) {
+            return guard;
+        }
+        if (pendingEof) {
+            pendingEof = false;
             return guard;
         }
         if (waitList.wait(task::BlockReason::BR_WaitInput) == task::WakeReason::WR_Signal) {

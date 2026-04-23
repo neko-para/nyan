@@ -118,6 +118,7 @@ enum Flags {
     F_Ctrl = 1 << 0,
     F_Shift = 1 << 1,
     F_Alt = 1 << 2,
+    F_Modifiers = F_Ctrl | F_Shift | F_Alt,
 
     F_Release = 1 << 7,
 };

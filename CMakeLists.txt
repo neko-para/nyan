@@ -62,7 +62,7 @@ function(add_user_program NAME SOURCE)
       PARENT_SCOPE)
 endfunction()
 
-file(GLOB user_srcs src/user/entry/*.cpp)
+file(GLOB user_srcs CONFIGURE_DEPENDS src/user/entry/*.cpp)
 set(EMBED_DECL "")
 set(EMBED_INIT "")
 
@@ -101,7 +101,7 @@ target_include_directories(kernel_embed PRIVATE src)
 
 # kernel
 
-file(GLOB syscall_srcs src/syscall/*.cpp)
+file(GLOB syscall_srcs CONFIGURE_DEPENDS src/syscall/*.cpp)
 
 add_executable(
   kernel
