@@ -3,10 +3,10 @@
 #include <sys/signal.h>
 #include <sys/types.h>
 
+#include "../fs/fd.hpp"
 #include "../lib/containers.hpp"
 #include "../lib/function.hpp"
 #include "../lib/list.hpp"
-#include "fd.hpp"
 #include "forward.hpp"
 #include "wait.hpp"
 
@@ -51,7 +51,7 @@ struct TaskControlBlock : public TaskControlBlockMetaInfo,
     sigset_t signalMask{};
     lib::unique_ptr<std::array<sigaction, NSIG>> signalActions;
 
-    std::array<lib::Ref<FdObj>, MAXFD> fdTable;
+    std::array<lib::Ref<fs::FdObj>, MAXFD> fdTable;
 
     lib::string name;
     paging::VirtualAddress brkAddr;

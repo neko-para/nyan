@@ -3,8 +3,10 @@
 #include <nyan/syscall.h>
 #include <sys/wait.h>
 
+#include "../arch/file.hpp"
 #include "../task/task.hpp"
 #include "../task/tcb.hpp"
+#include "file.hpp"
 #include "tty.hpp"
 
 namespace nyan::console {
@@ -17,9 +19,11 @@ static int consoleDeamon(void* param) {
     auto id = std::find(std::begin(allTtys), std::end(allTtys), tty) - std::begin(allTtys);
     arch::kprint("tty {}: deamon entered, pid {}\n", id, task::currentTask->pid);
 
-    task::currentTask->fdTable[0] = lib::makeRef<task::TtyObj>(tty, O_RDONLY);
-    task::currentTask->fdTable[1] = lib::makeRef<task::TtyObj>(tty, O_WRONLY);
-    task::currentTask->fdTable[2] = lib::makeRef<task::DebugConObj>();
+    auto ttyObj = lib::makeRef<TtyObj>(tty);
+    auto debugConObj = lib::makeRef<arch::DebugConObj>();
+    task::currentTask->fdTable[0] = lib::makeRef<fs::FdObj>(ttyObj, O_RDONLY);
+    task::currentTask->fdTable[1] = lib::makeRef<fs::FdObj>(ttyObj, O_WRONLY);
+    task::currentTask->fdTable[2] = lib::makeRef<fs::FdObj>(debugConObj, O_WRONLY);
 
     while (true) {
         const char* argv[] = {"sh", 0};

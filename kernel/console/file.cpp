@@ -1,30 +1,12 @@
-#include "fd.hpp"
+#include "file.hpp"
 
 #include <nyan/errno.h>
 #include <nyan/ioctls.h>
 
-#include "../arch/debug.hpp"
-#include "../console/tty.hpp"
-#include "pid.hpp"
+#include "../task/pid.hpp"
+#include "tty.hpp"
 
-namespace nyan::task {
-
-ssize_t DebugConObj::read(void* buf, size_t size) const noexcept {
-    std::ignore = buf;
-    std::ignore = size;
-    return -SYS_EBADF;
-}
-
-ssize_t DebugConObj::write(const void* buf, size_t size) const noexcept {
-    arch::kputs(static_cast<const char*>(buf), size);
-    return size;
-}
-
-int DebugConObj::ioctl(uint32_t req, uint32_t param) const noexcept {
-    std::ignore = req;
-    std::ignore = param;
-    return -SYS_ENOTTY;
-}
+namespace nyan::console {
 
 ssize_t TtyObj::read(void* buf, size_t size) const noexcept {
     if (auto guard = tty->syncWaitInput()) {
@@ -45,7 +27,7 @@ ssize_t TtyObj::write(const void* buf, size_t size) const noexcept {
 int TtyObj::ioctl(uint32_t req, uint32_t param) const noexcept {
     switch (req) {
         case TIOCSPGRP:
-            if (param && !findTask(param)) {
+            if (param && !task::findTask(param)) {
                 return -SYS_EINVAL;
             }
             // TODO: check same session
@@ -55,4 +37,4 @@ int TtyObj::ioctl(uint32_t req, uint32_t param) const noexcept {
     return -SYS_ENOTTY;
 }
 
-}  // namespace nyan::task
+}  // namespace nyan::console

@@ -18,10 +18,6 @@ ssize_t write(int fd, const void* buf, size_t size) {
     if (!fileObj) {
         return -SYS_EBADF;
     }
-    auto mode = fileObj->mode & O_ACCMODE;
-    if (mode != O_WRONLY && mode != O_RDWR) {
-        return -SYS_EBADF;
-    }
     return fileObj->write(buf, size);
 }
 
