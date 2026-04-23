@@ -2,7 +2,7 @@
 
 #include <bits/fcntl.h>
 
-#include "../console/entry.hpp"
+#include "../console/forward.hpp"
 #include "../lib/shared.hpp"
 
 namespace nyan::task {

@@ -1,7 +1,8 @@
 #include "tcb.hpp"
 #include <sys/wait.h>
 
-#include "../console/entry.hpp"
+#include "../console/load.hpp"
+#include "../console/tty.hpp"
 #include "../timer/load.hpp"
 #include "task.hpp"
 

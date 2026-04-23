@@ -5,7 +5,7 @@
 #include "arch/print.hpp"
 #include "arch/sse.hpp"
 #include "boot/multiboot.hpp"
-#include "console/entry.hpp"
+#include "console/load.hpp"
 #include "gdt/load.hpp"
 #include "interrupt/load.hpp"
 #include "keyboard/load.hpp"

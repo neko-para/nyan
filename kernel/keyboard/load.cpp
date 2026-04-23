@@ -3,7 +3,8 @@
 #include <sys/types.h>
 
 #include "../arch/port.hpp"
-#include "../console/entry.hpp"
+#include "../console/load.hpp"
+#include "../console/tty.hpp"
 #include "../interrupt/load.hpp"
 #include "message.hpp"
 

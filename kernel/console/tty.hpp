@@ -20,8 +20,6 @@ struct SyscallFrame;
 
 namespace nyan::console {
 
-constexpr size_t count = 2;
-
 struct Tty : public ScreenBuffer {
     pid_t foregroundPid{task::KP_Invalid};
 
@@ -40,12 +38,5 @@ struct Tty : public ScreenBuffer {
     bool inputEmpty();
     std::optional<arch::InterruptGuard> syncWaitInput();
 };
-
-extern Tty* activeTty;
-extern Tty* allTtys[count];
-
-void load();
-void loadDeamons();
-void switchTo(Tty* tty);
 
 }  // namespace nyan::console

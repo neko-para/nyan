@@ -4,7 +4,7 @@
 #include <nyan/ioctls.h>
 
 #include "../arch/debug.hpp"
-#include "../console/entry.hpp"
+#include "../console/tty.hpp"
 #include "pid.hpp"
 
 namespace nyan::task {
