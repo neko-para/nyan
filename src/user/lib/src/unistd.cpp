@@ -62,8 +62,21 @@ void* sbrk(intptr_t increment) {
     }
 }
 
-int nanosleep(const struct timespec* rqtp, struct timespec* rmtp) {
+int nanosleep(const timespec* rqtp, timespec* rmtp) {
     return wrapRet(sys_nanosleep(rqtp, rmtp));
+}
+
+unsigned sleep(unsigned sec) {
+    timespec rq = {
+        .tv_sec = static_cast<time_t>(sec),
+        .tv_nsec = 0,
+    };
+    timespec rm = {};
+    if (-1 == nanosleep(&rq, &rm)) {
+        return sec;
+    } else {
+        return static_cast<unsigned>(rm.tv_sec);
+    }
 }
 
 int tcsetpgrp(int fd, pid_t pgid) {

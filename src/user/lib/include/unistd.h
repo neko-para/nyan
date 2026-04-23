@@ -29,6 +29,7 @@ int brk(const void* addr);
 void* sbrk(intptr_t increment);
 
 int nanosleep(const struct timespec* rqtp, struct timespec* rmtp);
+unsigned sleep(unsigned sec);
 
 int tcsetpgrp(int fd, pid_t pgid);
 

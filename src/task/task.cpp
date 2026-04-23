@@ -274,7 +274,7 @@ void unblock(TaskControlBlock* task, WakeReason reason) {
     }
 }
 
-WakeReason sleep(uint64_t ms) {
+WakeReason sleep(uint64_t ms, uint64_t* rest) {
     auto currTs = timer::msSinceBoot + ms;
 
     arch::InterruptGuard guard;
@@ -286,7 +286,15 @@ WakeReason sleep(uint64_t ms) {
                             [&](const auto& tcb) { return currTs <= tcb.sleepInfo.time; });
     sleepTasks.insert(pos, currentTask);
     currentTask->requestDetach = +[](TaskControlBlock* task) { sleepTasks.erase({task}); };
-    return block(BlockReason::BR_Sleep);
+    auto reason = block(BlockReason::BR_Sleep);
+    if (rest) {
+        if (currTs >= timer::msSinceBoot) {
+            *rest = 0;
+        } else {
+            *rest = timer::msSinceBoot - currTs;
+        }
+    }
+    return reason;
 }
 
 void checkSleep(interrupt::SyscallFrame* frame) {

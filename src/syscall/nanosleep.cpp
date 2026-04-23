@@ -14,10 +14,13 @@ int nanosleep(const timespec* rqtp, [[maybe_unused]] timespec* rmtp) {
     }
 
     int64_t msec = rqtp->tv_sec * 1000 + rqtp->tv_nsec / 1000000;
-    if (task::sleep(msec) == task::WakeReason::WR_Signal) {
-        return -SYS_EINTR;
+    uint64_t rest = 0;
+    int ret = task::sleep(msec, &rest) == task::WakeReason::WR_Signal ? -SYS_EINTR : 0;
+    if (rmtp) {
+        rmtp->tv_sec = rest / 1000;
+        rmtp->tv_nsec = (rest % 1000) * 1000;
     }
-    return 0;
+    return ret;
 }
 
 }  // namespace nyan::syscall
