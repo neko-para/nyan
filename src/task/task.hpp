@@ -24,7 +24,7 @@ bool freeTask(pid_t pid, int* code);
 
 __attribute__((noinline)) void yield();
 
-void block(BlockReason reason);
+WakeReason block(BlockReason reason);
 void unblock(TaskControlBlock* task, WakeReason reason);
 
 WakeReason sleep(uint64_t ms);

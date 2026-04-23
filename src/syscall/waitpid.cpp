@@ -5,7 +5,6 @@
 #include "../task/pid.hpp"
 #include "../task/task.hpp"
 #include "../task/tcb.hpp"
-#include "../task/wait.hpp"
 
 namespace nyan::syscall {
 
@@ -37,8 +36,8 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
                 return 0;
             }
 
-            task::currentTask->waitInfo = {pid};
-            if (task::currentTask->wait.wait(task::BlockReason::BR_WaitTask) == task::WakeReason::WR_Signal) {
+            task::currentTask->waitTaskInfo = {pid};
+            if (block(task::BlockReason::BR_WaitTask) == task::WakeReason::WR_Signal) {
                 if (task::peekSignal()) {
                     return -SYS_EINTR;
                 }
@@ -60,8 +59,8 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
                     return 0;
                 }
 
-                task::currentTask->waitInfo = {pid};
-                if (task::currentTask->wait.wait(task::BlockReason::BR_WaitTask) == task::WakeReason::WR_Signal) {
+                task::currentTask->waitTaskInfo = {pid};
+                if (task::block(task::BlockReason::BR_WaitTask) == task::WakeReason::WR_Signal) {
                     if (task::peekSignal()) {
                         return -SYS_EINTR;
                     }

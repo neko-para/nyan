@@ -34,7 +34,7 @@ struct BlockSleepInfo {
     uint64_t time;
 };
 
-struct BlockWaitInfo {
+struct BlockWaitTaskInfo {
     pid_t pid;
 };
 
@@ -57,11 +57,11 @@ struct TaskControlBlock : public TaskControlBlockMetaInfo,
     paging::VirtualAddress brkAddr;
     console::Tty* tty{};
     lib::vector<uint32_t> pages;
-    WaitList wait;
+
     union {
         ExitInfo exitInfo;
         BlockSleepInfo sleepInfo;
-        BlockWaitInfo waitInfo;
+        BlockWaitTaskInfo waitTaskInfo;
     };
     lib::function<void(TaskControlBlock*)> requestDetach;
 

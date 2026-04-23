@@ -10,10 +10,7 @@ WakeReason WaitList::wait(BlockReason reason) noexcept {
     arch::InterruptGuard guard;
     list.push_back(currentTask);
     currentTask->requestDetach = [this](TaskControlBlock* task) { list.erase({task}); };
-    block(reason);
-    auto wakeReason = currentTask->wakeReason;
-    currentTask->wakeReason = WakeReason::WR_Normal;
-    return wakeReason;
+    return block(reason);
 }
 
 bool WaitList::wakeOne(WakeReason reason) noexcept {

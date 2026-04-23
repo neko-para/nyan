@@ -36,7 +36,7 @@ void TaskControlBlock::dump() {
                     console::activeTty->print("task {} waiting input\n", pid);
                     break;
                 case BlockReason::BR_WaitTask:
-                    console::activeTty->print("task {} waiting task {}\n", pid, waitInfo.pid);
+                    console::activeTty->print("task {} waiting task {}\n", pid, waitTaskInfo.pid);
                     break;
             }
             break;

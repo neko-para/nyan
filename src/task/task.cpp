@@ -245,12 +245,15 @@ __attribute__((noinline)) void yield() {
     }
 }
 
-void block(BlockReason reason) {
+WakeReason block(BlockReason reason) {
     arch::InterruptGuard guard;
     currentTask->state = State::S_Blocked;
     currentTask->blockReason = reason;
     currentTask->wakeReason = WakeReason::WR_Normal;
     yield();
+    auto wr = currentTask->wakeReason;
+    currentTask->wakeReason = WakeReason::WR_Normal;
+    return wr;
 }
 
 void unblock(TaskControlBlock* task, WakeReason reason) {
@@ -283,11 +286,7 @@ WakeReason sleep(uint64_t ms) {
                             [&](const auto& tcb) { return currTs <= tcb.sleepInfo.time; });
     sleepTasks.insert(pos, currentTask);
     currentTask->requestDetach = +[](TaskControlBlock* task) { sleepTasks.erase({task}); };
-
-    yield();
-    auto wakeReason = currentTask->wakeReason;
-    currentTask->wakeReason = WakeReason::WR_Normal;
-    return wakeReason;
+    return block(BlockReason::BR_Sleep);
 }
 
 void checkSleep(interrupt::SyscallFrame* frame) {

@@ -57,26 +57,13 @@ extern "C" void kmain(boot::BootInfo* info) {
 
     console::loadDeamons();
 
-    lib::__list::List<Tag, true> lst;
-    for (int i = 0; i < 10; i++) {
-        auto item = allocator::allocAs<Item>();
-        item->value = i;
-        lst.push_back(item);
-    }
-    auto p2 = std::find_if(lst.cbegin(), lst.cend(), [](const auto& item) { return item.value == 2; });
-    auto p5 = std::find_if(lst.cbegin(), lst.cend(), [](const auto& item) { return item.value == 5; });
-    lst.erase(p2, p5);
-    for (const auto& item : lst) {
-        arch::kprint("{p} {}\n", &item, item.value);
-    }
-
     arch::kprint("kernel end {#010x}\n", paging::VirtualAddress(&_end).kernelToPhysical().addr);
     task::yield();
 
     for (;;) {
         auto ret = syscall::waitpid(-1, 0, 0);
         if (ret == -SYS_ECHILD) {
-            task::currentTask->wait.wait(task::BlockReason::BR_WaitTask);
+            task::block(task::BlockReason::BR_WaitTask);
         }
     }
 }
