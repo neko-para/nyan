@@ -4,6 +4,10 @@
 
 namespace nyan::fs {
 
+FdObj::~FdObj() {
+    __file->onFdClose(__mode);
+}
+
 ssize_t FdObj::read(void* buf, size_t size) const noexcept {
     auto mode = __mode & O_ACCMODE;
     if (mode != O_RDONLY && mode != O_RDWR) {

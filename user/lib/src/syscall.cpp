@@ -83,6 +83,10 @@ int sys_dup(int fd) {
     return syscall<41, int>(fd);
 }
 
+int sys_pipe(int* fds) {
+    return syscall<42, int>(fds);
+}
+
 void* sys_brk(const void* addr) {
     return syscall<45, void*>(addr);
 }

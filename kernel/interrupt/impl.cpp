@@ -187,6 +187,9 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
         case 41:
             CALL(dup);
             break;
+        case 42:
+            CALL(pipe);
+            break;
         case 45:
             CALL(brk)
             break;

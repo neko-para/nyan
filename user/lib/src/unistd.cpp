@@ -31,6 +31,10 @@ int dup2(int fd, int new_fd) {
     return wrapRet(sys_dup2(fd, new_fd));
 }
 
+int pipe(int* fds) {
+    return wrapRet(sys_pipe(fds));
+}
+
 pid_t waitpid(pid_t pid, int* stat_loc, int options) {
     return wrapRet(sys_waitpid(pid, stat_loc, options));
 }

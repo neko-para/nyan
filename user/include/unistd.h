@@ -21,6 +21,8 @@ int close(int fd);
 int dup(int fd);
 int dup2(int fd, int new_fd);
 
+int pipe(int* fds);
+
 pid_t waitpid(pid_t pid, int* stat_loc, int options);
 
 pid_t getpid();

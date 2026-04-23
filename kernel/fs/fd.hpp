@@ -12,6 +12,7 @@ struct FdObj : public lib::Shared {
     uint32_t __mode;
 
     FdObj(lib::Ref<FileObj> file, uint32_t mode) : __file(file), __mode(mode) {}
+    virtual ~FdObj();
 
     virtual ssize_t read(void* buf, size_t size) const noexcept;
     virtual ssize_t write(const void* buf, size_t size) const noexcept;

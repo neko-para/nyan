@@ -33,6 +33,9 @@ int __NYAN_SYSCALL__(kill)(pid_t pid, int sig);
 // 41
 int __NYAN_SYSCALL__(dup)(int fd);
 
+// 42
+int __NYAN_SYSCALL__(pipe)(int* fds);
+
 // 45
 void* __NYAN_SYSCALL__(brk)(const void* addr);
 
