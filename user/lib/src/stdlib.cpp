@@ -5,6 +5,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "stdlib_impl.h"
+#include "utils.hpp"
+
+using namespace nyan::user;
+
 namespace {
 
 template <typename T>
@@ -155,6 +160,97 @@ int strto(T& result, const char* str, char** end, int base) {
 
 }  // namespace
 
+namespace nyan::user {
+
+static void __slab_list_remove(SlabHeader*& head, SlabHeader* target) {
+    if (head == target) {
+        head = target->__next;
+        target->__next = nullptr;
+        return;
+    }
+    auto prev = head;
+    while (prev && prev->__next != target) {
+        prev = prev->__next;
+    }
+    if (prev) {
+        prev->__next = target->__next;
+        target->__next = nullptr;
+    }
+}
+
+SlabHeader::SlabHeader(size_t size, SlabCache* cache) : __chunk_size(size), __used_count(0), __cache(cache) {
+    auto self = reinterpret_cast<uint32_t>(this);
+    auto dlt = 1 << size;
+    auto cnt = (4096 >> size) - 1;
+
+    auto addr = self + 4096 - dlt;
+    while (cnt--) {
+        auto chunk = reinterpret_cast<SlabChunk*>(addr);
+        chunk->__next = __first_chunk;
+        __first_chunk = chunk;
+        addr -= dlt;
+    }
+}
+
+void* SlabHeader::alloc() noexcept {
+    __used_count += 1;
+    auto ret = __first_chunk;
+    __first_chunk = __first_chunk->__next;
+    return ret;
+}
+
+void SlabHeader::free(void* addr) noexcept {
+    auto chunk = static_cast<SlabChunk*>(addr);
+    __used_count -= 1;
+    chunk->__next = __first_chunk;
+    __first_chunk = chunk;
+}
+
+void* SlabManager::alloc(size_t size) noexcept {
+    size_t chunk_size;
+    auto cache = findSuitableCache(size, chunk_size);
+    if (!cache) {
+        return nullptr;
+    }
+
+    if (cache->__used_slabs) {
+        auto ret = cache->__used_slabs->alloc();
+        if (cache->__used_slabs->full()) {
+            auto slab = cache->__used_slabs;
+            cache->__used_slabs = cache->__used_slabs->__next;
+            slab->__next = cache->__full_slabs;
+            cache->__full_slabs = slab;
+        }
+        return ret;
+    } else {
+        auto page = __allocPage();
+        auto slab = new (page) SlabHeader(chunk_size, cache);
+        auto ret = slab->alloc();
+        slab->__next = cache->__used_slabs;
+        cache->__used_slabs = slab;
+        return ret;
+    }
+}
+
+void SlabManager::free(void* addr) noexcept {
+    auto chunk = SlabChunk::fromAddr(addr);
+    auto slab = SlabHeader::fromAddr(addr);
+    auto cache = slab->__cache;
+    slab->free(chunk);
+    if (slab->aboutToFull()) {
+        __slab_list_remove(cache->__full_slabs, slab);
+        slab->__next = cache->__used_slabs;
+        cache->__used_slabs = slab;
+    } else if (slab->empty()) {
+        __slab_list_remove(cache->__used_slabs, slab);
+        __freePage(slab);
+    }
+}
+
+}  // namespace nyan::user
+
+static nyan::user::SlabManager __manager;
+
 extern "C" void __fini_libc();
 
 extern "C" {
@@ -215,6 +311,50 @@ unsigned long long strtoull(const char* str, char** end, int base) {
     if (auto err = strto(result, str, end, base)) {
         errno = err;
     }
+    return result;
+}
+
+void* malloc(size_t size) {
+    auto result = __manager.alloc(size);
+    if (!result) {
+        errno = ENOMEM;
+    }
+    return result;
+}
+
+void free(void* ptr) {
+    if (!ptr) {
+        return;
+    }
+    __manager.free(ptr);
+}
+
+void* calloc(size_t count, size_t size) {
+    auto result = __manager.alloc(count * size);
+    if (result) {
+        memset(result, 0, count * size);
+    } else {
+        errno = ENOMEM;
+    }
+    return result;
+}
+
+void* realloc(void* ptr, size_t size) {
+    if (!ptr) {
+        return malloc(size);
+    }
+    if (size == 0) {
+        free(ptr);
+        return nullptr;
+    }
+    auto old_size = __manager.allocSize(ptr);
+    auto result = __manager.alloc(size);
+    if (!result) {
+        errno = ENOMEM;
+        return nullptr;
+    }
+    memcpy(result, ptr, min(old_size, size));
+    __manager.free(ptr);
     return result;
 }
 }

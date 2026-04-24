@@ -4,6 +4,8 @@
 
 #include "utils.hpp"
 
+using namespace nyan::user;
+
 extern "C" {
 
 sighandler_t signal(int sig, sighandler_t handler) {

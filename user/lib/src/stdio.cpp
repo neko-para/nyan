@@ -4,18 +4,11 @@
 #include <unistd.h>
 
 #include "stdio_impl.h"
+#include "utils.hpp"
+
+using namespace nyan::user;
 
 namespace {
-
-template <typename T>
-T min(T a, T b) {
-    return a < b ? a : b;
-}
-
-template <typename T>
-T max(T a, T b) {
-    return a > b ? a : b;
-}
 
 #define __PUT(ch)             \
     do {                      \

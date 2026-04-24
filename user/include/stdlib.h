@@ -25,6 +25,11 @@ long long strtoll(const char* str, char** end, int base);
 unsigned long strtoul(const char* str, char** end, int base);
 unsigned long long strtoull(const char* str, char** end, int base);
 
+void* malloc(size_t size);
+void free(void* ptr);
+void* calloc(size_t count, size_t size);
+void* realloc(void* ptr, size_t size);
+
 #ifdef __cplusplus
 }
 #endif

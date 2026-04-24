@@ -5,6 +5,8 @@
 
 #include "utils.hpp"
 
+using namespace nyan::user;
+
 extern "C" {
 
 pid_t spawn(const char* name, const char* const* argv) {
