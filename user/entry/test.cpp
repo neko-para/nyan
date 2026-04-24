@@ -3,19 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-void action(int sig) {
-    printf("action come, sig %d    ", sig);
-    // _Exit(0);
-    exit(0);
-}
-
-extern "C" int main() {
-    signal(SIGUSR1, action);
-    signal(SIGINT, action);
-
-    while (true) {
-        ;
-    }
-
+extern "C" int main(int argc, char* argv[]) {
+    execve("echo", argv, 0);
     return 0;
 }

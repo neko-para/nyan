@@ -18,8 +18,6 @@ struct Stack {
         auto stackBase = translator.allocEntry<uint32_t>(pageDir, userBase, true);
         current = paging::VirtualAddress{stackBase}.nextPage().as<uint32_t>();
     }
-    Stack(const Stack&) = delete;
-    Stack& operator=(const Stack&) = delete;
 
     paging::VirtualAddress esp() const noexcept { return paging::VirtualAddress{current}; }
     paging::VirtualAddress userEsp() const noexcept { return translator.toUser(esp()); }

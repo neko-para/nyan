@@ -71,6 +71,10 @@ pid_t sys_waitpid(pid_t pid, int* stat_loc, int options) {
     return syscall<7, pid_t>(pid, stat_loc, options);
 }
 
+int sys_execve(const char* pathname, char* const* argv, char* const* envp) {
+    return syscall<11, int>(pathname, argv, envp);
+}
+
 pid_t sys_getpid() {
     return syscall<20, pid_t>();
 }

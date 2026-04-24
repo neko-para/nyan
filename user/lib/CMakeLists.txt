@@ -16,3 +16,4 @@ target_include_directories(
   PUBLIC ../include
   PRIVATE include)
 target_link_libraries(user PUBLIC kernel_header)
+target_compile_options(user PRIVATE -Wall -Wextra -g)

@@ -83,11 +83,17 @@ TaskControlBlock* createTask(int (*func)(void* param), void* param) {
 
 static int elfEntry(void* param) {
     uint32_t* args = static_cast<uint32_t*>(param);
-    jumpRing3(args[0], args[1], args + 2);
+    jumpRing3(args[0], args[1], args[2]);
     return 0;
 }
 
-TaskControlBlock* createElfTask(uint8_t* file, size_t, const char* const* argv) {
+struct LoadElfResult {
+    paging::UserDirectory pageDir;
+    paging::VirtualAddress brkAddr;
+    paging::VirtualAddress entry;
+};
+
+static LoadElfResult loadElf(uint8_t* file, size_t) {
     auto header = new (file) elf::Header;
     // TODO: check if support
 
@@ -123,8 +129,10 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t, const char* const* argv) 
         }
     }
 
-    Stack kernelStack;
-    Stack stack(pageDir, 0xC0000000_va);
+    return {std::move(pageDir), brkAddr, paging::VirtualAddress{header->entry_offset}};
+}
+
+static void loadArgv(Stack& stack, const char* const* argv) {
     lib::vector<paging::VirtualAddress> args;
     for (auto arg = argv; *arg; arg++) {
         args.push_back(stack.translator.toUser(stack.pushString(*arg)));
@@ -133,10 +141,20 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t, const char* const* argv) 
     for (auto it = args.rbegin(); it != args.rend(); it++) {
         stack.pushVal(it->addr);
     }
+    stack.pushVal(stack.userEsp().addr);
     stack.pushVal(args.size());
-    stack.pushVal(header->entry_offset);
+}
+
+TaskControlBlock* createElfTask(uint8_t* file, size_t size, const char* const* argv) {
+    auto [pageDir, brkAddr, entry] = loadElf(file, size);
+
+    Stack stack(pageDir, 0xC0000000_va);
+    loadArgv(stack, argv);
+    stack.pushVal(entry.addr);
     auto argPtr = stack.userEsp();
     fillStack(stack, elfEntry, argPtr.as<void>());
+
+    Stack kernelStack;
 
     auto tcb = allocator::allocAs<TaskControlBlock>();
     tcb->userEsp = stack.userEsp().addr;
@@ -147,6 +165,7 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t, const char* const* argv) 
 
     tcb->parentPid = currentTask->pid;
     tcb->groupPid = currentTask->groupPid;
+
     tcb->name = lib::format("elf_{}", argv[0] ? argv[0] : "unknown");
     tcb->brkAddr = brkAddr;
     tcb->pages.push_back(kernelStack.userBase.addr);
@@ -154,6 +173,55 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t, const char* const* argv) 
     currentTask->childTasks.push_back(tcb);
 
     return tcb;
+}
+
+void execTask(uint8_t* file, size_t size, const char* const* argv, interrupt::SyscallFrame* frame) {
+    auto [pageDir, brkAddr, entry] = loadElf(file, size);
+
+    auto tcb = currentTask;
+
+    Stack stack(pageDir, 0xC0000000_va);
+    loadArgv(stack, argv);
+    lib::string name = lib::format("elf_{}", argv[0] ? argv[0] : "unknown");
+    argv = nullptr;
+
+    if (auto oldCr3 = tcb->cr3; oldCr3 != paging::kernelPageDirectory.cr3()) {
+        auto oldPageDir = paging::UserDirectory::from(oldCr3);
+        oldPageDir.free();
+    } else {
+        arch::kprint("perform exec on system task!\n");
+    }
+
+    tcb->userEsp = stack.userEsp().addr;
+    tcb->cr3 = pageDir.mapper.paddr;
+    // tcb->kernelEsp
+    // tcb->state
+    // tcb->pid
+
+    // tcb->parentPid
+    // tcb->groupPid
+
+    tcb->pendingSignals = 0;
+    tcb->signalMask = 0;
+    tcb->signalActions.reset();
+
+    // fdTable close-on-exec
+
+    tcb->name = name;
+    tcb->brkAddr = brkAddr;
+    // tcb->pages
+
+    pageDir.mapper.paddr.setCr3();
+
+    frame->eip = entry.addr;
+    frame->user_esp = tcb->userEsp;
+    frame->eax = 0;
+    frame->ebx = 0;
+    frame->ecx = 0;
+    frame->edx = 0;
+    frame->esi = 0;
+    frame->edi = 0;
+    frame->ebp = 0;
 }
 
 pid_t addTask(TaskControlBlock* task) {

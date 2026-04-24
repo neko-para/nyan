@@ -11,6 +11,10 @@ pid_t spawn(const char* name, const char* const* argv) {
     return sys_spawn(name, argv);
 }
 
+int execve(const char* pathname, char* const* argv, char* const* envp) {
+    return wrapRet(sys_execve(pathname, argv, envp));
+}
+
 ssize_t read(int fd, void* buf, size_t size) {
     return wrapRet(sys_read(fd, buf, size));
 }

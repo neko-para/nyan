@@ -178,6 +178,10 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
         case 7:
             CALL(waitpid)
             break;
+        case 11:
+            syscall::execve(castArg<const char*>(frame->ebx), castArg<char* const*>(frame->ecx),
+                            castArg<char* const*>(frame->edx), frame);
+            break;
         case 20:
             CALL(getpid)
             break;

@@ -17,6 +17,7 @@ void load();
 
 TaskControlBlock* createTask(int (*func)(void* param), void* param = nullptr);
 TaskControlBlock* createElfTask(uint8_t* file, size_t size, const char* const* argv);
+void execTask(uint8_t* file, size_t size, const char* const* argv, interrupt::SyscallFrame* frame);
 pid_t addTask(TaskControlBlock* task);
 [[noreturn]] void exitTask(int code, int sig = 0);
 

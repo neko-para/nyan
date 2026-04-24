@@ -46,6 +46,20 @@ extern "C" int main() {
                 fflush(stdout);
                 continue;
             }
+            if (!strcmp(argv[0], "exec")) {
+                if (argv[1]) {
+                    if (execve(argv[1], argv + 1, 0) < 0) {
+                        fputs("launch failed\n\n> ", stdout);
+                        fflush(stdout);
+                        continue;
+                    }
+                } else {
+                    fputs("\n> ", stdout);
+                    fflush(stdout);
+                    continue;
+                }
+            }
+
             auto pid = spawn(argv[0], argv);
             if (pid <= 0) {
                 fputs("launch failed\n", stdout);

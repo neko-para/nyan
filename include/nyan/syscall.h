@@ -24,6 +24,9 @@ int __NYAN_SYSCALL__(close)(int fd);
 // 7
 pid_t __NYAN_SYSCALL__(waitpid)(pid_t pid, int* stat_loc, int options);
 
+// 11
+int __NYAN_SYSCALL__(execve)(const char* pathname, char* const argv[], char* const envp[] __NYAN_SYSCALL_FRAME__);
+
 // 20
 pid_t __NYAN_SYSCALL__(getpid)();
 
