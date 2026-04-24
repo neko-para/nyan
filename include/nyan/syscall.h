@@ -51,6 +51,12 @@ int __NYAN_SYSCALL__(ioctl)(int fd, uint32_t request, uint32_t param);
 // 63
 int __NYAN_SYSCALL__(dup2)(int fd, int newFd);
 
+// 90
+void* __NYAN_SYSCALL__(mmap)(void* addr, size_t length, int prot, int flags, int fd, off_t offset);
+
+// 91
+void __NYAN_SYSCALL__(munmap)(void* addr, size_t length);
+
 // 119
 void __NYAN_SYSCALL__(sigreturn)(void* frame);
 

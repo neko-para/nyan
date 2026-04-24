@@ -12,6 +12,8 @@ typedef int32_t ssize_t;
 
 typedef int32_t time_t;
 
+typedef int32_t off_t;
+
 struct timespec {
     time_t tv_sec;
     int32_t tv_nsec;
