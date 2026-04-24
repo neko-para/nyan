@@ -49,11 +49,26 @@ jumpRing3:
     movw %ax, %fs
     movw %ax, %gs
 
-    movl %esp, %eax
-    leal 8(%eax), %ecx
+    movl 4(%esp), %edx # entry
+    movl 8(%esp), %ecx # esp
+
     pushl $((4 << 3) | 3)
     pushl %ecx
     pushf
     pushl $((3 << 3) | 3)
-    pushl 4(%eax)
+    pushl %edx
     iret
+
+.global syscallReturn
+.type syscallReturn, @function
+syscallReturn:
+    movl 4(%esp), %esp
+
+    popw %gs
+    popw %fs
+    popw %es
+    popw %ds
+    popal
+    iret
+
+

@@ -36,6 +36,13 @@ void physicalFrameRelease(paging::PhysicalAddress addr) {
     }
 }
 
+uint16_t physicalFrameGetRef(paging::PhysicalAddress addr) {
+    arch::InterruptGuard guard;
+
+    auto offset = PoolManager::pageFor(addr.addr);
+    return physicalFrameManager->info[offset].ref;
+}
+
 paging::VirtualAddress virtualFrameAlloc() {
     arch::InterruptGuard guard;
 

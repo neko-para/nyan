@@ -60,10 +60,7 @@ extern "C" int main() {
                 }
             }
 
-            auto pid = spawn(argv[0], argv);
-            if (pid <= 0) {
-                fputs("launch failed\n", stdout);
-            } else {
+            if (auto pid = fork()) {
                 tcsetpgrp(0, pid);
                 int stat;
                 if (pid == waitpid(pid, &stat, 0)) {
@@ -80,6 +77,9 @@ extern "C" int main() {
                     fputs("wait failed\n", stdout);
                 }
                 tcsetpgrp(0, getpid());
+            } else {
+                execve(argv[0], argv, 0);
+                fputs("launch failed\n", stdout);
             }
         }
         fputs("\n> ", stdout);

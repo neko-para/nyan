@@ -20,6 +20,7 @@ struct alignas(4096) DirectoryData {
 
     void set(PhysicalAddress table, uint16_t location, uint16_t attr) noexcept { data[location] = table.addr | attr; }
     PhysicalAddress at(uint16_t location) const noexcept { return PhysicalAddress{data[location] & (~0xFFF)}; }
+    uint16_t attr(uint16_t location) const noexcept { return data[location] & 0xFFF; }
     bool isPresent(uint16_t location) const noexcept { return data[location] & PDE_Present; }
 };
 
@@ -92,6 +93,7 @@ struct UserDirectory {
 
     static UserDirectory from(PhysicalAddress addr) noexcept { return {{addr}}; }
     static UserDirectory fork(const KernelDirectory& directory) noexcept;
+    static UserDirectory forkCOW(const UserDirectory& directory) noexcept;
 
     void ensure(uint16_t location, uint16_t attr) noexcept {
         if (!data()->isPresent(location)) {
@@ -118,6 +120,7 @@ struct UserDirectory {
     }
 
     MapperGuard alloc(VirtualAddress addr, bool writable);
+    bool handleCOW(VirtualAddress addr) noexcept;
 };
 
 }  // namespace nyan::paging

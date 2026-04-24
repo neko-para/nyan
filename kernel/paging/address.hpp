@@ -31,6 +31,7 @@ struct BaseAddress {
     constexpr Addr nextPage() const noexcept { return Addr{(addr & (~0xFFF)) + 0x1000}; }
 
     constexpr uint32_t pageOffset() const noexcept { return addr & 0xFFF; }
+    constexpr uint16_t pageTableOffset() const noexcept { return (addr >> 12) & 0x3FF; }
 
     constexpr Addr operator+(int32_t offset) const noexcept { return Addr{static_cast<uint32_t>(addr + offset)}; }
     constexpr Addr operator-(int32_t offset) const noexcept { return Addr{static_cast<uint32_t>(addr - offset)}; }

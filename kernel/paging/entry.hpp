@@ -23,6 +23,8 @@ enum PageTableEntryFlags {
     PTE_Accessed = 1 << 5,
     PTE_Dirty = 1 << 6,
     PTE_Global = 1 << 8,
+
+    PTE_COW = 1 << 9,
 };
 
 }  // namespace nyan::paging

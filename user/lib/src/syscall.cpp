@@ -51,8 +51,8 @@ extern "C" {
     __builtin_unreachable();
 }
 
-pid_t sys_spawn(const char* name, const char* const* argv) {
-    return syscall<2, pid_t>(name, argv);
+pid_t sys_fork() {
+    return syscall<2, pid_t>();
 }
 
 ssize_t sys_read(int fd, void* buf, size_t size) {
@@ -109,5 +109,9 @@ int sys_dup2(int fd, int newFd) {
 
 int sys_nanosleep(const timespec* rqtp, timespec* rmtp) {
     return syscall<162, int>(rqtp, rmtp);
+}
+
+pid_t sys_spawn(const char* name, const char* const* argv) {
+    return syscall<512, pid_t>(name, argv);
 }
 }

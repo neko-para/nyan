@@ -52,10 +52,10 @@ struct TaskControlBlock : public TaskControlBlockMetaInfo,
     lib::unique_ptr<std::array<sigaction, NSIG>> signalActions;
 
     std::array<lib::Ref<fs::FdObj>, MAXFD> fdTable;
+    console::Tty* tty{};
 
     lib::string name;
     paging::VirtualAddress brkAddr;
-    console::Tty* tty{};
     lib::vector<uint32_t> pages;
 
     union {

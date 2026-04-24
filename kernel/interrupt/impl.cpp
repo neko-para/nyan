@@ -7,6 +7,7 @@
 #include "../gdt/load.hpp"
 #include "../keyboard/load.hpp"
 #include "../lib/format.hpp"
+#include "../paging/directory.hpp"
 #include "../task/task.hpp"
 #include "../task/tcb.hpp"
 #include "../timer/load.hpp"
@@ -19,9 +20,19 @@ void defaultHandlerImpl(Frame* frame, uint32_t error) {
     if constexpr (Id == E_GeneralProtectionFault) {
         arch::kfatal("General Protection Fault: selector {#4x}", error);
     } else if constexpr (Id == E_PageFault) {
+        paging::VirtualAddress targetAddr = paging::VirtualAddress{arch::cr2()};
+        if (targetAddr.addr < 0xC0000000 &&
+            (error & (PF_Present | PF_User | PF_Write)) == (PF_Present | PF_User | PF_Write) &&
+            task::currentTask->cr3 != paging::kernelPageDirectory.cr3()) {
+            auto pageDir = paging::UserDirectory::from(task::currentTask->cr3);
+            if (pageDir.handleCOW(targetAddr)) {
+                return;
+            }
+        }
+
         arch::kprint("Page Fault: {#010x} {}\n", arch::cr2(), error);
-        arch::kprint("  pid={}\n", task::currentTask->pid);
-        arch::kprint("  eip={#010x}\n", frame->eip);
+        arch::kprint("  pid {}\n", task::currentTask->pid);
+        arch::kprint("  eip {#010x}\n", frame->eip);
         if (error & PF_Present) {
             arch::kputs("Present ");
         }
@@ -38,7 +49,7 @@ void defaultHandlerImpl(Frame* frame, uint32_t error) {
 }
 
 template <uint32_t Id>
-void defaultHandlerImplNe(Frame*) {
+void defaultHandlerImplNe(Frame* frame) {
     if constexpr (Id == E_Breakpoint) {
         // TODO: SIGTRAP for Id 3
         arch::kputs("Breakpoint hit\n");
@@ -46,7 +57,7 @@ void defaultHandlerImplNe(Frame*) {
         arch::hlt();
         arch::sti();
     } else {
-        arch::kfatal("Exception {}", Id);
+        arch::kfatal("Exception {}\n  pid {}\n  eip {}\n", Id, task::currentTask->pid, frame->eip);
     }
 }
 
@@ -164,7 +175,7 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             CALL(exit)
             break;
         case 2:
-            CALL(spawn)
+            frame->eax = syscall::fork(frame);
             break;
         case 3:
             CALL(read)
@@ -179,8 +190,8 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             CALL(waitpid)
             break;
         case 11:
-            syscall::execve(castArg<const char*>(frame->ebx), castArg<char* const*>(frame->ecx),
-                            castArg<char* const*>(frame->edx), frame);
+            frame->eax = syscall::execve(castArg<const char*>(frame->ebx), castArg<char* const*>(frame->ecx),
+                                         castArg<char* const*>(frame->edx), frame);
             break;
         case 20:
             CALL(getpid)
@@ -211,6 +222,9 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             break;
         case 162:
             CALL(nanosleep)
+            break;
+        case 512:
+            CALL(spawn);
             break;
         default:
             frame->eax = -SYS_ENOSYS;

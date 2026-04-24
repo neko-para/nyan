@@ -37,6 +37,15 @@ struct Stack {
     void pushPtr(T ptr) noexcept {
         *--current = reinterpret_cast<uint32_t>(ptr);
     }
+
+    // 没有考虑align问题
+    template <typename T>
+    T* pushAny(const T& val) {
+        current = current - (sizeof(T) >> 2);
+        auto ptr = reinterpret_cast<T*>(current);
+        *ptr = val;
+        return ptr;
+    }
 };
 
 }  // namespace nyan::task

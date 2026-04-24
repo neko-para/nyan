@@ -9,8 +9,8 @@ __NYAN_SYSCALL_BEGIN__
 // 1
 [[noreturn]] void __NYAN_SYSCALL__(exit)(int code);
 
-// 2, 借用fork
-pid_t __NYAN_SYSCALL__(spawn)(const char* name, const char* const* argv);
+// 2
+pid_t __NYAN_SYSCALL__(fork)(__NYAN_SYSCALL_FRAME__);
 
 // 3
 ssize_t __NYAN_SYSCALL__(read)(int fd, void* buf, size_t size);
@@ -25,7 +25,7 @@ int __NYAN_SYSCALL__(close)(int fd);
 pid_t __NYAN_SYSCALL__(waitpid)(pid_t pid, int* stat_loc, int options);
 
 // 11
-int __NYAN_SYSCALL__(execve)(const char* pathname, char* const argv[], char* const envp[] __NYAN_SYSCALL_FRAME__);
+int __NYAN_SYSCALL__(execve)(const char* pathname, char* const argv[], char* const envp[] __NYAN_SYSCALL_FRAME2__);
 
 // 20
 pid_t __NYAN_SYSCALL__(getpid)();
@@ -56,5 +56,8 @@ void __NYAN_SYSCALL__(sigreturn)(void* frame);
 
 // 162
 int __NYAN_SYSCALL__(nanosleep)(const struct timespec* rqtp, struct timespec* rmtp);
+
+// 512
+pid_t __NYAN_SYSCALL__(spawn)(const char* name, const char* const* argv);
 
 __NYAN_SYSCALL_END__

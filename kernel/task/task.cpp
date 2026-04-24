@@ -83,7 +83,7 @@ TaskControlBlock* createTask(int (*func)(void* param), void* param) {
 
 static int elfEntry(void* param) {
     uint32_t* args = static_cast<uint32_t*>(param);
-    jumpRing3(args[0], args[1], args[2]);
+    jumpRing3(args[0], args[1]);
     return 0;
 }
 
@@ -150,16 +150,16 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t size, const char* const* a
 
     Stack stack(pageDir, 0xC0000000_va);
     loadArgv(stack, argv);
+    stack.pushVal(stack.userEsp().addr);
     stack.pushVal(entry.addr);
-    auto argPtr = stack.userEsp();
-    fillStack(stack, elfEntry, argPtr.as<void>());
 
     Stack kernelStack;
+    fillStack(kernelStack, elfEntry, stack.userEsp().as<void>());
 
     auto tcb = allocator::allocAs<TaskControlBlock>();
-    tcb->userEsp = stack.userEsp().addr;
+    tcb->userEsp = kernelStack.esp().addr;
     tcb->cr3 = pageDir.mapper.paddr;
-    tcb->kernelEsp = kernelStack.esp().addr;
+    tcb->kernelEsp = kernelStack.userBase.nextPage().addr;
     tcb->state = State::S_Ready;
     tcb->pid = KP_Invalid;
 
@@ -206,6 +206,7 @@ void execTask(uint8_t* file, size_t size, const char* const* argv, interrupt::Sy
     tcb->signalActions.reset();
 
     // fdTable close-on-exec
+    // tty
 
     tcb->name = name;
     tcb->brkAddr = brkAddr;
@@ -222,6 +223,55 @@ void execTask(uint8_t* file, size_t size, const char* const* argv, interrupt::Sy
     frame->esi = 0;
     frame->edi = 0;
     frame->ebp = 0;
+}
+
+static int forkEntry(void* param) {
+    arch::cli();
+    syscallReturn(param);
+    return 0;
+}
+
+pid_t forkTask(interrupt::SyscallFrame* frame) {
+    auto currPageDir = paging::UserDirectory::from(currentTask->cr3);
+    auto newPageDir = paging::UserDirectory::forkCOW(currPageDir);
+    currentTask->cr3.setCr3();
+
+    Stack kernelStack;
+    auto newFrame = kernelStack.pushAny(*frame);
+    newFrame->eax = 0;
+    fillStack(kernelStack, forkEntry, kernelStack.esp().as<void>());
+
+    auto tcb = allocator::allocAs<TaskControlBlock>();
+    tcb->userEsp = kernelStack.esp().addr;
+    tcb->cr3 = newPageDir.mapper.paddr;
+    tcb->kernelEsp = kernelStack.userBase.nextPage().addr;
+    tcb->state = State::S_Ready;
+    tcb->pid = KP_Invalid;
+
+    tcb->parentPid = currentTask->pid;
+    tcb->groupPid = currentTask->groupPid;
+
+    tcb->pendingSignals = 0;
+    tcb->signalMask = currentTask->signalMask;
+    if (currentTask->signalActions) {
+        tcb->signalActions.reset(allocator::allocAs<std::array<sigaction, NSIG>>(*currentTask->signalActions));
+    }
+
+    tcb->fdTable = currentTask->fdTable;
+
+    tcb->tty = currentTask->tty;
+
+    tcb->name = currentTask->name;
+    tcb->brkAddr = currentTask->brkAddr;
+    tcb->pages.push_back(kernelStack.userBase.addr);
+
+    currentTask->childTasks.push_back(tcb);
+
+    auto pid = addTask(tcb);
+    if (pid == KP_Invalid) {
+        arch::kfatal("fork failed");
+    }
+    return pid;
 }
 
 pid_t addTask(TaskControlBlock* task) {

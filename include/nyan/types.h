@@ -20,7 +20,8 @@
     namespace nyan::syscall {
 #define __NYAN_SYSCALL_END__ }
 #define __NYAN_SYSCALL__(name) name
-#define __NYAN_SYSCALL_FRAME__ , interrupt::SyscallFrame* frame
+#define __NYAN_SYSCALL_FRAME__ interrupt::SyscallFrame* frame
+#define __NYAN_SYSCALL_FRAME2__ , interrupt::SyscallFrame* frame
 
 #else
 
@@ -31,5 +32,6 @@
 #define __NYAN_SYSCALL_END__ __NYAN_EXTERNC_END__
 #define __NYAN_SYSCALL__(name) sys_##name
 #define __NYAN_SYSCALL_FRAME__
+#define __NYAN_SYSCALL_FRAME2__
 
 #endif

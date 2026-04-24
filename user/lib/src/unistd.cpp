@@ -11,6 +11,10 @@ pid_t spawn(const char* name, const char* const* argv) {
     return sys_spawn(name, argv);
 }
 
+pid_t fork() {
+    return wrapRet(sys_fork());
+}
+
 int execve(const char* pathname, char* const* argv, char* const* envp) {
     return wrapRet(sys_execve(pathname, argv, envp));
 }

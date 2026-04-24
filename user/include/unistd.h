@@ -11,6 +11,7 @@ extern "C" {
 #endif
 
 pid_t spawn(const char* name, const char* const* argv);
+pid_t fork();
 int execve(const char* pathname, char* const* argv, char* const* envp);
 
 ssize_t read(int fd, void* buf, size_t size);

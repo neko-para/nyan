@@ -18,6 +18,9 @@ struct alignas(4096) Table {
             data[i] = (base + (i << 12)) | attr;
         }
     }
+    PhysicalAddress at(uint16_t location) const noexcept { return PhysicalAddress{data[location] & (~0xFFF)}; }
+    uint16_t attr(uint16_t location) const noexcept { return data[location] & 0xFFF; }
+    bool isPresent(uint16_t location) const noexcept { return data[location] & PTE_Present; }
 
     void map(VirtualAddress vAddr, PhysicalAddress pAddr, uint16_t attr) noexcept {
         auto location = (vAddr.addr >> 12) & 0x3FF;
