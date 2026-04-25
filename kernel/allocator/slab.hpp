@@ -5,6 +5,7 @@
 
 #include "../arch/print.hpp"
 #include "../lib/list.hpp"
+#include "../paging/address.hpp"
 
 namespace nyan::allocator {
 

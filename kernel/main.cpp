@@ -10,6 +10,7 @@
 #include "interrupt/load.hpp"
 #include "keyboard/load.hpp"
 #include "lib/format.hpp"
+#include "paging/address.hpp"
 #include "paging/kernel.hpp"
 #include "task/task.hpp"
 #include "timer/load.hpp"

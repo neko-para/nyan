@@ -83,3 +83,5 @@ void operator delete(void* ptr, size_t, std::align_val_t) noexcept {
 void operator delete[](void* ptr) noexcept {
     nyan::allocator::slabFree(ptr);
 }
+
+template class std::basic_string<char>;
