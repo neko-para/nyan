@@ -1,6 +1,7 @@
 #pragma once
 
-#include <sys/types.h>
+#include <stddef.h>
+#include <stdint.h>
 
 namespace nyan::data {
 

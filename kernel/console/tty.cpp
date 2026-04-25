@@ -1,6 +1,6 @@
 #include "tty.hpp"
 
-#include <bits/signum.h>
+#include <signal.h>
 
 #include "../keyboard/message.hpp"
 #include "../task/task.hpp"

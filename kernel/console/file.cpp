@@ -1,7 +1,7 @@
 #include "file.hpp"
 
+#include <bits/ioctl.h>
 #include <nyan/errno.h>
-#include <nyan/ioctls.h>
 
 #include "../task/pid.hpp"
 #include "tty.hpp"

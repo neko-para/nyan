@@ -1,6 +1,9 @@
 #pragma once
 
-#include <sys/types.h>
+// TODO: use <elf.h>
+
+#include <stddef.h>
+#include <stdint.h>
 
 namespace nyan::elf {
 

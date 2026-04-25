@@ -1,7 +1,8 @@
 #pragma once
 
 #include <nyan/errno.h>
-#include <sys/signal.h>
+#include <nyan/types.h>
+#include <signal.h>
 #include <sys/types.h>
 
 __NYAN_SYSCALL_BEGIN__

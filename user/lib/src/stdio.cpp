@@ -1,4 +1,6 @@
 #include <errno.h>
+#include <stdarg.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -87,49 +89,46 @@ int printfImpl(bool (*put)(char ch, void* arg), void* arg, const char* format, v
 
 extern "C" {
 
-FILE* __stdin;
-FILE* __stdout;
-FILE* __stderr;
+FileImpl __stdin_obj;
+FileImpl __stdout_obj;
+FileImpl __stderr_obj;
 
-FILE __stdin_obj;
-FILE __stdout_obj;
-FILE __stderr_obj;
+FILE* const stdin = &__stdin_obj;
+FILE* const stdout = &__stdout_obj;
+FILE* const stderr = &__stderr_obj;
 
 __attribute__((section(".bss"))) char stdin_buffer[BUFSIZ];
 __attribute__((section(".bss"))) char stdout_buffer[BUFSIZ];
 
 void __init_stdio() {
-    __stdin = &__stdin_obj;
-    __stdout = &__stdout_obj;
-    __stderr = &__stderr_obj;
+    __stdin_obj.fd = 0;
+    __stdin_obj.flags = F_In | F_FullBuf;
+    __stdin_obj.buf = stdin_buffer;
+    __stdin_obj.buf_size = BUFSIZ;
+    __stdin_obj.buf_pos = 0;
+    __stdin_obj.buf_end = 0;
 
-    stdin->fd = 0;
-    stdin->flags = F_In | F_FullBuf;
-    stdin->buf = stdin_buffer;
-    stdin->buf_size = BUFSIZ;
-    stdin->buf_pos = 0;
-    stdin->buf_end = 0;
+    __stdout_obj.fd = 1;
+    __stdout_obj.flags = F_Out | F_LineBuf;
+    __stdout_obj.buf = stdout_buffer;
+    __stdout_obj.buf_size = BUFSIZ;
+    __stdout_obj.buf_pos = 0;
+    __stdout_obj.buf_end = 0;
 
-    stdout->fd = 1;
-    stdout->flags = F_Out | F_LineBuf;
-    stdout->buf = stdout_buffer;
-    stdout->buf_size = BUFSIZ;
-    stdout->buf_pos = 0;
-    stdout->buf_end = 0;
-
-    stderr->fd = 2;
-    stderr->flags = F_Out | F_NoBuf;
-    stderr->buf = 0;
-    stderr->buf_size = 0;
-    stderr->buf_pos = 0;
-    stderr->buf_end = 0;
+    __stderr_obj.fd = 2;
+    __stderr_obj.flags = F_Out | F_NoBuf;
+    __stderr_obj.buf = 0;
+    __stderr_obj.buf_size = 0;
+    __stderr_obj.buf_pos = 0;
+    __stderr_obj.buf_end = 0;
 }
 
 void __fini_stdio() {
     fflush(stdout);
 }
 
-int fputc(int ch, FILE* file) {
+int fputc(int ch, FILE* _file) {
+    FileImpl* file = static_cast<FileImpl*>(_file);
     if (!(file->flags & F_Out)) {
         errno = EBADF;
         file->flags |= F_Err;
@@ -158,7 +157,8 @@ int fputc(int ch, FILE* file) {
     return val;
 }
 
-int fputs(const char* str, FILE* file) {
+int fputs(const char* str, FILE* _file) {
+    FileImpl* file = static_cast<FileImpl*>(_file);
     if (!(file->flags & F_Out)) {
         errno = EBADF;
         file->flags |= F_Err;
@@ -215,7 +215,8 @@ int fputs(const char* str, FILE* file) {
     return 0;
 }
 
-char* fgets(char* buf, int size, FILE* file) {
+char* fgets(char* buf, int size, FILE* _file) {
+    FileImpl* file = static_cast<FileImpl*>(_file);
     if (!file) {
         errno = EINVAL;
         return 0;
@@ -279,7 +280,8 @@ char* fgets(char* buf, int size, FILE* file) {
     }
 }
 
-int fflush(FILE* file) {
+int fflush(FILE* _file) {
+    FileImpl* file = static_cast<FileImpl*>(_file);
     if (!file) {
         __FLUSH(stdout);
         __FLUSH(stderr);
@@ -305,13 +307,15 @@ int fflush(FILE* file) {
     }
 }
 
-void clearerr(FILE* file) {
+void clearerr(FILE* _file) {
+    FileImpl* file = static_cast<FileImpl*>(_file);
     if (file) {
         file->flags &= ~(F_Err | F_Eof);
     }
 }
 
-int feof(FILE* file) {
+int feof(FILE* _file) {
+    FileImpl* file = static_cast<FileImpl*>(_file);
     if (file) {
         return !!(file->flags & F_Eof);
     } else {
@@ -319,7 +323,8 @@ int feof(FILE* file) {
     }
 }
 
-int ferror(FILE* file) {
+int ferror(FILE* _file) {
+    FileImpl* file = static_cast<FileImpl*>(_file);
     if (file) {
         return !!(file->flags & F_Err);
     } else {
@@ -327,7 +332,8 @@ int ferror(FILE* file) {
     }
 }
 
-int fileno(FILE* file) {
+int fileno(FILE* _file) {
+    FileImpl* file = static_cast<FileImpl*>(_file);
     if (file) {
         return file->fd;
     } else {

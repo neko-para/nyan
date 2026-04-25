@@ -1,4 +1,5 @@
-#include <sys/types.h>
+#include <stddef.h>
+#include <stdint.h>
 
 extern "C" {
 

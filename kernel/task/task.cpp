@@ -254,7 +254,7 @@ pid_t forkTask(interrupt::SyscallFrame* frame) {
     tcb->pendingSignals = 0;
     tcb->signalMask = currentTask->signalMask;
     if (currentTask->signalActions) {
-        tcb->signalActions.reset(allocator::allocAs<std::array<sigaction, NSIG>>(*currentTask->signalActions));
+        tcb->signalActions.reset(allocator::allocAs<std::array<SigAction, NSIG>>(*currentTask->signalActions));
     }
 
     tcb->fdTable = currentTask->fdTable;
@@ -461,7 +461,7 @@ void defaultSignalLogic(int sig) {
 }
 
 bool peekSignal() {
-    sigset_t sigs = currentTask->pendingSignals & ~currentTask->signalMask;
+    uint32_t sigs = currentTask->pendingSignals & ~currentTask->signalMask;
     if (!sigs) {
         return false;
     }
@@ -475,9 +475,9 @@ bool peekSignal() {
             }
         } else {
             const auto& entry = currentTask->signalActions->operator[](sig);
-            if (entry.sa_handler == SIG_IGN) {
+            if (entry.__handler == SIG_IGN) {
                 continue;
-            } else if (entry.sa_handler == SIG_DFL) {
+            } else if (entry.__handler == SIG_DFL) {
                 if (!isSignalDefaultIgnore(sig)) {
                     return true;
                 }
@@ -492,7 +492,7 @@ bool peekSignal() {
 bool checkSignal(interrupt::SyscallFrame* frame) {
     // TODO: 假设一定来自用户态. 需要有个地方检查frame->cs
     arch::InterruptGuard guard;
-    sigset_t sigs = currentTask->pendingSignals & ~currentTask->signalMask;
+    uint32_t sigs = currentTask->pendingSignals & ~currentTask->signalMask;
     if (!sigs) {
         return false;
     }
@@ -502,13 +502,13 @@ bool checkSignal(interrupt::SyscallFrame* frame) {
         defaultSignalLogic(sig);
     } else {
         const auto& entry = currentTask->signalActions->operator[](sig);
-        if (entry.sa_handler == SIG_IGN) {
+        if (entry.__handler == SIG_IGN) {
             ;
-        } else if (entry.sa_handler == SIG_DFL) {
+        } else if (entry.__handler == SIG_DFL) {
             defaultSignalLogic(sig);
         } else {
             auto mask = currentTask->signalMask;
-            currentTask->signalMask |= entry.sa_mask;
+            currentTask->signalMask |= entry.__mask;
 
             // TODO: 这里关闭了中断, 需要检查是否跨页了.
             auto esp = frame->user_esp;
@@ -519,7 +519,7 @@ bool checkSignal(interrupt::SyscallFrame* frame) {
             userFrame->oldMask = mask;
             userFrame->frame = *frame;
 
-            frame->eip = reinterpret_cast<uint32_t>(entry.sa_handler);
+            frame->eip = reinterpret_cast<uint32_t>(entry.__handler);
             frame->user_esp = esp;
             return true;
         }

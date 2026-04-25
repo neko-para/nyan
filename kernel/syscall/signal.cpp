@@ -12,7 +12,7 @@ sighandler_t signal(int sig, sighandler_t handler) {
     }
     arch::InterruptGuard guard;
     if (!task::currentTask->signalActions) {
-        task::currentTask->signalActions.reset(allocator::allocAs<std::array<sigaction, NSIG>>());
+        task::currentTask->signalActions.reset(allocator::allocAs<std::array<task::SigAction, NSIG>>());
     }
     auto& entry = task::currentTask->signalActions->operator[](sig);
     auto old = entry;
@@ -21,7 +21,7 @@ sighandler_t signal(int sig, sighandler_t handler) {
         1u << sig,
         SA_RESTART,
     };
-    return old.sa_handler;
+    return old.__handler;
 }
 
 }  // namespace nyan::syscall

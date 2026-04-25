@@ -1,7 +1,6 @@
 #include "file.hpp"
 
 #include <nyan/errno.h>
-#include <nyan/ioctls.h>
 
 #include "../arch/debug.hpp"
 

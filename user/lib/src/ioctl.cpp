@@ -8,7 +8,7 @@ using namespace nyan::user;
 
 extern "C" {
 
-int ioctl(int fd, uint32_t request, ...) {
+int ioctl(int fd, int request, ...) {
     switch (request) {
         // case TIOCGPGRP:
         case TIOCSPGRP: {

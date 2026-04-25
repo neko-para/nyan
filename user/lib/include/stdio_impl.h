@@ -14,7 +14,7 @@ enum FileFlags {
     F_BufMask = 3 << 4,
 };
 
-struct FILE {
+struct FileImpl : public _IO_FILE {
     int fd;
     int flags;
 
@@ -27,9 +27,9 @@ struct FILE {
     bool isBufFull() const noexcept { return buf_pos == buf_size; }
 };
 
-extern "C" FILE __stdin_obj;
-extern "C" FILE __stdout_obj;
-extern "C" FILE __stderr_obj;
+extern "C" FileImpl __stdin_obj;
+extern "C" FileImpl __stdout_obj;
+extern "C" FileImpl __stderr_obj;
 
 extern "C" void __init_stdio();
 extern "C" void __fini_stdio();

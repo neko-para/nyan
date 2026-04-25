@@ -53,7 +53,7 @@ pid_t getpid() {
     return sys_getpid();
 }
 
-int brk(const void* addr) {
+int brk(void* addr) {
     auto new_addr = sys_brk(addr);
     if (new_addr < addr) {
         errno = ENOMEM;
