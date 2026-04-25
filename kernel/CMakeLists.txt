@@ -16,10 +16,7 @@ target_compile_options(kernel PRIVATE -g -Wall -Wextra)
 target_compile_definitions(kernel PRIVATE __BUILDING_NYAN__)
 
 target_link_options(kernel PRIVATE -T ${CMAKE_CURRENT_LIST_DIR}/linker.ld)
-target_link_directories(kernel PRIVATE ../sysroot/usr/lib/generic
-                        ../sysroot/usr/lib/i686-none-elf)
-target_link_libraries(kernel PRIVATE kernel_header kernel_embed c
-                                     clang_rt.builtins-i386)
+target_link_libraries(kernel PRIVATE kernel_header kernel_embed clang_rt.builtins-i386)
 
 if(NYAN_ENABLE_OPTIMIZE)
   target_compile_options(

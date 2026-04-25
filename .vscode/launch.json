@@ -5,7 +5,7 @@
             "request": "launch",
             "name": "Attach",
             "targetCreateCommands": [
-                "target create ${workspaceFolder}/build/kernel",
+                "target create ${workspaceFolder}/build/kernel/kernel",
             ],
             "processCreateCommands": [
                 "gdb-remote localhost:1234"

@@ -1,7 +1,9 @@
+#include <stdarg.h>
 #include <__verbose_abort>
 #include <new>
 #include <string>
 
+#include "../allocator/alloc.hpp"
 #include "../arch/debug.hpp"
 
 _LIBCPP_BEGIN_NAMESPACE_STD
@@ -55,33 +57,29 @@ _LIBCPP_BEGIN_NAMESPACE_STD
 _LIBCPP_END_NAMESPACE_STD
 
 void* operator new(size_t size) {
-    return malloc(size);
+    return nyan::allocator::slabAlloc(size, size);
 }
 
 void* operator new[](size_t size) {
-    return malloc(size);
+    return nyan::allocator::slabAlloc(size, size);
 }
 
-void* operator new(size_t size, std::align_val_t) {
-    // TODO: check align
-    return malloc(size);
+void* operator new(size_t size, std::align_val_t align) {
+    return nyan::allocator::slabAlloc(size, static_cast<size_t>(align));
 }
 
 void operator delete(void* ptr) noexcept {
-    return free(ptr);
+    nyan::allocator::slabFree(ptr);
 }
 
 void operator delete(void* ptr, size_t) noexcept {
-    return free(ptr);
+    nyan::allocator::slabFree(ptr);
 }
 
 void operator delete(void* ptr, size_t, std::align_val_t) noexcept {
-    // TODO: check align
-    return free(ptr);
+    nyan::allocator::slabFree(ptr);
 }
 
 void operator delete[](void* ptr) noexcept {
-    return free(ptr);
+    nyan::allocator::slabFree(ptr);
 }
-
-template class std::basic_string<char>;

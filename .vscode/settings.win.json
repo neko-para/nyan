@@ -6,7 +6,8 @@
   "editor.tabSize": 4,
   "files.exclude": {
     ".cache": true,
-    "sysroot": true
+    "sysroot": true,
+    "libcxx": true
   },
 
   "clangd.path": "E:\\Programs\\llvm\\bin\\clangd.exe"

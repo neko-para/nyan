@@ -7,7 +7,9 @@
 
 namespace nyan::allocator {
 
-constexpr uint32_t poolBase = 0x400000;  // 4M
+constexpr uint32_t poolBase = 0x800000;  // 4M
+
+inline uint32_t __poolBitmapStorage[1 << 15];
 
 struct PoolManager {
     uint32_t* bitmap;
@@ -15,7 +17,7 @@ struct PoolManager {
 
     PoolManager(uint32_t size) {
         bitmap_size = (size >> 12) >> 5;
-        bitmap = new uint32_t[bitmap_size];
+        bitmap = __poolBitmapStorage;
         std::fill_n(bitmap, bitmap_size, 0);
     }
     ~PoolManager() { delete[] bitmap; }

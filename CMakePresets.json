@@ -17,6 +17,16 @@
             }
         },
         {
+            "name": "LinuxNinja",
+            "displayName": "LinuxNinja",
+            "description": "LinuxNinja",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/i686-elf-linux.cmake"
+            }
+        },
+        {
             "name": "WinNinja",
             "displayName": "WinNinja",
             "description": "WinNinja",
@@ -33,6 +43,14 @@
             "displayName": "MacNinja",
             "description": "MacNinja",
             "configurePreset": "MacNinja",
+            "configuration": "Release",
+            "jobs": 16
+        },
+        {
+            "name": "LinuxNinja",
+            "displayName": "LinuxNinja",
+            "description": "LinuxNinja",
+            "configurePreset": "LinuxNinja",
             "configuration": "Release",
             "jobs": 16
         },

@@ -48,10 +48,9 @@ SECTIONS
 
     _end = .;
 
-    . = 0xC0400000;
-    __llvm_libc_heap_limit = .;
+    . = 0xC0800000;
 
-    .vga_buffer 0xC03FF000 (NOLOAD) : {
+    .vga_buffer 0xC07FF000 (NOLOAD) : {
         vga_buffer = .;
     }
 }
