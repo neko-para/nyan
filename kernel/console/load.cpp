@@ -1,5 +1,6 @@
 #include "load.hpp"
 
+#include <fcntl.h>
 #include <nyan/syscall.h>
 #include <sys/wait.h>
 

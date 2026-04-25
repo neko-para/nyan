@@ -1,3 +1,4 @@
+#include <fcntl.h>
 #include <nyan/syscall.h>
 
 #include "../fs/pipe.hpp"

@@ -18,7 +18,7 @@ namespace nyan::interrupt {
 template <uint32_t Id>
 void defaultHandlerImpl(Frame* frame, uint32_t error) {
     if constexpr (Id == E_GeneralProtectionFault) {
-        arch::kfatal("General Protection Fault: selector {#4x}", error);
+        arch::kfatal("General Protection Fault: selector {#4x}\n  eip {#010x}", error, frame->eip);
     } else if constexpr (Id == E_PageFault) {
         paging::VirtualAddress targetAddr = paging::VirtualAddress{arch::cr2()};
         if (targetAddr.addr < 0xC0000000 &&

@@ -10,7 +10,7 @@ void sigreturn(void* frame) {
 
     auto esp = sysFrame->user_esp;
     esp += 4;  // signum
-    task::currentTask->signalMask = *reinterpret_cast<sigset_t*>(esp);
+    task::currentTask->signalMask = *reinterpret_cast<uint32_t*>(esp);
     esp += 4;  // sigmask
     auto userFrame = reinterpret_cast<interrupt::SyscallFrame*>(esp);
     *sysFrame = *userFrame;

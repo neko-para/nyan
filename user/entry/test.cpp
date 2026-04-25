@@ -1,4 +1,3 @@
-#include <nyan/syscall.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,9 +1,8 @@
 #include "pipe.hpp"
 
-#include <bits/fcntl.h>
-#include <bits/signum.h>
+#include <fcntl.h>
 #include <nyan/errno.h>
-#include <nyan/ioctls.h>
+#include <signal.h>
 #include <string.h>
 
 #include "../task/task.hpp"

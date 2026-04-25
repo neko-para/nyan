@@ -1,5 +1,6 @@
 #include "task.hpp"
 
+#include <elf.h>
 #include <bit>
 
 #include "../allocator/alloc.hpp"
@@ -137,6 +138,10 @@ static void loadArgv(Stack& stack, const char* const* argv) {
     for (auto arg = argv; *arg; arg++) {
         args.push_back(stack.translator.toUser(stack.pushString(*arg)));
     }
+    stack.pushVal(AT_NULL);
+    stack.pushVal(4096);
+    stack.pushVal(AT_PAGESZ);
+    stack.pushVal(0);  // envp
     stack.pushVal(0);
     for (auto it = args.rbegin(); it != args.rend(); it++) {
         stack.pushVal(it->addr);
@@ -254,7 +259,14 @@ pid_t forkTask(interrupt::SyscallFrame* frame) {
     tcb->pendingSignals = 0;
     tcb->signalMask = currentTask->signalMask;
     if (currentTask->signalActions) {
-        tcb->signalActions.reset(allocator::allocAs<std::array<sigaction, NSIG>>(*currentTask->signalActions));
+        tcb->signalActions.reset(allocator::allocAs<SigActionData>());
+        for (size_t i = 0; i < NSIG; i++) {
+            if (const auto& info = (*currentTask->signalActions)[i]) {
+                auto& newInfo = (*tcb->signalActions)[i];
+                newInfo.reset(new struct sigaction);
+                *newInfo = *info;
+            }
+        }
     }
 
     tcb->fdTable = currentTask->fdTable;
@@ -461,7 +473,7 @@ void defaultSignalLogic(int sig) {
 }
 
 bool peekSignal() {
-    sigset_t sigs = currentTask->pendingSignals & ~currentTask->signalMask;
+    uint32_t sigs = currentTask->pendingSignals & ~currentTask->signalMask;
     if (!sigs) {
         return false;
     }
@@ -475,9 +487,9 @@ bool peekSignal() {
             }
         } else {
             const auto& entry = currentTask->signalActions->operator[](sig);
-            if (entry.sa_handler == SIG_IGN) {
+            if (!entry || entry->sa_handler == SIG_IGN) {
                 continue;
-            } else if (entry.sa_handler == SIG_DFL) {
+            } else if (entry->sa_handler == SIG_DFL) {
                 if (!isSignalDefaultIgnore(sig)) {
                     return true;
                 }
@@ -492,7 +504,7 @@ bool peekSignal() {
 bool checkSignal(interrupt::SyscallFrame* frame) {
     // TODO: 假设一定来自用户态. 需要有个地方检查frame->cs
     arch::InterruptGuard guard;
-    sigset_t sigs = currentTask->pendingSignals & ~currentTask->signalMask;
+    uint32_t sigs = currentTask->pendingSignals & ~currentTask->signalMask;
     if (!sigs) {
         return false;
     }
@@ -502,13 +514,13 @@ bool checkSignal(interrupt::SyscallFrame* frame) {
         defaultSignalLogic(sig);
     } else {
         const auto& entry = currentTask->signalActions->operator[](sig);
-        if (entry.sa_handler == SIG_IGN) {
+        if (!entry || entry->sa_handler == SIG_IGN) {
             ;
-        } else if (entry.sa_handler == SIG_DFL) {
+        } else if (entry->sa_handler == SIG_DFL) {
             defaultSignalLogic(sig);
         } else {
             auto mask = currentTask->signalMask;
-            currentTask->signalMask |= entry.sa_mask;
+            currentTask->signalMask |= entry->sa_mask.__bits[0];
 
             // TODO: 这里关闭了中断, 需要检查是否跨页了.
             auto esp = frame->user_esp;
@@ -519,7 +531,7 @@ bool checkSignal(interrupt::SyscallFrame* frame) {
             userFrame->oldMask = mask;
             userFrame->frame = *frame;
 
-            frame->eip = reinterpret_cast<uint32_t>(entry.sa_handler);
+            frame->eip = reinterpret_cast<uint32_t>(entry->sa_handler);
             frame->user_esp = esp;
             return true;
         }

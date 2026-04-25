@@ -1,5 +1,6 @@
 #include "fd.hpp"
 
+#include <fcntl.h>
 #include <nyan/errno.h>
 
 namespace nyan::fs {

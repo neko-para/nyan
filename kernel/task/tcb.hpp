@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sys/signal.h>
+#include <signal.h>
 #include <sys/types.h>
 
 #include "../fs/fd.hpp"
@@ -41,15 +41,17 @@ struct BlockWaitTaskInfo {
 // TODO: 这玩意是不是要动态?
 constexpr size_t MAXFD = 16;
 
+using SigActionData = std::array<lib::unique_ptr<struct sigaction>, NSIG>;
+
 struct TaskControlBlock : public TaskControlBlockMetaInfo,
                           public lib::ListNodes<TaskControlBlockTag, TaskControlBlockChildTag> {
     pid_t parentPid{KP_Invalid};
     pid_t groupPid{KP_Invalid};
     lib::List<TaskControlBlockChildTag, true> childTasks;
 
-    sigset_t pendingSignals{};
-    sigset_t signalMask{};
-    lib::unique_ptr<std::array<sigaction, NSIG>> signalActions;
+    uint32_t pendingSignals{};
+    uint32_t signalMask{};
+    lib::unique_ptr<SigActionData> signalActions;
 
     std::array<lib::Ref<fs::FdObj>, MAXFD> fdTable;
     console::Tty* tty{};

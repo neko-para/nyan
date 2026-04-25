@@ -1,9 +1,14 @@
 set(USER_PROGRAM_OBJECTS "")
 set(USER_PROGRAM_TARGETS "")
 
+set(CMAKE_CXX_LINK_EXECUTABLE
+    "<CMAKE_LINKER> <LINK_FLAGS> ${CMAKE_SYSROOT}/usr/lib/crt1.o ${CMAKE_SYSROOT}/usr/lib/crti.o <OBJECTS> ${CMAKE_SYSROOT}/usr/lib/crtn.o -o <TARGET> -L${TOOL_PREFIX}/lib/clang/22/lib/generic -L${CMAKE_SYSROOT}/usr/lib <LINK_LIBRARIES>"
+)
+
 function(add_user_program NAME SOURCE)
   add_executable(${NAME} ${SOURCE})
-  target_link_libraries(${NAME} PRIVATE user)
+
+  target_link_libraries(${NAME} PRIVATE c)
   target_compile_options(${NAME} PRIVATE -Wall -Wextra -g)
 
   set(BIN_FILE ${CMAKE_BINARY_DIR}/${NAME}_bin)
