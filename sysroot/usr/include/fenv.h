@@ -1,53 +1,28 @@
-//===-- Standard C header <fenv.h> --===//
-//
-// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
-// See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//===---------------------------------------------------------------------===//
+#ifndef _FENV_H
+#define _FENV_H
 
-#ifndef _LLVM_LIBC_FENV_H
-#define _LLVM_LIBC_FENV_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include "__llvm-libc-common.h"
-#include "llvm-libc-macros/fenv-macros.h"
-#include "llvm-libc-types/fenv_t.h"
-#include "llvm-libc-types/fexcept_t.h"
+#include <bits/fenv.h>
 
-__BEGIN_C_DECLS
+int feclearexcept(int);
+int fegetexceptflag(fexcept_t *, int);
+int feraiseexcept(int);
+int fesetexceptflag(const fexcept_t *, int);
+int fetestexcept(int);
 
-int feclearexcept(int) __NOEXCEPT;
+int fegetround(void);
+int fesetround(int);
 
-int fedisableexcept(int) __NOEXCEPT;
+int fegetenv(fenv_t *);
+int feholdexcept(fenv_t *);
+int fesetenv(const fenv_t *);
+int feupdateenv(const fenv_t *);
 
-int feenableexcept(int) __NOEXCEPT;
+#ifdef __cplusplus
+}
+#endif
+#endif
 
-int fegetenv(fenv_t *) __NOEXCEPT;
-
-int fegetexcept(void) __NOEXCEPT;
-
-int fegetexceptflag(fexcept_t *, int) __NOEXCEPT;
-
-int fegetround(void) __NOEXCEPT;
-
-int feholdexcept(fenv_t *) __NOEXCEPT;
-
-int feraiseexcept(int) __NOEXCEPT;
-
-int fesetenv(const fenv_t *) __NOEXCEPT;
-
-int fesetexcept(int) __NOEXCEPT;
-
-int fesetexceptflag(const fexcept_t *, int) __NOEXCEPT;
-
-int fesetround(int) __NOEXCEPT;
-
-int fetestexcept(int) __NOEXCEPT;
-
-int fetestexceptflag(const fexcept_t *, int) __NOEXCEPT;
-
-int feupdateenv(const fenv_t *) __NOEXCEPT;
-
-__END_C_DECLS
-
-#endif // _LLVM_LIBC_FENV_H

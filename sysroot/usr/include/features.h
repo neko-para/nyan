@@ -1,19 +1,40 @@
-//===-- C standard library header features.h ------------------------------===//
-//
-// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
-// See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//===----------------------------------------------------------------------===//
+#ifndef _FEATURES_H
+#define _FEATURES_H
 
-#ifndef LLVM_LIBC_FEATURES_H
-#define LLVM_LIBC_FEATURES_H
+#if defined(_ALL_SOURCE) && !defined(_GNU_SOURCE)
+#define _GNU_SOURCE 1
+#endif
 
-#include "__llvm-libc-common.h"
-#include "llvm-libc-macros/features-macros.h"
+#if defined(_DEFAULT_SOURCE) && !defined(_BSD_SOURCE)
+#define _BSD_SOURCE 1
+#endif
 
-__BEGIN_C_DECLS
+#if !defined(_POSIX_SOURCE) && !defined(_POSIX_C_SOURCE) \
+ && !defined(_XOPEN_SOURCE) && !defined(_GNU_SOURCE) \
+ && !defined(_BSD_SOURCE) && !defined(__STRICT_ANSI__)
+#define _BSD_SOURCE 1
+#define _XOPEN_SOURCE 700
+#endif
 
-__END_C_DECLS
+#if __STDC_VERSION__ >= 199901L
+#define __restrict restrict
+#elif !defined(__GNUC__)
+#define __restrict
+#endif
 
-#endif // LLVM_LIBC_FEATURES_H
+#if __STDC_VERSION__ >= 199901L || defined(__cplusplus)
+#define __inline inline
+#elif !defined(__GNUC__)
+#define __inline
+#endif
+
+#if __STDC_VERSION__ >= 201112L
+#elif defined(__GNUC__)
+#define _Noreturn __attribute__((__noreturn__))
+#else
+#define _Noreturn
+#endif
+
+#define __REDIR(x,y) __typeof__(x) x __asm__(#y)
+
+#endif

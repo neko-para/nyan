@@ -1,23 +1,49 @@
-//===-- Standard C header <setjmp.h> --===//
-//
-// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
-// See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//===---------------------------------------------------------------------===//
+#ifndef	_SETJMP_H
+#define	_SETJMP_H
 
-#ifndef _LLVM_LIBC_SETJMP_H
-#define _LLVM_LIBC_SETJMP_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include "__llvm-libc-common.h"
-#include "llvm-libc-types/jmp_buf.h"
+#include <features.h>
 
-__BEGIN_C_DECLS
+#include <bits/setjmp.h>
 
-_Noreturn void longjmp(jmp_buf, int) __NOEXCEPT;
+typedef struct __jmp_buf_tag {
+	__jmp_buf __jb;
+	unsigned long __fl;
+	unsigned long __ss[128/sizeof(long)];
+} jmp_buf[1];
 
-_Returns_twice int setjmp(jmp_buf) __NOEXCEPT;
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1)
+#define __setjmp_attr __attribute__((__returns_twice__))
+#else
+#define __setjmp_attr
+#endif
 
-__END_C_DECLS
+#if defined(_POSIX_SOURCE) || defined(_POSIX_C_SOURCE) \
+ || defined(_XOPEN_SOURCE) || defined(_GNU_SOURCE) \
+ || defined(_BSD_SOURCE)
+typedef jmp_buf sigjmp_buf;
+int sigsetjmp (sigjmp_buf, int) __setjmp_attr;
+_Noreturn void siglongjmp (sigjmp_buf, int);
+#endif
 
-#endif // _LLVM_LIBC_SETJMP_H
+#if defined(_XOPEN_SOURCE) || defined(_GNU_SOURCE) \
+ || defined(_BSD_SOURCE)
+int _setjmp (jmp_buf) __setjmp_attr;
+_Noreturn void _longjmp (jmp_buf, int);
+#endif
+
+int setjmp (jmp_buf) __setjmp_attr;
+_Noreturn void longjmp (jmp_buf, int);
+
+#define setjmp setjmp
+
+#undef __setjmp_attr
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

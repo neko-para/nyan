@@ -1,111 +1,179 @@
-//===-- C standard library header stdlib.h --------------------------------===//
-//
-// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
-// See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//===----------------------------------------------------------------------===//
+#ifndef _STDLIB_H
+#define _STDLIB_H
 
-#ifndef LLVM_LIBC_STDLIB_H
-#define LLVM_LIBC_STDLIB_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include "__llvm-libc-common.h"
-#include "llvm-libc-macros/stdlib-macros.h"
+#include <features.h>
 
-#include "llvm-libc-macros/null-macro.h"
-#include "llvm-libc-types/__atexithandler_t.h"
-#include "llvm-libc-types/__qsortcompare_t.h"
-#include "llvm-libc-types/__qsortrcompare_t.h"
-#include "llvm-libc-types/__search_compare_t.h"
-#include "llvm-libc-types/div_t.h"
-#include "llvm-libc-types/ldiv_t.h"
-#include "llvm-libc-types/lldiv_t.h"
-#include "llvm-libc-types/locale_t.h"
-#include "llvm-libc-types/size_t.h"
-#include "llvm-libc-types/wchar_t.h"
+#if __cplusplus >= 201103L
+#define NULL nullptr
+#elif defined(__cplusplus)
+#define NULL 0L
+#else
+#define NULL ((void*)0)
+#endif
 
-__BEGIN_C_DECLS
+#define __NEED_size_t
+#define __NEED_wchar_t
 
-_Noreturn void _Exit(int) __NOEXCEPT;
+#include <bits/alltypes.h>
 
-long a64l(const char *) __NOEXCEPT;
+int atoi (const char *);
+long atol (const char *);
+long long atoll (const char *);
+double atof (const char *);
 
-_Noreturn void abort(void) __NOEXCEPT;
+float strtof (const char *__restrict, char **__restrict);
+double strtod (const char *__restrict, char **__restrict);
+long double strtold (const char *__restrict, char **__restrict);
 
-int abs(int) __NOEXCEPT;
+long strtol (const char *__restrict, char **__restrict, int);
+unsigned long strtoul (const char *__restrict, char **__restrict, int);
+long long strtoll (const char *__restrict, char **__restrict, int);
+unsigned long long strtoull (const char *__restrict, char **__restrict, int);
 
-void *aligned_alloc(size_t, size_t) __NOEXCEPT;
+int rand (void);
+void srand (unsigned);
 
-int atexit(__atexithandler_t) __NOEXCEPT;
+void *malloc (size_t);
+void *calloc (size_t, size_t);
+void *realloc (void *, size_t);
+void free (void *);
+void *aligned_alloc(size_t, size_t);
 
-double atof(const char *__restrict) __NOEXCEPT;
+_Noreturn void abort (void);
+int atexit (void (*) (void));
+_Noreturn void exit (int);
+_Noreturn void _Exit (int);
+int at_quick_exit (void (*) (void));
+_Noreturn void quick_exit (int);
 
-int atoi(const char *) __NOEXCEPT;
+char *getenv (const char *);
 
-long atol(const char *) __NOEXCEPT;
+int system (const char *);
 
-long long atoll(const char *) __NOEXCEPT;
+void *bsearch (const void *, const void *, size_t, size_t, int (*)(const void *, const void *));
+void qsort (void *, size_t, size_t, int (*)(const void *, const void *));
 
-void *bsearch(const void *, const void *, size_t, size_t, __search_compare_t) __NOEXCEPT;
+int abs (int);
+long labs (long);
+long long llabs (long long);
 
-void *calloc(size_t, size_t) __NOEXCEPT;
+typedef struct { int quot, rem; } div_t;
+typedef struct { long quot, rem; } ldiv_t;
+typedef struct { long long quot, rem; } lldiv_t;
 
-div_t div(int, int) __NOEXCEPT;
+div_t div (int, int);
+ldiv_t ldiv (long, long);
+lldiv_t lldiv (long long, long long);
 
-_Noreturn void exit(int) __NOEXCEPT;
+int mblen (const char *, size_t);
+int mbtowc (wchar_t *__restrict, const char *__restrict, size_t);
+int wctomb (char *, wchar_t);
+size_t mbstowcs (wchar_t *__restrict, const char *__restrict, size_t);
+size_t wcstombs (char *__restrict, const wchar_t *__restrict, size_t);
 
-void free(void *) __NOEXCEPT;
+#define EXIT_FAILURE 1
+#define EXIT_SUCCESS 0
 
-long labs(long) __NOEXCEPT;
+size_t __ctype_get_mb_cur_max(void);
+#define MB_CUR_MAX (__ctype_get_mb_cur_max())
 
-ldiv_t ldiv(long, long) __NOEXCEPT;
+#define RAND_MAX (0x7fffffff)
 
-long long llabs(long long) __NOEXCEPT;
 
-lldiv_t lldiv(long long, long long) __NOEXCEPT;
+#if defined(_POSIX_SOURCE) || defined(_POSIX_C_SOURCE) \
+ || defined(_XOPEN_SOURCE) || defined(_GNU_SOURCE) \
+ || defined(_BSD_SOURCE)
 
-void *malloc(size_t) __NOEXCEPT;
+#define WNOHANG    1
+#define WUNTRACED  2
 
-size_t memalignment(const void *) __NOEXCEPT;
+#define WEXITSTATUS(s) (((s) & 0xff00) >> 8)
+#define WTERMSIG(s) ((s) & 0x7f)
+#define WSTOPSIG(s) WEXITSTATUS(s)
+#define WIFEXITED(s) (!WTERMSIG(s))
+#define WIFSTOPPED(s) ((short)((((s)&0xffff)*0x10001U)>>8) > 0x7f00)
+#define WIFSIGNALED(s) (((s)&0xffff)-1U < 0xffu)
 
-void qsort(void *, size_t, size_t, __qsortcompare_t) __NOEXCEPT;
+int posix_memalign (void **, size_t, size_t);
+int setenv (const char *, const char *, int);
+int unsetenv (const char *);
+int mkstemp (char *);
+int mkostemp (char *, int);
+char *mkdtemp (char *);
+int getsubopt (char **, char *const *, char **);
+int rand_r (unsigned *);
 
-void qsort_r(void *, size_t, size_t, __qsortrcompare_t, void *) __NOEXCEPT;
+#endif
 
-int rand(void) __NOEXCEPT;
 
-void *realloc(void *, size_t) __NOEXCEPT;
+#if defined(_XOPEN_SOURCE) || defined(_GNU_SOURCE) \
+ || defined(_BSD_SOURCE)
+char *realpath (const char *__restrict, char *__restrict);
+long int random (void);
+void srandom (unsigned int);
+char *initstate (unsigned int, char *, size_t);
+char *setstate (char *);
+int putenv (char *);
+int posix_openpt (int);
+int grantpt (int);
+int unlockpt (int);
+char *ptsname (int);
+char *l64a (long);
+long a64l (const char *);
+void setkey (const char *);
+double drand48 (void);
+double erand48 (unsigned short [3]);
+long int lrand48 (void);
+long int nrand48 (unsigned short [3]);
+long mrand48 (void);
+long jrand48 (unsigned short [3]);
+void srand48 (long);
+unsigned short *seed48 (unsigned short [3]);
+void lcong48 (unsigned short [7]);
+#endif
 
-void srand(unsigned int) __NOEXCEPT;
+#if defined(_GNU_SOURCE) || defined(_BSD_SOURCE)
+#include <alloca.h>
+char *mktemp (char *);
+int mkstemps (char *, int);
+int mkostemps (char *, int, int);
+void *valloc (size_t);
+void *memalign(size_t, size_t);
+int getloadavg(double *, int);
+int clearenv(void);
+#define WCOREDUMP(s) ((s) & 0x80)
+#define WIFCONTINUED(s) ((s) == 0xffff)
+void *reallocarray (void *, size_t, size_t);
+void qsort_r (void *, size_t, size_t, int (*)(const void *, const void *, void *), void *);
+#endif
 
-double strtod(const char *__restrict, char **__restrict) __NOEXCEPT;
+#ifdef _GNU_SOURCE
+int ptsname_r(int, char *, size_t);
+char *ecvt(double, int, int *, int *);
+char *fcvt(double, int, int *, int *);
+char *gcvt(double, int, char *);
+char *secure_getenv(const char *);
+struct __locale_struct;
+float strtof_l(const char *__restrict, char **__restrict, struct __locale_struct *);
+double strtod_l(const char *__restrict, char **__restrict, struct __locale_struct *);
+long double strtold_l(const char *__restrict, char **__restrict, struct __locale_struct *);
+#endif
 
-double strtod_l(const char *__restrict, char **__restrict, locale_t) __NOEXCEPT;
+#if defined(_LARGEFILE64_SOURCE)
+#define mkstemp64 mkstemp
+#define mkostemp64 mkostemp
+#if defined(_GNU_SOURCE) || defined(_BSD_SOURCE)
+#define mkstemps64 mkstemps
+#define mkostemps64 mkostemps
+#endif
+#endif
 
-float strtof(const char *__restrict, char **__restrict) __NOEXCEPT;
+#ifdef __cplusplus
+}
+#endif
 
-float strtof_l(const char *__restrict, char **__restrict, locale_t) __NOEXCEPT;
-
-long strtol(const char *__restrict, char **__restrict, int) __NOEXCEPT;
-
-long strtol_l(const char *__restrict, char **__restrict, int, locale_t) __NOEXCEPT;
-
-long double strtold(const char *__restrict, char **__restrict) __NOEXCEPT;
-
-long double strtold_l(const char *__restrict, char **__restrict, locale_t) __NOEXCEPT;
-
-long long strtoll(const char *__restrict, char **__restrict, int) __NOEXCEPT;
-
-long long strtoll_l(const char *__restrict, char **__restrict, int, locale_t) __NOEXCEPT;
-
-unsigned long strtoul(const char *__restrict, char **__restrict, int) __NOEXCEPT;
-
-unsigned long strtoul_l(const char *__restrict, char **__restrict, int, locale_t) __NOEXCEPT;
-
-unsigned long long strtoull(const char *__restrict, char **__restrict, int) __NOEXCEPT;
-
-unsigned long long strtoull_l(const char *__restrict, char **__restrict, int, locale_t) __NOEXCEPT;
-
-__END_C_DECLS
-
-#endif // LLVM_LIBC_STDLIB_H
+#endif

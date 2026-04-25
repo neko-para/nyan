@@ -1,79 +1,77 @@
-//===-- Standard C header <ctype.h> --===//
-//
-// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
-// See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//===---------------------------------------------------------------------===//
+#ifndef	_CTYPE_H
+#define	_CTYPE_H
 
-#ifndef _LLVM_LIBC_CTYPE_H
-#define _LLVM_LIBC_CTYPE_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include "__llvm-libc-common.h"
-#include "llvm-libc-types/locale_t.h"
+#include <features.h>
 
-__BEGIN_C_DECLS
+int   isalnum(int);
+int   isalpha(int);
+int   isblank(int);
+int   iscntrl(int);
+int   isdigit(int);
+int   isgraph(int);
+int   islower(int);
+int   isprint(int);
+int   ispunct(int);
+int   isspace(int);
+int   isupper(int);
+int   isxdigit(int);
+int   tolower(int);
+int   toupper(int);
 
-int isalnum(int) __NOEXCEPT;
+#ifndef __cplusplus
+static __inline int __isspace(int _c)
+{
+	return _c == ' ' || (unsigned)_c-'\t' < 5;
+}
 
-int isalnum_l(int, locale_t) __NOEXCEPT;
+#define isalpha(a) (0 ? isalpha(a) : (((unsigned)(a)|32)-'a') < 26)
+#define isdigit(a) (0 ? isdigit(a) : ((unsigned)(a)-'0') < 10)
+#define islower(a) (0 ? islower(a) : ((unsigned)(a)-'a') < 26)
+#define isupper(a) (0 ? isupper(a) : ((unsigned)(a)-'A') < 26)
+#define isprint(a) (0 ? isprint(a) : ((unsigned)(a)-0x20) < 0x5f)
+#define isgraph(a) (0 ? isgraph(a) : ((unsigned)(a)-0x21) < 0x5e)
+#define isspace(a) __isspace(a)
+#endif
 
-int isalpha(int) __NOEXCEPT;
 
-int isalpha_l(int, locale_t) __NOEXCEPT;
+#if defined(_POSIX_SOURCE) || defined(_POSIX_C_SOURCE) \
+ || defined(_XOPEN_SOURCE) || defined(_GNU_SOURCE) \
+ || defined(_BSD_SOURCE)
 
-int isascii(int) __NOEXCEPT;
+#define __NEED_locale_t
+#include <bits/alltypes.h>
 
-int isblank(int) __NOEXCEPT;
+int   isalnum_l(int, locale_t);
+int   isalpha_l(int, locale_t);
+int   isblank_l(int, locale_t);
+int   iscntrl_l(int, locale_t);
+int   isdigit_l(int, locale_t);
+int   isgraph_l(int, locale_t);
+int   islower_l(int, locale_t);
+int   isprint_l(int, locale_t);
+int   ispunct_l(int, locale_t);
+int   isspace_l(int, locale_t);
+int   isupper_l(int, locale_t);
+int   isxdigit_l(int, locale_t);
+int   tolower_l(int, locale_t);
+int   toupper_l(int, locale_t);
 
-int isblank_l(int, locale_t) __NOEXCEPT;
+int   isascii(int);
+int   toascii(int);
+#define _tolower(a) ((a)|0x20)
+#define _toupper(a) ((a)&0x5f)
+#ifndef __cplusplus
+#define isascii(a) (0 ? isascii(a) : (unsigned)(a) < 128)
+#endif
 
-int iscntrl(int) __NOEXCEPT;
+#endif
 
-int iscntrl_l(int, locale_t) __NOEXCEPT;
+#ifdef __cplusplus
+}
+#endif
 
-int isdigit(int) __NOEXCEPT;
-
-int isdigit_l(int, locale_t) __NOEXCEPT;
-
-int isgraph(int) __NOEXCEPT;
-
-int isgraph_l(int, locale_t) __NOEXCEPT;
-
-int islower(int) __NOEXCEPT;
-
-int islower_l(int, locale_t) __NOEXCEPT;
-
-int isprint(int) __NOEXCEPT;
-
-int isprint_l(int, locale_t) __NOEXCEPT;
-
-int ispunct(int) __NOEXCEPT;
-
-int ispunct_l(int, locale_t) __NOEXCEPT;
-
-int isspace(int) __NOEXCEPT;
-
-int isspace_l(int, locale_t) __NOEXCEPT;
-
-int isupper(int) __NOEXCEPT;
-
-int isupper_l(int, locale_t) __NOEXCEPT;
-
-int isxdigit(int) __NOEXCEPT;
-
-int isxdigit_l(int, locale_t) __NOEXCEPT;
-
-int toascii(int) __NOEXCEPT;
-
-int tolower(int) __NOEXCEPT;
-
-int tolower_l(int, locale_t) __NOEXCEPT;
-
-int toupper(int) __NOEXCEPT;
-
-int toupper_l(int, locale_t) __NOEXCEPT;
-
-__END_C_DECLS
-
-#endif // _LLVM_LIBC_CTYPE_H
+#endif

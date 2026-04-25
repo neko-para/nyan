@@ -1,42 +1,27 @@
-//===-- C standard library header errno.h ---------------------------------===//
-//
-// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
-// See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//===----------------------------------------------------------------------===//
+#ifndef	_ERRNO_H
+#define _ERRNO_H
 
-#ifndef LLVM_LIBC_ERRNO_H
-#define LLVM_LIBC_ERRNO_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include "__llvm-libc-common.h"
+#include <features.h>
 
-#ifdef __linux__
+#include <bits/errno.h>
 
-#include <linux/errno.h>
+#ifdef __GNUC__
+__attribute__((const))
+#endif
+int *__errno_location(void);
+#define errno (*__errno_location())
 
-#ifndef ENOTSUP
-#define ENOTSUP EOPNOTSUPP
-#endif // ENOTSUP
+#ifdef _GNU_SOURCE
+extern char *program_invocation_short_name, *program_invocation_name;
+#endif
 
-#include "llvm-libc-macros/linux/error-number-macros.h"
-
-#elif defined(__APPLE__)
-
-#include <sys/errno.h>
-
-#else // __APPLE__
-
-#include "llvm-libc-macros/generic-error-number-macros.h"
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 
-__BEGIN_C_DECLS
-
-int *__llvm_libc_errno(void) __NOEXCEPT;
-
-__END_C_DECLS
-
-#define errno (*__llvm_libc_errno())
-
-#endif // LLVM_LIBC_ERRNO_H

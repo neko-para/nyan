@@ -1,44 +1,40 @@
-//===-- POSIX header <strings.h> --===//
-//
-// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
-// See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//===---------------------------------------------------------------------===//
+#ifndef	_STRINGS_H
+#define	_STRINGS_H
 
-#ifndef _LLVM_LIBC_STRINGS_H
-#define _LLVM_LIBC_STRINGS_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include "__llvm-libc-common.h"
-#include "llvm-libc-types/locale_t.h"
-#include "llvm-libc-types/size_t.h"
+#include <features.h>
 
-__BEGIN_C_DECLS
+#define __NEED_size_t
+#define __NEED_locale_t
+#include <bits/alltypes.h>
 
-int bcmp(const void *, const void *, size_t) __NOEXCEPT;
+#if defined(_GNU_SOURCE) || defined(_BSD_SOURCE) || defined(_POSIX_SOURCE) \
+ || (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE+0 < 200809L) \
+ || (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE+0 < 700)
+int bcmp (const void *, const void *, size_t);
+void bcopy (const void *, void *, size_t);
+void bzero (void *, size_t);
+char *index (const char *, int);
+char *rindex (const char *, int);
+#endif
 
-void bcopy(const void *, void *, size_t) __NOEXCEPT;
+#if defined(_XOPEN_SOURCE) || defined(_GNU_SOURCE)  || defined(_BSD_SOURCE)
+int ffs (int);
+int ffsl (long);
+int ffsll (long long);
+#endif
 
-void bzero(void *, size_t) __NOEXCEPT;
+int strcasecmp (const char *, const char *);
+int strncasecmp (const char *, const char *, size_t);
 
-int ffs(int) __NOEXCEPT;
+int strcasecmp_l (const char *, const char *, locale_t);
+int strncasecmp_l (const char *, const char *, size_t, locale_t);
 
-int ffsl(long) __NOEXCEPT;
+#ifdef __cplusplus
+}
+#endif
 
-int ffsll(long long) __NOEXCEPT;
-
-char *index(const char *, int) __NOEXCEPT;
-
-char *rindex(const char *, int) __NOEXCEPT;
-
-int strcasecmp(const char *, const char *) __NOEXCEPT;
-
-int strcasecmp_l(const char *, const char *, locale_t) __NOEXCEPT;
-
-int strncasecmp(const char *, const char *, size_t) __NOEXCEPT;
-
-int strncasecmp_l(const char *, const char *, size_t, locale_t) __NOEXCEPT;
-
-__END_C_DECLS
-
-#endif // _LLVM_LIBC_STRINGS_H
+#endif

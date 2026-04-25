@@ -1,103 +1,104 @@
-//===-- Standard C header <string.h> --===//
-//
-// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
-// See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//===---------------------------------------------------------------------===//
+#ifndef	_STRING_H
+#define	_STRING_H
 
-#ifndef _LLVM_LIBC_STRING_H
-#define _LLVM_LIBC_STRING_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include "__llvm-libc-common.h"
-#include "llvm-libc-macros/null-macro.h"
-#include "llvm-libc-types/locale_t.h"
-#include "llvm-libc-types/size_t.h"
+#include <features.h>
 
-__BEGIN_C_DECLS
+#if __cplusplus >= 201103L
+#define NULL nullptr
+#elif defined(__cplusplus)
+#define NULL 0L
+#else
+#define NULL ((void*)0)
+#endif
 
-void *memccpy(void *__restrict, const void *__restrict, int, size_t) __NOEXCEPT;
+#define __NEED_size_t
+#if defined(_POSIX_SOURCE) || defined(_POSIX_C_SOURCE) \
+ || defined(_XOPEN_SOURCE) || defined(_GNU_SOURCE) \
+ || defined(_BSD_SOURCE)
+#define __NEED_locale_t
+#endif
 
-void *memchr(const void *, int, size_t) __NOEXCEPT;
+#include <bits/alltypes.h>
 
-int memcmp(const void *, const void *, size_t) __NOEXCEPT;
+void *memcpy (void *__restrict, const void *__restrict, size_t);
+void *memmove (void *, const void *, size_t);
+void *memset (void *, int, size_t);
+int memcmp (const void *, const void *, size_t);
+void *memchr (const void *, int, size_t);
 
-void *memcpy(void *__restrict, const void *__restrict, size_t) __NOEXCEPT;
+char *strcpy (char *__restrict, const char *__restrict);
+char *strncpy (char *__restrict, const char *__restrict, size_t);
 
-void *memmem(const void *, size_t, const void *, size_t) __NOEXCEPT;
+char *strcat (char *__restrict, const char *__restrict);
+char *strncat (char *__restrict, const char *__restrict, size_t);
 
-void *memmove(void *, const void *, size_t) __NOEXCEPT;
+int strcmp (const char *, const char *);
+int strncmp (const char *, const char *, size_t);
 
-void *mempcpy(void *__restrict, const void *__restrict, size_t) __NOEXCEPT;
+int strcoll (const char *, const char *);
+size_t strxfrm (char *__restrict, const char *__restrict, size_t);
 
-void *memrchr(const void *, int, size_t) __NOEXCEPT;
+char *strchr (const char *, int);
+char *strrchr (const char *, int);
 
-void *memset(void *, int, size_t) __NOEXCEPT;
+size_t strcspn (const char *, const char *);
+size_t strspn (const char *, const char *);
+char *strpbrk (const char *, const char *);
+char *strstr (const char *, const char *);
+char *strtok (char *__restrict, const char *__restrict);
 
-void *memset_explicit(void *, int, size_t) __NOEXCEPT;
+size_t strlen (const char *);
 
-char *stpcpy(char *__restrict, const char *__restrict) __NOEXCEPT;
+char *strerror (int);
 
-char *stpncpy(char *__restrict, const char *__restrict, size_t) __NOEXCEPT;
+#if defined(_BSD_SOURCE) || defined(_GNU_SOURCE)
+#include <strings.h>
+#endif
 
-char *strcasestr(const char *, const char *) __NOEXCEPT;
+#if defined(_POSIX_SOURCE) || defined(_POSIX_C_SOURCE) \
+ || defined(_XOPEN_SOURCE) || defined(_GNU_SOURCE) \
+ || defined(_BSD_SOURCE)
+char *strtok_r (char *__restrict, const char *__restrict, char **__restrict);
+int strerror_r (int, char *, size_t);
+char *stpcpy(char *__restrict, const char *__restrict);
+char *stpncpy(char *__restrict, const char *__restrict, size_t);
+size_t strnlen (const char *, size_t);
+char *strdup (const char *);
+char *strndup (const char *, size_t);
+char *strsignal(int);
+char *strerror_l (int, locale_t);
+int strcoll_l (const char *, const char *, locale_t);
+size_t strxfrm_l (char *__restrict, const char *__restrict, size_t, locale_t);
+void *memmem(const void *, size_t, const void *, size_t);
+#endif
 
-char *strcat(char *__restrict, const char *__restrict) __NOEXCEPT;
+#if defined(_XOPEN_SOURCE) || defined(_GNU_SOURCE) \
+ || defined(_BSD_SOURCE)
+void *memccpy (void *__restrict, const void *__restrict, int, size_t);
+#endif
 
-char *strchr(const char *, int) __NOEXCEPT;
+#if defined(_GNU_SOURCE) || defined(_BSD_SOURCE)
+char *strsep(char **, const char *);
+size_t strlcat (char *, const char *, size_t);
+size_t strlcpy (char *, const char *, size_t);
+void explicit_bzero (void *, size_t);
+#endif
 
-char *strchrnul(const char *, int) __NOEXCEPT;
+#ifdef _GNU_SOURCE
+#define	strdupa(x)	strcpy(alloca(strlen(x)+1),x)
+int strverscmp (const char *, const char *);
+char *strchrnul(const char *, int);
+char *strcasestr(const char *, const char *);
+void *memrchr(const void *, int, size_t);
+void *mempcpy(void *, const void *, size_t);
+#endif
 
-int strcmp(const char *, const char *) __NOEXCEPT;
+#ifdef __cplusplus
+}
+#endif
 
-int strcoll(const char *, const char *) __NOEXCEPT;
-
-int strcoll_l(const char *, const char *, locale_t) __NOEXCEPT;
-
-char *strcpy(char *__restrict, const char *__restrict) __NOEXCEPT;
-
-size_t strcspn(const char *, const char *) __NOEXCEPT;
-
-char *strdup(const char *) __NOEXCEPT;
-
-char *strerror(int) __NOEXCEPT;
-
-char *strerror_r(int, char *, size_t) __NOEXCEPT;
-
-size_t strlcat(char *__restrict, const char *__restrict, size_t) __NOEXCEPT;
-
-size_t strlcpy(char *__restrict, const char *__restrict, size_t) __NOEXCEPT;
-
-size_t strlen(const char *) __NOEXCEPT;
-
-char *strncat(char *, const char *, size_t) __NOEXCEPT;
-
-int strncmp(const char *, const char *, size_t) __NOEXCEPT;
-
-char *strncpy(char *__restrict, const char *__restrict, size_t) __NOEXCEPT;
-
-char *strndup(const char *, size_t) __NOEXCEPT;
-
-size_t strnlen(const char *, size_t) __NOEXCEPT;
-
-char *strpbrk(const char *, const char *) __NOEXCEPT;
-
-char *strrchr(const char *, int) __NOEXCEPT;
-
-char *strsep(char **__restrict, const char *__restrict) __NOEXCEPT;
-
-size_t strspn(const char *, const char *) __NOEXCEPT;
-
-char *strstr(const char *, const char *) __NOEXCEPT;
-
-char *strtok(char *__restrict, const char *__restrict) __NOEXCEPT;
-
-char *strtok_r(char *__restrict, const char *__restrict, char ** __restrict) __NOEXCEPT;
-
-size_t strxfrm(char *__restrict, const char *__restrict, size_t) __NOEXCEPT;
-
-size_t strxfrm_l(char *__restrict, const char *__restrict, size_t, locale_t) __NOEXCEPT;
-
-__END_C_DECLS
-
-#endif // _LLVM_LIBC_STRING_H
+#endif

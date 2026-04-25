@@ -1,23 +1,29 @@
-//===-- Standard C header <uchar.h> --===//
-//
-// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
-// See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//===---------------------------------------------------------------------===//
+#ifndef _UCHAR_H
+#define _UCHAR_H
 
-#ifndef _LLVM_LIBC_UCHAR_H
-#define _LLVM_LIBC_UCHAR_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include "__llvm-libc-common.h"
-#include "llvm-libc-types/char16_t.h"
-#include "llvm-libc-types/char32_t.h"
-#include "llvm-libc-types/char8_t.h"
-#include "llvm-libc-types/mbstate_t.h"
-#include "llvm-libc-types/size_t.h"
+#if __cplusplus < 201103L
+typedef unsigned short char16_t;
+typedef unsigned char32_t;
+#endif
 
-__BEGIN_C_DECLS
+#define __NEED_mbstate_t
+#define __NEED_size_t
 
-__END_C_DECLS
+#include <features.h>
+#include <bits/alltypes.h>
 
-#endif // _LLVM_LIBC_UCHAR_H
+size_t c16rtomb(char *__restrict, char16_t, mbstate_t *__restrict);
+size_t mbrtoc16(char16_t *__restrict, const char *__restrict, size_t, mbstate_t *__restrict);
+
+size_t c32rtomb(char *__restrict, char32_t, mbstate_t *__restrict);
+size_t mbrtoc32(char32_t *__restrict, const char *__restrict, size_t, mbstate_t *__restrict);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

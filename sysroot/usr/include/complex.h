@@ -1,63 +1,133 @@
-//===-- C standard library header complex.h -------------------------------===//
-//
-// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
-// See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//===----------------------------------------------------------------------===//
+#ifndef _COMPLEX_H
+#define _COMPLEX_H
 
-#ifndef LLVM_LIBC_COMPLEX_H
-#define LLVM_LIBC_COMPLEX_H
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include "__llvm-libc-common.h"
-#include "llvm-libc-macros/complex-macros.h"
+#define complex _Complex
+#ifdef __GNUC__
+#define _Complex_I (__extension__ (0.0f+1.0fi))
+#else
+#define _Complex_I (0.0f+1.0fi)
+#endif
+#define I _Complex_I
 
-#include "llvm-libc-types/cfloat128.h"
-#include "llvm-libc-types/cfloat16.h"
-#include "llvm-libc-types/float128.h"
+double complex cacos(double complex);
+float complex cacosf(float complex);
+long double complex cacosl(long double complex);
 
-__BEGIN_C_DECLS
+double complex casin(double complex);
+float complex casinf(float complex);
+long double complex casinl(long double complex);
 
-double cimag(_Complex double) __NOEXCEPT;
+double complex catan(double complex);
+float complex catanf(float complex);
+long double complex catanl(long double complex);
 
-float cimagf(_Complex float) __NOEXCEPT;
+double complex ccos(double complex);
+float complex ccosf(float complex);
+long double complex ccosl(long double complex);
 
-#ifdef LIBC_TYPES_HAS_CFLOAT16
-_Float16 cimagf16(cfloat16) __NOEXCEPT;
-#endif // LIBC_TYPES_HAS_CFLOAT16
+double complex csin(double complex);
+float complex csinf(float complex);
+long double complex csinl(long double complex);
 
-long double cimagl(_Complex long double) __NOEXCEPT;
+double complex ctan(double complex);
+float complex ctanf(float complex);
+long double complex ctanl(long double complex);
 
-_Complex double conj(_Complex double) __NOEXCEPT;
+double complex cacosh(double complex);
+float complex cacoshf(float complex);
+long double complex cacoshl(long double complex);
 
-_Complex float conjf(_Complex float) __NOEXCEPT;
+double complex casinh(double complex);
+float complex casinhf(float complex);
+long double complex casinhl(long double complex);
 
-#ifdef LIBC_TYPES_HAS_CFLOAT16
-cfloat16 conjf16(cfloat16) __NOEXCEPT;
-#endif // LIBC_TYPES_HAS_CFLOAT16
+double complex catanh(double complex);
+float complex catanhf(float complex);
+long double complex catanhl(long double complex);
 
-_Complex long double conjl(_Complex long double) __NOEXCEPT;
+double complex ccosh(double complex);
+float complex ccoshf(float complex);
+long double complex ccoshl(long double complex);
 
-_Complex double cproj(_Complex double) __NOEXCEPT;
+double complex csinh(double complex);
+float complex csinhf(float complex);
+long double complex csinhl(long double complex);
 
-_Complex float cprojf(_Complex float) __NOEXCEPT;
+double complex ctanh(double complex);
+float complex ctanhf(float complex);
+long double complex ctanhl(long double complex);
 
-#ifdef LIBC_TYPES_HAS_CFLOAT16
-cfloat16 cprojf16(cfloat16) __NOEXCEPT;
-#endif // LIBC_TYPES_HAS_CFLOAT16
+double complex cexp(double complex);
+float complex cexpf(float complex);
+long double complex cexpl(long double complex);
 
-_Complex long double cprojl(_Complex long double) __NOEXCEPT;
+double complex clog(double complex);
+float complex clogf(float complex);
+long double complex clogl(long double complex);
 
-double creal(_Complex double) __NOEXCEPT;
+double cabs(double complex);
+float cabsf(float complex);
+long double cabsl(long double complex);
 
-float crealf(_Complex float) __NOEXCEPT;
+double complex cpow(double complex, double complex);
+float complex cpowf(float complex, float complex);
+long double complex cpowl(long double complex, long double complex);
 
-#ifdef LIBC_TYPES_HAS_CFLOAT16
-_Float16 crealf16(cfloat16) __NOEXCEPT;
-#endif // LIBC_TYPES_HAS_CFLOAT16
+double complex csqrt(double complex);
+float complex csqrtf(float complex);
+long double complex csqrtl(long double complex);
 
-long double creall(_Complex long double) __NOEXCEPT;
+double carg(double complex);
+float cargf(float complex);
+long double cargl(long double complex);
 
-__END_C_DECLS
+double cimag(double complex);
+float cimagf(float complex);
+long double cimagl(long double complex);
 
-#endif // LLVM_LIBC_COMPLEX_H
+double complex conj(double complex);
+float complex conjf(float complex);
+long double complex conjl(long double complex);
+
+double complex cproj(double complex);
+float complex cprojf(float complex);
+long double complex cprojl(long double complex);
+
+double creal(double complex);
+float crealf(float complex);
+long double creall(long double complex);
+
+#ifndef __cplusplus
+#define __CIMAG(x, t) \
+	(+(union { _Complex t __z; t __xy[2]; }){(_Complex t)(x)}.__xy[1])
+
+#define creal(x) ((double)(x))
+#define crealf(x) ((float)(x))
+#define creall(x) ((long double)(x))
+
+#define cimag(x) __CIMAG(x, double)
+#define cimagf(x) __CIMAG(x, float)
+#define cimagl(x) __CIMAG(x, long double)
+#endif
+
+#if __STDC_VERSION__ >= 201112L
+#if defined(_Imaginary_I)
+#define __CMPLX(x, y, t) ((t)(x) + _Imaginary_I*(t)(y))
+#elif defined(__clang__)
+#define __CMPLX(x, y, t) (+(_Complex t){ (t)(x), (t)(y) })
+#else
+#define __CMPLX(x, y, t) (__builtin_complex((t)(x), (t)(y)))
+#endif
+#define CMPLX(x, y) __CMPLX(x, y, double)
+#define CMPLXF(x, y) __CMPLX(x, y, float)
+#define CMPLXL(x, y) __CMPLX(x, y, long double)
+#endif
+
+#ifdef __cplusplus
+}
+#endif
+#endif

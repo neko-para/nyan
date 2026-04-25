@@ -1,36 +1,23 @@
-//===-- C standard library header assert.h --------------------------------===//
-//
-// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
-// See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//===----------------------------------------------------------------------===//
+#include <features.h>
 
-#include "__llvm-libc-common.h"
-#include "llvm-libc-macros/assert-macros.h"
+#undef assert
 
-// This file may be usefully included multiple times to change assert()'s
-// definition based on NDEBUG.
+#ifdef NDEBUG
+#define	assert(x) (void)0
+#else
+#define assert(x) ((void)((x) || (__assert_fail(#x, __FILE__, __LINE__, __func__),0)))
+#endif
 
-#ifndef __cplusplus
-#undef static_assert
+#if __STDC_VERSION__ >= 201112L && !defined(__cplusplus)
 #define static_assert _Static_assert
 #endif
 
-#undef assert
-#ifdef NDEBUG
-#define assert(...) ((void)0)
-#else
 #ifdef __cplusplus
-extern "C"
-#endif
-_Noreturn void __assert_fail(const char *, const char *, unsigned, const char *) __NOEXCEPT;
-#define assert(...)  \
-  ((__VA_ARGS__) ? ((void)0) : __assert_fail(#__VA_ARGS__, __FILE__, __LINE__, __PRETTY_FUNCTION__))
+extern "C" {
 #endif
 
-__BEGIN_C_DECLS
+_Noreturn void __assert_fail (const char *, const char *, int, const char *);
 
-_Noreturn void __assert_fail(const char *, const char *, unsigned, const char *) __NOEXCEPT;
-
-__END_C_DECLS
+#ifdef __cplusplus
+}
+#endif
