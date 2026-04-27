@@ -74,6 +74,7 @@ TaskControlBlock* createTask(int (*func)(void* param), void* param) {
 
     tcb->parentPid = currentTask->pid;
     tcb->groupPid = currentTask->groupPid;
+    tcb->brkBase = 0x400000_va;
     tcb->brkAddr = 0x400000_va;
     tcb->pages.push_back(kernelStack.userBase.addr);
     tcb->pages.push_back(stack.userBase.addr);
@@ -95,7 +96,7 @@ struct LoadElfResult {
     paging::VirtualAddress entry;
 };
 
-static LoadElfResult loadElf(uint8_t* file, size_t) {
+static LoadElfResult loadElf(paging::VMSpace& vmSpace, uint8_t* file, size_t) {
     auto header = new (file) elf::Header;
     // TODO: check if support
 
@@ -129,6 +130,21 @@ static LoadElfResult loadElf(uint8_t* file, size_t) {
                             &frame[lower_bound - vaddr]);
             }
         }
+        paging::VMA vma;
+        vma.__begin = lowerPage;
+        vma.__end = upperPage;
+        vma.__protect = 0;
+        if (program_header->flags & elf::PHF_Executable) {
+            vma.__protect |= PROT_EXEC;
+        }
+        if (program_header->flags & elf::PHF_Writable) {
+            vma.__protect |= PROT_WRITE;
+        }
+        if (program_header->flags & elf::PHF_Readable) {
+            vma.__protect |= PROT_READ;
+        }
+        vma.__flags = MAP_PRIVATE | MAP_ANONYMOUS;
+        vmSpace.insert(vma);
     }
 
     return {std::move(pageDir), brkAddr, paging::VirtualAddress{header->entry_offset}};
@@ -159,7 +175,17 @@ static void loadArgv(Stack& stack, const char* const* argv) {
 }
 
 TaskControlBlock* createElfTask(uint8_t* file, size_t size, const char* const* argv) {
-    auto [pageDir, brkAddr, entry] = loadElf(file, size);
+    auto tcb = allocator::allocAs<TaskControlBlock>();
+
+    auto [pageDir, brkAddr, entry] = loadElf(tcb->vmSpace, file, size);
+
+    // stack
+    tcb->vmSpace.insert(paging::VMA{
+        0xBFFFF000_va,
+        0xC0000000_va,
+        MAP_PRIVATE | MAP_ANONYMOUS | MAP_GROWSDOWN,
+        PROT_READ | PROT_WRITE,
+    });
 
     Stack stack(pageDir, 0xC0000000_va);
     loadArgv(stack, argv);
@@ -169,7 +195,6 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t size, const char* const* a
     Stack kernelStack;
     fillStack(kernelStack, elfEntry, stack.userEsp().as<void>());
 
-    auto tcb = allocator::allocAs<TaskControlBlock>();
     tcb->userEsp = kernelStack.esp().addr;
     tcb->cr3 = pageDir.mapper.paddr;
     tcb->kernelEsp = kernelStack.userBase.nextPage().addr;
@@ -180,6 +205,7 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t size, const char* const* a
     tcb->groupPid = currentTask->groupPid;
 
     tcb->name = lib::format("elf_{}", argv[0] ? argv[0] : "unknown");
+    tcb->brkBase = brkAddr;
     tcb->brkAddr = brkAddr;
     tcb->pages.push_back(kernelStack.userBase.addr);
 
@@ -189,7 +215,17 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t size, const char* const* a
 }
 
 void execTask(uint8_t* file, size_t size, const char* const* argv, interrupt::SyscallFrame* frame) {
-    auto [pageDir, brkAddr, entry] = loadElf(file, size);
+    paging::VMSpace vmSpace;
+
+    auto [pageDir, brkAddr, entry] = loadElf(vmSpace, file, size);
+
+    // stack
+    vmSpace.insert(paging::VMA{
+        0xBFFFF000_va,
+        0xC0000000_va,
+        MAP_PRIVATE | MAP_ANONYMOUS | MAP_GROWSDOWN,
+        PROT_READ | PROT_WRITE,
+    });
 
     auto tcb = currentTask;
 
@@ -211,6 +247,8 @@ void execTask(uint8_t* file, size_t size, const char* const* argv, interrupt::Sy
     // tcb->state
     // tcb->pid
 
+    tcb->vmSpace = std::move(vmSpace);
+
     // tcb->parentPid
     // tcb->groupPid
 
@@ -231,6 +269,7 @@ void execTask(uint8_t* file, size_t size, const char* const* argv, interrupt::Sy
     tcb->tls = {};
 
     tcb->name = name;
+    tcb->brkBase = brkAddr;
     tcb->brkAddr = brkAddr;
     // tcb->pages
 
@@ -277,6 +316,8 @@ pid_t forkTask(interrupt::SyscallFrame* frame) {
     tcb->state = State::S_Ready;
     tcb->pid = KP_Invalid;
 
+    tcb->vmSpace = currentTask->vmSpace;
+
     tcb->parentPid = currentTask->pid;
     tcb->groupPid = currentTask->groupPid;
 
@@ -293,6 +334,7 @@ pid_t forkTask(interrupt::SyscallFrame* frame) {
     tcb->tls = currentTask->tls;
 
     tcb->name = currentTask->name;
+    tcb->brkBase = currentTask->brkBase;
     tcb->brkAddr = currentTask->brkAddr;
     tcb->pages.push_back(kernelStack.userBase.addr);
 

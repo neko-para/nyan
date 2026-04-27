@@ -9,7 +9,7 @@ namespace nyan::syscall {
 // TODO: 支持收缩
 void* brk(const void* addr) {
     auto vAddr = paging::VirtualAddress{addr};
-    if (!vAddr || vAddr < task::currentTask->brkAddr) {
+    if (!vAddr || vAddr <= task::currentTask->brkAddr) {
         return task::currentTask->brkAddr.as<void>();
     }
     auto currentPage = (task::currentTask->brkAddr - 1).thisPage();
@@ -22,6 +22,26 @@ void* brk(const void* addr) {
             pageDir.alloc(currentPage, true);
         }
     }
+
+    auto& vmSpace = task::currentTask->vmSpace;
+
+    if (auto vma = vmSpace.find_exactly(task::currentTask->brkBase); vma == vmSpace.__addrs.end()) {
+        vmSpace.insert(paging::VMA{
+            task::currentTask->brkBase,
+            wantPage.nextPage(),
+            MAP_PRIVATE | MAP_ANONYMOUS,
+            PROT_READ | PROT_WRITE,
+        });
+    } else {
+        auto next = std::next(vma);
+        if (next != vmSpace.__addrs.end()) {
+            if (wantPage.nextPage() > next->__begin) {
+                return reinterpret_cast<void*>(-SYS_ENOMEM);
+            }
+        }
+        vma->__end = wantPage.nextPage();
+    }
+
     task::currentTask->brkAddr = vAddr;
     return vAddr.as<void>();
 }

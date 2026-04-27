@@ -11,6 +11,7 @@
 #include "../gdt/entry.hpp"
 #include "../lib/function.hpp"
 #include "../lib/list.hpp"
+#include "../paging/vma.hpp"
 #include "forward.hpp"
 #include "signal.hpp"
 #include "wait.hpp"
@@ -48,6 +49,8 @@ constexpr size_t MAXFD = 16;
 
 struct TaskControlBlock : public TaskControlBlockMetaInfo,
                           public lib::ListNodes<TaskControlBlockTag, TaskControlBlockChildTag> {
+    paging::VMSpace vmSpace;
+
     pid_t parentPid{KP_Invalid};
     pid_t groupPid{KP_Invalid};
     lib::List<TaskControlBlockChildTag, true> childTasks;
@@ -62,6 +65,7 @@ struct TaskControlBlock : public TaskControlBlockMetaInfo,
     gdt::Segment tls;
 
     std::string name;
+    paging::VirtualAddress brkBase;
     paging::VirtualAddress brkAddr;
     std::vector<uint32_t> pages;
 
