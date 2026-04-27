@@ -219,12 +219,14 @@ void execTask(uint8_t* file, size_t size, const char* const* argv, interrupt::Sy
 
     // fdTable close-on-exec
     // tty
+    tcb->tls = {};
 
     tcb->name = name;
     tcb->brkAddr = brkAddr;
     // tcb->pages
 
     pageDir.mapper.paddr.setCr3();
+    gdt::setTls(tcb->tls);
 
     frame->eip = entry.addr;
     frame->user_esp = tcb->userEsp;
@@ -235,6 +237,12 @@ void execTask(uint8_t* file, size_t size, const char* const* argv, interrupt::Sy
     frame->esi = 0;
     frame->edi = 0;
     frame->ebp = 0;
+    frame->cs = gdt::userCs;
+    frame->user_ss = gdt::userDs;
+    frame->user_ds = gdt::userDs;
+    frame->user_es = gdt::userDs;
+    frame->user_fs = gdt::userDs;
+    frame->user_gs = gdt::userDs;
 }
 
 static int forkEntry(void* param) {
@@ -272,6 +280,8 @@ pid_t forkTask(interrupt::SyscallFrame* frame) {
     tcb->fdTable = currentTask->fdTable;
 
     tcb->tty = currentTask->tty;
+
+    tcb->tls = currentTask->tls;
 
     tcb->name = currentTask->name;
     tcb->brkAddr = currentTask->brkAddr;
