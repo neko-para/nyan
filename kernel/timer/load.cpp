@@ -19,10 +19,10 @@ void load(uint32_t hz) {
     interrupt::unmask(0);
 }
 
-void hit(interrupt::SyscallFrame* frame) {
+void hit() {
     msSinceBoot += 1;
 
-    task::checkSleep(frame);
+    task::checkSleep();
 }
 
 }  // namespace nyan::timer

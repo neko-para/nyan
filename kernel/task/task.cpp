@@ -488,7 +488,7 @@ WakeReason sleep(uint64_t ms, uint64_t* rest) {
     return reason;
 }
 
-void checkSleep(interrupt::SyscallFrame* frame) {
+void checkSleep() {
     arch::InterruptGuard guard;
     while (!sleepTasks.empty()) {
         auto task = sleepTasks.front();
@@ -501,9 +501,6 @@ void checkSleep(interrupt::SyscallFrame* frame) {
         }
     }
     if ((timer::msSinceBoot % 10 == 0) && currentTask) {
-        if (gdt::isRing3(frame->cs)) {
-            checkSignal(frame);
-        }
         yield();
     }
 }

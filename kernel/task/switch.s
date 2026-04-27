@@ -69,6 +69,7 @@ syscallReturn:
     popw %es
     popw %ds
     popal
+    addl $8, %esp
     iret
 
 

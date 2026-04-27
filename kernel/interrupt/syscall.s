@@ -1,6 +1,10 @@
-.global syscallHandler
-.type syscallHandler, @function
-syscallHandler:
+.macro EXCEPTION_NOERRCODE num
+.global exception_stub_\num
+.type exception_stub_\num, @function
+exception_stub_\num:
+    pushl $0
+    pushl $\num
+
     pushal
     pushw %ds
     pushw %es
@@ -14,7 +18,7 @@ syscallHandler:
     movw %ax, %gs
 
     pushl %esp
-    call syscallHandlerImpl 
+    call exceptionHandlerImpl
     addl $4, %esp
 
     popw %gs
@@ -22,11 +26,16 @@ syscallHandler:
     popw %es
     popw %ds
     popal
+    addl $8, %esp
     iret
+.endm
 
-.global timerHandler
-.type timerHandler, @function
-timerHandler:
+.macro EXCEPTION_ERRCODE num
+.global exception_stub_\num
+.type exception_stub_\num, @function
+exception_stub_\num:
+    pushl $\num
+
     pushal
     pushw %ds
     pushw %es
@@ -40,7 +49,7 @@ timerHandler:
     movw %ax, %gs
 
     pushl %esp
-    call timerHandlerImpl 
+    call exceptionHandlerImpl
     addl $4, %esp
 
     popw %gs
@@ -48,30 +57,80 @@ timerHandler:
     popw %es
     popw %ds
     popal
+    addl $8, %esp
     iret
+.endm
 
-.global keyboardHandler
-.type keyboardHandler, @function
-keyboardHandler:
-    pushal
-    pushw %ds
-    pushw %es
-    pushw %fs
-    pushw %gs
+EXCEPTION_NOERRCODE 0      # Division Error
+EXCEPTION_NOERRCODE 1      # Debug
+EXCEPTION_NOERRCODE 2      # NMI
+EXCEPTION_NOERRCODE 3      # Breakpoint
+EXCEPTION_NOERRCODE 4      # Overflow
+EXCEPTION_NOERRCODE 5      # Bound Range Exceeded
+EXCEPTION_NOERRCODE 6      # Invalid Opcode
+EXCEPTION_NOERRCODE 7      # Device Not Available
+EXCEPTION_ERRCODE   8      # Double Fault
+EXCEPTION_NOERRCODE 9      # Coprocessor Segment Overrun
+EXCEPTION_ERRCODE   10     # Invalid TSS
+EXCEPTION_ERRCODE   11     # Segment Not Present
+EXCEPTION_ERRCODE   12     # Stack-Segment Fault
+EXCEPTION_ERRCODE   13     # General Protection Fault
+EXCEPTION_ERRCODE   14     # Page Fault
+EXCEPTION_NOERRCODE 15     # Reserved
+EXCEPTION_NOERRCODE 16     # x87 FP Exception
+EXCEPTION_ERRCODE   17     # Alignment Check
+EXCEPTION_NOERRCODE 18     # Machine Check
+EXCEPTION_NOERRCODE 19     # SIMD FP Exception
+EXCEPTION_NOERRCODE 20     # Virtualization Exception
+EXCEPTION_ERRCODE   21     # Control Protection
+EXCEPTION_NOERRCODE 22     # Reserved
+EXCEPTION_NOERRCODE 23     # Reserved
+EXCEPTION_NOERRCODE 24     # Reserved
+EXCEPTION_NOERRCODE 25     # Reserved
+EXCEPTION_NOERRCODE 26     # Reserved
+EXCEPTION_NOERRCODE 27     # Reserved
+EXCEPTION_NOERRCODE 28     # Hypervisor Injection
+EXCEPTION_ERRCODE   29     # VMM Communication
+EXCEPTION_ERRCODE   30     # Security Exception
+EXCEPTION_NOERRCODE 31     # Reserved
 
-    movw $0x10, %ax
-    movw %ax, %ds
-    movw %ax, %es
-    movw %ax, %fs
-    movw %ax, %gs
+EXCEPTION_NOERRCODE 32     # Timer
+EXCEPTION_NOERRCODE 33     # Keyboard
 
-    pushl %esp
-    call keyboardHandlerImpl 
-    addl $4, %esp
+EXCEPTION_NOERRCODE 128    # Syscall
 
-    popw %gs
-    popw %fs
-    popw %es
-    popw %ds
-    popal
-    iret
+.section .rodata
+.global exceptionStubs
+exceptionStubs:
+    .long exception_stub_0
+    .long exception_stub_1
+    .long exception_stub_2
+    .long exception_stub_3
+    .long exception_stub_4
+    .long exception_stub_5
+    .long exception_stub_6
+    .long exception_stub_7
+    .long exception_stub_8
+    .long exception_stub_9
+    .long exception_stub_10
+    .long exception_stub_11
+    .long exception_stub_12
+    .long exception_stub_13
+    .long exception_stub_14
+    .long exception_stub_15
+    .long exception_stub_16
+    .long exception_stub_17
+    .long exception_stub_18
+    .long exception_stub_19
+    .long exception_stub_20
+    .long exception_stub_21
+    .long exception_stub_22
+    .long exception_stub_23
+    .long exception_stub_24
+    .long exception_stub_25
+    .long exception_stub_26
+    .long exception_stub_27
+    .long exception_stub_28
+    .long exception_stub_29
+    .long exception_stub_30
+    .long exception_stub_31

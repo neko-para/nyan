@@ -7,7 +7,7 @@
 
 namespace nyan::interrupt {
 struct SyscallFrame;
-}
+}  // namespace nyan::interrupt
 
 namespace nyan::task {
 
@@ -31,7 +31,7 @@ WakeReason block(BlockReason reason);
 void unblock(TaskControlBlock* task, WakeReason reason);
 
 WakeReason sleep(uint64_t ms, uint64_t* rest);
-void checkSleep(interrupt::SyscallFrame* frame);
+void checkSleep();
 
 bool isSignalDefaultIgnore(int sig);
 void sendSignal(TaskControlBlock* task, int sig);

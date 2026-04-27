@@ -4,59 +4,24 @@
 
 namespace nyan::interrupt {
 
-template <uint32_t Id>
-__attribute__((interrupt)) void defaultHandler(Frame* frame, uint32_t error) {
-    defaultHandlerImpl<Id>(frame, error);
-}
-
-template <uint32_t Id>
-__attribute__((interrupt)) void defaultHandlerNe(Frame* frame) {
-    defaultHandlerImplNe<Id>(frame);
-}
-
 template <typename F>
 inline void setEntry(Entry& entry, F func) {
     entry = makeEntry(reinterpret_cast<uint32_t>(func), 0x08, A_GateInterrupt | A_Ring0 | A_Present);
 }
 
 void fillEntries(Entry* entry) {
-    setEntry(entry[0], defaultHandlerNe<0>);
-    setEntry(entry[1], defaultHandlerNe<1>);
-    setEntry(entry[2], defaultHandlerNe<2>);
-    entry[3] = makeEntry(reinterpret_cast<uint32_t>(defaultHandlerNe<3>), 0x08, A_GateInterrupt | A_Ring3 | A_Present);
-    setEntry(entry[4], defaultHandlerNe<4>);
-    setEntry(entry[5], defaultHandlerNe<5>);
-    setEntry(entry[6], defaultHandlerNe<6>);
-    setEntry(entry[7], defaultHandlerNe<7>);
-    setEntry(entry[8], defaultHandler<8>);
-    setEntry(entry[9], defaultHandlerNe<9>);
-    setEntry(entry[10], defaultHandler<10>);
-    setEntry(entry[11], defaultHandler<11>);
-    setEntry(entry[12], defaultHandler<12>);
-    setEntry(entry[13], defaultHandler<13>);
-    setEntry(entry[14], defaultHandler<14>);
-    setEntry(entry[15], defaultHandlerNe<15>);
-    setEntry(entry[16], defaultHandlerNe<16>);
-    setEntry(entry[17], defaultHandler<17>);
-    setEntry(entry[18], defaultHandlerNe<18>);
-    setEntry(entry[19], defaultHandlerNe<19>);
-    setEntry(entry[20], defaultHandlerNe<20>);
-    setEntry(entry[21], defaultHandler<21>);
-    setEntry(entry[22], defaultHandlerNe<22>);
-    setEntry(entry[23], defaultHandlerNe<23>);
-    setEntry(entry[24], defaultHandlerNe<24>);
-    setEntry(entry[25], defaultHandlerNe<25>);
-    setEntry(entry[26], defaultHandlerNe<26>);
-    setEntry(entry[27], defaultHandlerNe<27>);
-    setEntry(entry[28], defaultHandlerNe<28>);
-    setEntry(entry[29], defaultHandler<29>);
-    setEntry(entry[30], defaultHandler<30>);
-    setEntry(entry[31], defaultHandlerNe<31>);
+    for (size_t i = 0; i < 32; i++) {
+        if (i == 3) {
+            entry[i] = makeEntry(exceptionStubs[i], 0x08, A_GateInterrupt | A_Ring3 | A_Present);
+        } else {
+            entry[i] = makeEntry(exceptionStubs[i], 0x08, A_GateInterrupt | A_Ring0 | A_Present);
+        }
+    }
 
-    setEntry(entry[32], timerHandler);
-    setEntry(entry[33], keyboardHandler);
+    setEntry(entry[32], exception_stub_32);
+    setEntry(entry[33], exception_stub_33);
 
-    entry[0x80] = makeEntry(reinterpret_cast<uint32_t>(syscallHandler), 0x08, A_GateTrap | A_Ring3 | A_Present);
+    entry[0x80] = makeEntry(reinterpret_cast<uint32_t>(exception_stub_128), 0x08, A_GateTrap | A_Ring3 | A_Present);
 }
 
 }  // namespace nyan::interrupt

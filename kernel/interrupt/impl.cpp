@@ -15,84 +15,78 @@
 
 namespace nyan::interrupt {
 
-template <uint32_t Id>
-void defaultHandlerImpl(Frame* frame, uint32_t error) {
-    if constexpr (Id == E_GeneralProtectionFault) {
-        arch::kfatal("General Protection Fault: selector {#4x}", error);
-    } else if constexpr (Id == E_PageFault) {
-        paging::VirtualAddress targetAddr = paging::VirtualAddress{arch::cr2()};
-        if (targetAddr.addr < 0xC0000000 &&
-            (error & (PF_Present | PF_User | PF_Write)) == (PF_Present | PF_User | PF_Write) &&
-            task::currentTask->cr3 != paging::kernelPageDirectory.cr3()) {
-            auto pageDir = paging::UserDirectory::from(task::currentTask->cr3);
-            if (pageDir.handleCOW(targetAddr)) {
-                return;
+void exceptionHandlerImpl(SyscallFrame* frame) {
+    switch (frame->isr_num) {
+        case E_Breakpoint:
+            task::sendSignal(task::currentTask, SIGTRAP);
+            break;
+
+        case E_GeneralProtectionFault:
+            if (gdt::isRing3(frame->cs)) {
+                task::sendSignal(task::currentTask, SIGSEGV);
+                break;
             }
+
+            arch::kfatal("General Protection Fault: selector {#4x}\n  pid {}\n  eip {#010x}\n", frame->error_code,
+                         task::currentTask->pid, frame->eip);
+            break;
+
+        case E_PageFault: {
+            paging::VirtualAddress targetAddr = paging::VirtualAddress{arch::cr2()};
+            if (targetAddr.addr < 0xC0000000 &&
+                (frame->error_code & (PF_Present | PF_User | PF_Write)) == (PF_Present | PF_User | PF_Write) &&
+                task::currentTask->cr3 != paging::kernelPageDirectory.cr3()) {
+                auto pageDir = paging::UserDirectory::from(task::currentTask->cr3);
+                if (pageDir.handleCOW(targetAddr)) {
+                    return;
+                }
+            }
+
+            if (gdt::isRing3(frame->cs)) {
+                task::sendSignal(task::currentTask, SIGSEGV);
+                break;
+            }
+
+            arch::kprint("Page Fault: {#010x} {}\n", arch::cr2(), frame->error_code);
+            arch::kprint("  pid {}\n", task::currentTask->pid);
+            arch::kprint("  eip {#010x}\n", frame->eip);
+            if (frame->error_code & PF_Present) {
+                arch::kputs("Present ");
+            }
+            if (frame->error_code & PF_Write) {
+                arch::kputs("Write ");
+            }
+            if (frame->error_code & PF_User) {
+                arch::kputs("User ");
+            }
+            arch::kfatal();
         }
 
-        arch::kprint("Page Fault: {#010x} {}\n", arch::cr2(), error);
-        arch::kprint("  pid {}\n", task::currentTask->pid);
-        arch::kprint("  eip {#010x}\n", frame->eip);
-        if (error & PF_Present) {
-            arch::kputs("Present ");
+        case I_Timer:
+            end(0);
+            timer::hit();
+            break;
+
+        case I_Keyboard: {
+            end(1);
+            uint8_t ch = arch::inb(0x60);
+            keyboard::push(ch, frame);
+            break;
         }
-        if (error & PF_Write) {
-            arch::kputs("Write ");
-        }
-        if (error & PF_User) {
-            arch::kputs("User ");
-        }
-        arch::kfatal();
-    } else {
-        arch::kfatal("Exception {}: code {}", Id, error);
+
+        case I_Syscall:
+            syscallHandlerImpl(frame);
+            break;
+
+        default:
+            arch::kfatal("Exception {}: code {}\n  pid {}\n  eip {#010x}\n", frame->isr_num, frame->error_code,
+                         task::currentTask->pid, frame->eip);
+    }
+
+    if (gdt::isRing3(frame->cs)) {
+        task::checkSignal(frame);
     }
 }
-
-template <uint32_t Id>
-void defaultHandlerImplNe(Frame* frame) {
-    if constexpr (Id == E_Breakpoint) {
-        // TODO: SIGTRAP for Id 3
-        arch::kputs("Breakpoint hit\n");
-        arch::cli();
-        arch::hlt();
-        arch::sti();
-    } else {
-        arch::kfatal("Exception {}\n  pid {}\n  eip {}\n", Id, task::currentTask->pid, frame->eip);
-    }
-}
-
-template void defaultHandlerImplNe<0>(Frame*);
-template void defaultHandlerImplNe<1>(Frame*);
-template void defaultHandlerImplNe<2>(Frame*);
-template void defaultHandlerImplNe<3>(Frame*);
-template void defaultHandlerImplNe<4>(Frame*);
-template void defaultHandlerImplNe<5>(Frame*);
-template void defaultHandlerImplNe<6>(Frame*);
-template void defaultHandlerImplNe<7>(Frame*);
-template void defaultHandlerImpl<8>(Frame*, uint32_t);
-template void defaultHandlerImplNe<9>(Frame*);
-template void defaultHandlerImpl<10>(Frame*, uint32_t);
-template void defaultHandlerImpl<11>(Frame*, uint32_t);
-template void defaultHandlerImpl<12>(Frame*, uint32_t);
-template void defaultHandlerImpl<13>(Frame*, uint32_t);
-template void defaultHandlerImpl<14>(Frame*, uint32_t);
-template void defaultHandlerImplNe<15>(Frame*);
-template void defaultHandlerImplNe<16>(Frame*);
-template void defaultHandlerImpl<17>(Frame*, uint32_t);
-template void defaultHandlerImplNe<18>(Frame*);
-template void defaultHandlerImplNe<19>(Frame*);
-template void defaultHandlerImplNe<20>(Frame*);
-template void defaultHandlerImpl<21>(Frame*, uint32_t);
-template void defaultHandlerImplNe<22>(Frame*);
-template void defaultHandlerImplNe<23>(Frame*);
-template void defaultHandlerImplNe<24>(Frame*);
-template void defaultHandlerImplNe<25>(Frame*);
-template void defaultHandlerImplNe<26>(Frame*);
-template void defaultHandlerImplNe<27>(Frame*);
-template void defaultHandlerImplNe<28>(Frame*);
-template void defaultHandlerImpl<29>(Frame*, uint32_t);
-template void defaultHandlerImpl<30>(Frame*, uint32_t);
-template void defaultHandlerImplNe<31>(Frame*);
 
 template <typename T>
 static T castArg(uint32_t val) {
@@ -265,23 +259,6 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             arch::kprint("syscall eax={}(missing) from {} {}\n", frame->eax, task::currentTask->pid,
                          task::currentTask->name);
             frame->eax = -SYS_ENOSYS;
-    }
-
-    task::checkSignal(frame);
-}
-
-extern "C" void timerHandlerImpl(SyscallFrame* frame) {
-    end(0);
-    timer::hit(frame);
-}
-
-extern "C" void keyboardHandlerImpl(SyscallFrame* frame) {
-    end(1);
-    uint8_t ch = arch::inb(0x60);
-    keyboard::push(ch, frame);
-
-    if (gdt::isRing3(frame->cs)) {
-        task::checkSignal(frame);
     }
 }
 

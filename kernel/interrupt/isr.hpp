@@ -27,6 +27,9 @@ struct SyscallFrame {
     uint32_t ecx;
     uint32_t eax;
 
+    uint32_t isr_num;
+    uint32_t error_code;
+
     uint32_t eip;
     uint32_t cs;
     uint32_t flags;
@@ -61,6 +64,10 @@ enum Exception {
     E_HypervisorInjectionException = 28,
     E_VMMCommunicationException,
     E_SecurityException,
+
+    I_Timer = 32,
+    I_Keyboard = 33,
+    I_Syscall = 128,
 };
 
 enum PageFault {
@@ -74,24 +81,14 @@ enum PageFault {
     PF_SoftwareGuardExtensions = 1 << 15,
 };
 
-template <uint32_t Id>
-__attribute__((interrupt)) void defaultHandler(Frame*, uint32_t error);
+extern uint32_t exceptionStubs[32] asm("exceptionStubs");
 
-template <uint32_t Id>
-__attribute__((interrupt)) void defaultHandlerNe(Frame*);
+extern "C" void exception_stub_32();
+extern "C" void exception_stub_33();
+extern "C" void exception_stub_128();
 
-template <uint32_t Id>
-void defaultHandlerImpl(Frame*, uint32_t error);
-
-template <uint32_t Id>
-void defaultHandlerImplNe(Frame*);
-
-extern "C" void syscallHandler();
+extern "C" void exceptionHandlerImpl(SyscallFrame* frame);
 extern "C" void syscallHandlerImpl(SyscallFrame* frame);
-extern "C" void timerHandler();
-extern "C" void timerHandlerImpl(SyscallFrame* frame);
-extern "C" void keyboardHandler();
-extern "C" void keyboardHandlerImpl(SyscallFrame* frame);
 
 void fillEntries(Entry* entry);
 
