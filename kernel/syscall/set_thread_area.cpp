@@ -68,7 +68,6 @@ int set_thread_area(uint32_t user_desc[4]) {
     auto& entry = user_desc[0];
     if (entry == static_cast<uint32_t>(-1)) {
         entry = 6;
-        return 0;
     } else if (entry != 6) {
         return -SYS_EINVAL;
     }

@@ -59,6 +59,9 @@ void* __NYAN_SYSCALL__(mmap)(void* addr, size_t length, int prot, int flags, int
 // 91
 void __NYAN_SYSCALL__(munmap)(void* addr, size_t length);
 
+// 114
+pid_t __NYAN_SYSCALL__(wait4)(pid_t pid, int* stat_loc, int options, struct rusage* ru);
+
 // 119
 void __NYAN_SYSCALL__(sigreturn)(void* frame);
 
@@ -73,6 +76,9 @@ int __NYAN_SYSCALL__(nanosleep)(const struct timespec* rqtp, struct timespec* rm
 
 // 243
 int __NYAN_SYSCALL__(set_thread_area)(uint32_t user_desc[4]);
+
+// 252
+[[noreturn]] void __NYAN_SYSCALL__(exit_group)(int code);
 
 // 258
 int __NYAN_SYSCALL__(set_tid_address)(int* ptr);

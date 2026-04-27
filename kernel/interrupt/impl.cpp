@@ -158,6 +158,20 @@ static void call(SyscallFrame* frame, Ret (*func)(Arg1, Arg2, Arg3)) {
     }
 }
 
+template <typename Ret, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
+static void call(SyscallFrame* frame, Ret (*func)(Arg1, Arg2, Arg3, Arg4)) {
+    auto a1 = castArg<Arg1>(frame->ebx);
+    auto a2 = castArg<Arg2>(frame->ecx);
+    auto a3 = castArg<Arg3>(frame->edx);
+    auto a4 = castArg<Arg4>(frame->esi);
+    if constexpr (std::same_as<Ret, void>) {
+        frame->eax = 0;
+        func(a1, a2, a3, a4);
+    } else {
+        frame->eax = castRet(func(a1, a2, a3, a4));
+    }
+}
+
 template <size_t N>
 static void dump(SyscallFrame* frame, const char (&name)[N]) {
     arch::kprint("syscall eax={}({}) from {} {}\n", frame->eax, name, task::currentTask->pid, task::currentTask->name);
@@ -217,6 +231,9 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
         case 63:
             CALL(dup2);
             break;
+        case 114:
+            CALL(wait4);
+            break;
         case 119:
             syscall::sigreturn(frame);
             break;
@@ -232,6 +249,9 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
         case 243:
             CALL(set_thread_area);
             break;
+        case 252:
+            CALL(exit_group);
+            break;
         case 258:
             CALL(set_tid_address);
             break;
@@ -239,6 +259,8 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             CALL(spawn);
             break;
         default:
+            arch::kprint("syscall eax={}(missing) from {} {}\n", frame->eax, task::currentTask->pid,
+                         task::currentTask->name);
             frame->eax = -SYS_ENOSYS;
     }
 
