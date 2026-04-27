@@ -2,6 +2,7 @@
 
 #include <elf.h>
 #include <bit>
+#include <vector>
 
 #include "../allocator/alloc.hpp"
 #include "../arch/guard.hpp"
@@ -134,7 +135,7 @@ static LoadElfResult loadElf(uint8_t* file, size_t) {
 }
 
 static void loadArgv(Stack& stack, const char* const* argv) {
-    lib::vector<paging::VirtualAddress> args;
+    std::vector<paging::VirtualAddress> args;
     for (auto arg = argv; *arg; arg++) {
         args.push_back(stack.translator.toUser(stack.pushString(*arg)));
     }
@@ -194,7 +195,7 @@ void execTask(uint8_t* file, size_t size, const char* const* argv, interrupt::Sy
 
     Stack stack(pageDir, 0xC0000000_va);
     loadArgv(stack, argv);
-    lib::string name = lib::format("elf_{}", argv[0] ? argv[0] : "unknown");
+    std::string name = lib::format("elf_{}", argv[0] ? argv[0] : "unknown");
     argv = nullptr;
 
     if (auto oldCr3 = tcb->cr3; oldCr3 != paging::kernelPageDirectory.cr3()) {

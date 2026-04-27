@@ -93,8 +93,8 @@ struct format_spec {
                 type = 's';
             }
         } else if constexpr (target_integral<T> || target_char<T>) {
-            auto known = string_view{"cbBdoxX"};
-            if (it != ctx.end() && known.find(*it) != string_view::npos) {
+            auto known = std::string_view{"cbBdoxX"};
+            if (it != ctx.end() && known.find(*it) != std::string_view::npos) {
                 type = *it++;
             } else {
                 if constexpr (target_char<T>) {
@@ -104,8 +104,8 @@ struct format_spec {
                 }
             }
         } else if constexpr (target_bool<T>) {
-            auto known = string_view{"bBdoxXs"};
-            if (it != ctx.end() && known.find(*it) != string_view::npos) {
+            auto known = std::string_view{"bBdoxXs"};
+            if (it != ctx.end() && known.find(*it) != std::string_view::npos) {
                 type = *it++;
             } else {
                 type = 's';
@@ -132,8 +132,8 @@ struct format_spec {
         it = parse_type<T>({it, ctx.end()});
 
         if (!align) {
-            auto num_pres = string_view{"bBdoxXpP"};
-            if (num_pres.find(type) != string_view::npos) {
+            auto num_pres = std::string_view{"bBdoxXpP"};
+            if (num_pres.find(type) != std::string_view::npos) {
                 align = '>';
             } else {
                 align = '<';

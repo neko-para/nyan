@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+
 #include "../concepts.hpp"
 #include "spec.hpp"
 
@@ -12,7 +14,7 @@ template <output_iterator Iter, target_string T>
 Iter emit(Iter out, const T& val, const format_spec&, size_t mesure_width) {
     if constexpr (same_as_any<T, const char*, char*>) {
         return std::copy(val, val + mesure_width, out);
-    } else if constexpr (same_as_any<T, string_view, string>) {
+    } else if constexpr (same_as_any<T, std::string_view, std::string>) {
         return std::copy(val.begin(), val.begin() + mesure_width, out);
     } else if constexpr (is_char_array<T>) {
         return std::copy(val, val + mesure_width, out);

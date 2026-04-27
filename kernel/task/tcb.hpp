@@ -2,10 +2,13 @@
 
 #include <signal.h>
 #include <sys/types.h>
+#include <array>
+#include <memory>
+#include <string>
+#include <vector>
 
 #include "../fs/fd.hpp"
 #include "../gdt/entry.hpp"
-#include "../lib/containers.hpp"
 #include "../lib/function.hpp"
 #include "../lib/list.hpp"
 #include "forward.hpp"
@@ -51,16 +54,16 @@ struct TaskControlBlock : public TaskControlBlockMetaInfo,
 
     SigSet pendingSignals{};
     SigSet signalMask{};
-    lib::unique_ptr<std::array<SigAction, NSIG>> signalActions;
+    std::unique_ptr<std::array<SigAction, NSIG>> signalActions;
 
     std::array<lib::Ref<fs::FdObj>, MAXFD> fdTable;
     console::Tty* tty{};
 
     gdt::Segment tls;
 
-    lib::string name;
+    std::string name;
     paging::VirtualAddress brkAddr;
-    lib::vector<uint32_t> pages;
+    std::vector<uint32_t> pages;
 
     union {
         ExitInfo exitInfo;

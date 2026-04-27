@@ -1,9 +1,10 @@
 #pragma once
 
 #include <concepts>
+#include <string>
+#include <string_view>
 
 #include "../concepts.hpp"
-#include "../containers.hpp"
 
 namespace nyan::lib::__format {
 
@@ -22,7 +23,7 @@ template <size_t N>
 constexpr size_t char_array_size<char[N]> = N;
 
 template <typename T>
-concept target_string = same_as_any<T, const char*, char*, string_view, string> || is_char_array<T>;
+concept target_string = same_as_any<T, const char*, char*, std::string_view, std::string> || is_char_array<T>;
 
 template <typename T>
 concept target_integral = std::integral<T> && !same_as_any<T, bool, char>;

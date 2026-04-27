@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../lib/containers.hpp"
+#include <vector>
+
 #include "address.hpp"
 #include "directory.hpp"
 
@@ -12,7 +13,7 @@ struct Translator {
         VirtualAddress user;
     };
 
-    lib::vector<Entry> entries;
+    std::vector<Entry> entries;
 
     Translator() = default;
     Translator(const Translator&) = delete;

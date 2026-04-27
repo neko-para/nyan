@@ -1,8 +1,9 @@
 #pragma once
 
 #include <format>
+#include <iterator>
+#include <string_view>
 
-#include "containers.hpp"
 #include "format/formatter.hpp"
 
 namespace nyan::lib {
@@ -37,17 +38,17 @@ struct wrap_member_iterator {
 
 template <typename... Args>
 struct format_string {
-    string_view fmt;
-    std::tuple<__format::formatter<std::remove_cvref_t<Args>, string_view::iterator>...> formatters;
+    std::string_view fmt;
+    std::tuple<__format::formatter<std::remove_cvref_t<Args>, std::string_view::iterator>...> formatters;
 
     template <typename... SvArgs>
-        requires std::is_constructible_v<string_view, SvArgs...>
+        requires std::is_constructible_v<std::string_view, SvArgs...>
     consteval format_string(SvArgs&&... args) : fmt(std::forward<SvArgs>(args)...) {
         check<0>(fmt);
     }
 
     template <size_t I>
-    consteval void check_arg(string_view sv) {
+    consteval void check_arg(std::string_view sv) {
         if constexpr (I < sizeof...(Args)) {
             auto& formatter = std::get<I>(formatters);
             if (formatter.parse(sv) != sv.end()) {
@@ -59,7 +60,7 @@ struct format_string {
     }
 
     template <size_t I>
-    consteval void check(string_view sv) {
+    consteval void check(std::string_view sv) {
         if constexpr (I <= sizeof...(Args)) {
             for (auto it = sv.begin(); it != sv.end(); it++) {
                 if (*it == '{') {
@@ -147,10 +148,10 @@ Iter format_to(Iter out, format_string<std::type_identity_t<Args>...> fmt, Args&
 }
 
 template <typename... Args>
-[[nodiscard]] string format(format_string<std::type_identity_t<Args>...> fmt, Args&&... args) {
-    string result;
+[[nodiscard]] std::string format(format_string<std::type_identity_t<Args>...> fmt, Args&&... args) {
+    std::string result;
     result.reserve(fmt.fmt.size());
-    format_to(std::back_insert_iterator<string>(result), fmt, std::forward<Args>(args)...);
+    format_to(std::back_insert_iterator<std::string>(result), fmt, std::forward<Args>(args)...);
     return result;
 }
 

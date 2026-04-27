@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../containers.hpp"
 #include "concepts.hpp"
 
 namespace nyan::lib::__format {

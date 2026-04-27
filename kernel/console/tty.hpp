@@ -1,6 +1,7 @@
 #pragma once
 
 #include <optional>
+#include <string>
 
 #include "../arch/guard.hpp"
 #include "../task/wait.hpp"
@@ -23,9 +24,9 @@ namespace nyan::console {
 struct Tty : public ScreenBuffer {
     pid_t foregroundPid{task::KP_Invalid};
 
-    lib::string lineBuffer;
+    std::string lineBuffer;
 
-    lib::string inputBuffer;
+    std::string inputBuffer;
     task::WaitList waitList;
 
     bool pendingEof{};

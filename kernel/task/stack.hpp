@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string_view>
+
 #include "../paging/translator.hpp"
 
 namespace nyan::task {
@@ -21,7 +23,7 @@ struct Stack {
 
     paging::VirtualAddress esp() const noexcept { return paging::VirtualAddress{current}; }
     paging::VirtualAddress userEsp() const noexcept { return translator.toUser(esp()); }
-    paging::VirtualAddress pushString(lib::string_view str) noexcept {
+    paging::VirtualAddress pushString(std::string_view str) noexcept {
         size_t size = str.size() + 1;
         size = (size + 3) >> 2;
         current -= size;

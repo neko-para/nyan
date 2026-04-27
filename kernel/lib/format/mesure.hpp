@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+
 #include "../concepts.hpp"
 #include "spec.hpp"
 
@@ -12,7 +14,7 @@ template <target_string T>
 size_t mesure(const T& val, const format_spec& spec) {
     if constexpr (same_as_any<T, const char*, char*>) {
         return std::min<size_t>(std::char_traits<char>::length(val), spec.precision);
-    } else if constexpr (same_as_any<T, string_view, string>) {
+    } else if constexpr (same_as_any<T, std::string_view, std::string>) {
         return std::min<size_t>(val.size(), spec.precision);
     } else if constexpr (is_char_array<T>) {
         size_t capa = char_array_size<T>;
