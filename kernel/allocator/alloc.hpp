@@ -37,8 +37,12 @@ inline void frameFreeAs(T* frame) noexcept {
 
 template <typename T, typename... Args>
 inline T* allocAs(Args&&... args) noexcept {
-    static_assert(sizeof(T) <= 512);
-    return new (slabAlloc(sizeof(T), alignof(T))) T(std::forward<Args>(args)...);
+    if constexpr (sizeof(T) <= 512) {
+        return new (slabAlloc(sizeof(T), alignof(T))) T(std::forward<Args>(args)...);
+    } else {
+        static_assert(sizeof(T) <= 4096);
+        return new (frameAlloc()) T(std::forward<Args>(args)...);
+    }
 }
 
 template <typename T>
@@ -47,7 +51,11 @@ inline void freeAs(T* frame) noexcept {
         return;
     }
     frame->~T();
-    slabFree(frame);
+    if constexpr (sizeof(T) <= 512) {
+        slabFree(frame);
+    } else {
+        frameFree(frame);
+    }
 }
 
 }  // namespace nyan::allocator

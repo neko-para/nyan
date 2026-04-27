@@ -213,9 +213,17 @@ void execTask(uint8_t* file, size_t size, const char* const* argv, interrupt::Sy
     // tcb->parentPid
     // tcb->groupPid
 
-    tcb->pendingSignals = 0;
-    tcb->signalMask = 0;
-    tcb->signalActions.reset();
+    // tcb->pendingSignals
+    // tcb->signalMask
+    if (tcb->signalActions) {
+        for (auto& entry : *tcb->signalActions) {
+            if (entry.__handler != SIG_IGN && entry.__handler != SIG_DFL) {
+                entry.__handler = SIG_DFL;
+                entry.__mask = 0;
+                entry.__flags = 0;
+            }
+        }
+    }
 
     // fdTable close-on-exec
     // tty
@@ -467,8 +475,8 @@ void sendSignal(TaskControlBlock* task, int sig) {
         arch::kprint("signal {} ignored for pid {} as it is ended\n", sig, task->pid);
         return;
     }
-    task->pendingSignals |= 1u << sig;
-    if (task->signalMask & (1u << sig)) {
+    task->pendingSignals |= 1ull << sig;
+    if (task->signalMask & (1ull << sig)) {
         arch::kprint("signal {} masked for pid {}\n", sig, task->pid);
         return;
     }
@@ -485,14 +493,14 @@ void defaultSignalLogic(int sig) {
 }
 
 bool peekSignal() {
-    uint32_t sigs = currentTask->pendingSignals & ~currentTask->signalMask;
+    SigSet sigs = currentTask->pendingSignals & ~currentTask->signalMask;
     if (!sigs) {
         return false;
     }
 
     while (sigs) {
         auto sig = std::countr_zero(sigs);
-        sigs ^= 1u << sig;
+        sigs ^= 1ull << sig;
         if (!currentTask->signalActions) {
             if (!isSignalDefaultIgnore(sig)) {
                 return true;
@@ -516,12 +524,12 @@ bool peekSignal() {
 bool checkSignal(interrupt::SyscallFrame* frame) {
     // TODO: 假设一定来自用户态. 需要有个地方检查frame->cs
     arch::InterruptGuard guard;
-    uint32_t sigs = currentTask->pendingSignals & ~currentTask->signalMask;
+    SigSet sigs = currentTask->pendingSignals & ~currentTask->signalMask;
     if (!sigs) {
         return false;
     }
     auto sig = std::countr_zero(sigs);
-    currentTask->pendingSignals ^= 1u << sig;
+    currentTask->pendingSignals ^= 1ull << sig;
     if (!currentTask->signalActions) {
         defaultSignalLogic(sig);
     } else {

@@ -10,6 +10,10 @@ sighandler_t signal(int sig, sighandler_t handler) {
     if (sig < 0 || sig >= NSIG || sig == SIGKILL || sig == SIGSTOP) {
         return reinterpret_cast<sighandler_t>(-SYS_EINVAL);
     }
+    // 64暂时也放不下
+    if (sig == 64) {
+        return reinterpret_cast<sighandler_t>(-SYS_EINVAL);
+    }
     arch::InterruptGuard guard;
     if (!task::currentTask->signalActions) {
         task::currentTask->signalActions.reset(allocator::allocAs<std::array<task::SigAction, NSIG>>());
@@ -18,7 +22,7 @@ sighandler_t signal(int sig, sighandler_t handler) {
     auto old = entry;
     entry = {
         handler,
-        1u << sig,
+        1ull << sig,
         SA_RESTART,
     };
     return old.__handler;

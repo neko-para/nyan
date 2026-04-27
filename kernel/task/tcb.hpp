@@ -9,6 +9,7 @@
 #include "../lib/function.hpp"
 #include "../lib/list.hpp"
 #include "forward.hpp"
+#include "signal.hpp"
 #include "wait.hpp"
 
 namespace nyan::console {
@@ -42,23 +43,14 @@ struct BlockWaitTaskInfo {
 // TODO: 这玩意是不是要动态?
 constexpr size_t MAXFD = 16;
 
-#undef NSIG
-#define NSIG 32
-
-struct SigAction {
-    void (*__handler)(int);
-    uint32_t __mask;
-    int __flags;
-};
-
 struct TaskControlBlock : public TaskControlBlockMetaInfo,
                           public lib::ListNodes<TaskControlBlockTag, TaskControlBlockChildTag> {
     pid_t parentPid{KP_Invalid};
     pid_t groupPid{KP_Invalid};
     lib::List<TaskControlBlockChildTag, true> childTasks;
 
-    uint32_t pendingSignals{};
-    uint32_t signalMask{};
+    SigSet pendingSignals{};
+    SigSet signalMask{};
     lib::unique_ptr<std::array<SigAction, NSIG>> signalActions;
 
     std::array<lib::Ref<fs::FdObj>, MAXFD> fdTable;
