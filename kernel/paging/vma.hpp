@@ -22,9 +22,9 @@ struct VMA {
 struct VMSpace {
     std::vector<VMA> __addrs;
 
-    std::vector<VMA>::iterator find(VirtualAddress addr) noexcept {
-        auto pos = std::upper_bound(__addrs.begin(), __addrs.end(), addr,
-                                    [](const VirtualAddress& addr, const VMA& item) { return addr < item.__end; });
+    std::vector<VMA>::iterator find(VirtualAddress addr, std::vector<VMA>::iterator& pos) noexcept {
+        pos = std::upper_bound(__addrs.begin(), __addrs.end(), addr,
+                               [](const VirtualAddress& addr, const VMA& item) { return addr < item.__end; });
 
         if (pos == __addrs.end()) {
             return pos;

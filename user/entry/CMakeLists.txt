@@ -7,7 +7,7 @@ set(CMAKE_CXX_LINK_EXECUTABLE
 
 function(add_user_program NAME SOURCE)
   add_executable(${NAME} ${SOURCE})
-  target_link_libraries(${NAME} PRIVATE c)
+  target_link_libraries(${NAME} PRIVATE c clang_rt.builtins-i386)
   target_compile_options(${NAME} PRIVATE -Wall -Wextra -g)
 
   set(BIN_FILE ${CMAKE_BINARY_DIR}/${NAME}_bin)

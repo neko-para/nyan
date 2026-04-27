@@ -33,16 +33,34 @@ void exceptionHandlerImpl(SyscallFrame* frame) {
 
         case E_PageFault: {
             paging::VirtualAddress targetAddr = paging::VirtualAddress{arch::cr2()};
-            if (targetAddr.addr < 0xC0000000 &&
-                (frame->error_code & (PF_Present | PF_User | PF_Write)) == (PF_Present | PF_User | PF_Write) &&
-                task::currentTask->cr3 != paging::kernelPageDirectory.cr3()) {
-                auto pageDir = paging::UserDirectory::from(task::currentTask->cr3);
-                if (pageDir.handleCOW(targetAddr)) {
-                    return;
+            std::vector<paging::VMA>::iterator next;
+            if (auto vma = task::currentTask->vmSpace.find(targetAddr, next);
+                vma != task::currentTask->vmSpace.__addrs.end()) {
+                if (targetAddr.addr < 0xC0000000 &&
+                    (frame->error_code & (PF_Present | PF_User | PF_Write)) == (PF_Present | PF_User | PF_Write) &&
+                    task::currentTask->cr3 != paging::kernelPageDirectory.cr3()) {
+                    auto pageDir = paging::UserDirectory::from(task::currentTask->cr3);
+                    if (pageDir.handleCOW(targetAddr)) {
+                        return;
+                    }
                 }
             }
 
             if (gdt::isRing3(frame->cs)) {
+                if (next != task::currentTask->vmSpace.__addrs.end() && next->__flags & MAP_GROWSDOWN &&
+                    next->__end == task::currentTask->stackRange.second) {
+                    // TODO: 之后可以引入基于ESP的检查
+                    if (targetAddr >= task::currentTask->stackRange.first) {
+                        auto pageDir = paging::UserDirectory::from(task::currentTask->cr3);
+                        while (next->__begin > targetAddr) {
+                            next->__begin = next->__begin.prevPage();
+                            auto guard = pageDir.alloc(next->__begin, true);
+                            memset(guard.as<void>(), 0, 4096);
+                        }
+                        break;
+                    }
+                }
+
                 task::sendSignal(task::currentTask, SIGSEGV);
                 break;
             }

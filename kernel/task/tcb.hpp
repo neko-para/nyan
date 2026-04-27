@@ -5,6 +5,7 @@
 #include <array>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "../fs/fd.hpp"
@@ -67,6 +68,7 @@ struct TaskControlBlock : public TaskControlBlockMetaInfo,
     std::string name;
     paging::VirtualAddress brkBase;
     paging::VirtualAddress brkAddr;
+    std::pair<paging::VirtualAddress, paging::VirtualAddress> stackRange;
     std::vector<uint32_t> pages;
 
     union {

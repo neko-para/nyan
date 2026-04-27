@@ -76,6 +76,7 @@ TaskControlBlock* createTask(int (*func)(void* param), void* param) {
     tcb->groupPid = currentTask->groupPid;
     tcb->brkBase = 0x400000_va;
     tcb->brkAddr = 0x400000_va;
+    tcb->stackRange = {0xC0000000_va - 0x800000, 0xC0000000_va};
     tcb->pages.push_back(kernelStack.userBase.addr);
     tcb->pages.push_back(stack.userBase.addr);
 
@@ -206,6 +207,7 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t size, const char* const* a
     tcb->name = lib::format("elf_{}", argv[0] ? argv[0] : "unknown");
     tcb->brkBase = brkAddr;
     tcb->brkAddr = brkAddr;
+    tcb->stackRange = {0xC0000000_va - 0x800000, 0xC0000000_va};
     tcb->pages.push_back(kernelStack.userBase.addr);
 
     currentTask->childTasks.push_back(tcb);
@@ -270,6 +272,7 @@ void execTask(uint8_t* file, size_t size, const char* const* argv, interrupt::Sy
     tcb->name = name;
     tcb->brkBase = brkAddr;
     tcb->brkAddr = brkAddr;
+    tcb->stackRange = {0xC0000000_va - 0x800000, 0xC0000000_va};
     // tcb->pages
 
     pageDir.mapper.paddr.setCr3();
@@ -335,6 +338,7 @@ pid_t forkTask(interrupt::SyscallFrame* frame) {
     tcb->name = currentTask->name;
     tcb->brkBase = currentTask->brkBase;
     tcb->brkAddr = currentTask->brkAddr;
+    tcb->stackRange = currentTask->stackRange;
     tcb->pages.push_back(kernelStack.userBase.addr);
 
     currentTask->childTasks.push_back(tcb);
