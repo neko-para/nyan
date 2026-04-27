@@ -170,7 +170,6 @@ static void loadArgv(Stack& stack, const char* const* argv) {
     for (auto it = args.rbegin(); it != args.rend(); it++) {
         stack.pushVal(it->addr);
     }
-    stack.pushVal(stack.userEsp().addr);
     stack.pushVal(args.size());
 }
 
