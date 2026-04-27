@@ -70,7 +70,7 @@ int set_thread_area(uint32_t user_desc[4]) {
         entry = 6;
         return 0;
     } else if (entry != 6) {
-        return SYS_EINVAL;
+        return -SYS_EINVAL;
     }
 
     uint8_t access, flags;

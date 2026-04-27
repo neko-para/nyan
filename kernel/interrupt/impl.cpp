@@ -220,6 +220,12 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
         case 119:
             syscall::sigreturn(frame);
             break;
+        case 145:
+            CALL(readv);
+            break;
+        case 146:
+            CALL(writev);
+            break;
         case 162:
             CALL(nanosleep)
             break;

@@ -1,5 +1,6 @@
 #include "task.hpp"
 
+#include <elf.h>
 #include <bit>
 
 #include "../allocator/alloc.hpp"
@@ -137,6 +138,17 @@ static void loadArgv(Stack& stack, const char* const* argv) {
     for (auto arg = argv; *arg; arg++) {
         args.push_back(stack.translator.toUser(stack.pushString(*arg)));
     }
+
+    // auxv
+    stack.pushVal(0);
+    stack.pushVal(AT_NULL);
+    stack.pushVal(4096);
+    stack.pushVal(AT_PAGESZ);
+
+    // envp
+    stack.pushVal(0);
+
+    // argv
     stack.pushVal(0);
     for (auto it = args.rbegin(); it != args.rend(); it++) {
         stack.pushVal(it->addr);

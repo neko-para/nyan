@@ -1,7 +1,7 @@
 #include "file.hpp"
 
-#include <bits/ioctl.h>
 #include <nyan/errno.h>
+#include <sys/ioctl.h>
 
 #include "../task/pid.hpp"
 #include "tty.hpp"
@@ -32,6 +32,16 @@ int TtyObj::ioctl(uint32_t req, uint32_t param) noexcept {
             }
             // TODO: check same session
             tty->foregroundPid = param;
+            return 0;
+        case TIOCGWINSZ:
+            winsize* ptr = reinterpret_cast<winsize*>(param);
+            if (!ptr) {
+                return -SYS_EFAULT;
+            }
+            ptr->ws_row = 25;
+            ptr->ws_col = 80;
+            ptr->ws_xpixel = 0;
+            ptr->ws_ypixel = 0;
             return 0;
     }
     return -SYS_ENOTTY;

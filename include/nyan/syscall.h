@@ -4,6 +4,7 @@
 #include <nyan/types.h>
 #include <signal.h>
 #include <sys/types.h>
+#include <sys/uio.h>
 
 __NYAN_SYSCALL_BEGIN__
 
@@ -60,6 +61,12 @@ void __NYAN_SYSCALL__(munmap)(void* addr, size_t length);
 
 // 119
 void __NYAN_SYSCALL__(sigreturn)(void* frame);
+
+// 145
+ssize_t __NYAN_SYSCALL__(readv)(int fd, const struct iovec* iov, size_t iovcnt);
+
+// 146
+ssize_t __NYAN_SYSCALL__(writev)(int fd, const struct iovec* iov, size_t iovcnt);
 
 // 162
 int __NYAN_SYSCALL__(nanosleep)(const struct timespec* rqtp, struct timespec* rmtp);
