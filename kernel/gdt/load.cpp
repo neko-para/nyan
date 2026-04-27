@@ -23,6 +23,8 @@ alignas(16) static Segment entries[] = {
     makeSegment(0, 0xFFFFF, A_Present | A_Ring3 | A_NotSystem | A_DataWritable | A_Accessed, F_Granularity | F_Size),
     // 0x28 TSS
     {},
+    // 0x30 TLS
+    {},
 };
 
 static Descriptor desc;
@@ -54,6 +56,10 @@ void load() {
         "movw $0x28, %%ax;"
         "ltr %%ax;" ::
             : "ax");
+}
+
+void setTls(const Segment& seg) {
+    entries[6] = seg;
 }
 
 }  // namespace nyan::gdt

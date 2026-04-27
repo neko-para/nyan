@@ -64,6 +64,12 @@ void __NYAN_SYSCALL__(sigreturn)(void* frame);
 // 162
 int __NYAN_SYSCALL__(nanosleep)(const struct timespec* rqtp, struct timespec* rmtp);
 
+// 243
+int __NYAN_SYSCALL__(set_thread_area)(uint32_t user_desc[4]);
+
+// 258
+int __NYAN_SYSCALL__(set_tid_address)(int* ptr);
+
 // 512
 pid_t __NYAN_SYSCALL__(spawn)(const char* name, const char* const* argv);
 

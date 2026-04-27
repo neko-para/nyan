@@ -4,6 +4,7 @@
 #include <sys/types.h>
 
 #include "../fs/fd.hpp"
+#include "../gdt/entry.hpp"
 #include "../lib/containers.hpp"
 #include "../lib/function.hpp"
 #include "../lib/list.hpp"
@@ -62,6 +63,8 @@ struct TaskControlBlock : public TaskControlBlockMetaInfo,
 
     std::array<lib::Ref<fs::FdObj>, MAXFD> fdTable;
     console::Tty* tty{};
+
+    gdt::Segment tls;
 
     lib::string name;
     paging::VirtualAddress brkAddr;

@@ -223,6 +223,12 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
         case 162:
             CALL(nanosleep)
             break;
+        case 243:
+            CALL(set_thread_area);
+            break;
+        case 258:
+            CALL(set_tid_address);
+            break;
         case 512:
             CALL(spawn);
             break;

@@ -357,9 +357,11 @@ __attribute__((noinline)) void yield() {
         }
         switchToTask(next);
         currentTask->state = State::S_Running;
+        gdt::setTls(currentTask->tls);
     } else if (currentTask->state != State::S_Running) {
         switchToTask(allTasks[KP_Idle]);
         currentTask->state = State::S_Running;
+        gdt::setTls(currentTask->tls);
     }
 }
 
