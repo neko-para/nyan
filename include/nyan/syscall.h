@@ -74,6 +74,9 @@ ssize_t __NYAN_SYSCALL__(writev)(int fd, const struct iovec* iov, size_t iovcnt)
 // 162
 int __NYAN_SYSCALL__(nanosleep)(const struct timespec* rqtp, struct timespec* rmtp);
 
+// 175
+int __NYAN_SYSCALL__(rt_sigprocmask)(int how, const sigset_t* set, sigset_t* oldset, size_t sigsetsize);
+
 // 243
 int __NYAN_SYSCALL__(set_thread_area)(uint32_t user_desc[4]);
 

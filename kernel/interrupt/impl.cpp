@@ -246,6 +246,9 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
         case 162:
             CALL(nanosleep)
             break;
+        case 175:
+            CALL(rt_sigprocmask);
+            break;
         case 243:
             CALL(set_thread_area);
             break;

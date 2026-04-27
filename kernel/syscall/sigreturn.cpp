@@ -1,5 +1,6 @@
 #include <nyan/syscall.h>
 
+#include "../gdt/load.hpp"
 #include "../task/signal.hpp"
 #include "../task/tcb.hpp"
 
@@ -15,12 +16,14 @@ void sigreturn(void* frame) {
     auto userFrame = reinterpret_cast<interrupt::SyscallFrame*>(esp);
     *sysFrame = *userFrame;
 
-    sysFrame->cs = 0x1B;
-    sysFrame->user_ss = 0x23;
-    sysFrame->user_ds = 0x23;
-    sysFrame->user_es = 0x23;
-    sysFrame->user_fs = 0x23;
-    sysFrame->user_gs = 0x23;
+    sysFrame->cs = gdt::userCs;
+    sysFrame->user_ss = gdt::userDs;
+    sysFrame->user_ds = gdt::userDs;
+    sysFrame->user_es = gdt::userDs;
+    sysFrame->user_fs = gdt::userDs;
+    if (sysFrame->user_gs != gdt::userDs && sysFrame->user_gs != gdt::userTls) {
+        sysFrame->user_gs = gdt::userDs;
+    }
     sysFrame->flags = (sysFrame->flags & ~0x3000) | 0x200;
 }
 
