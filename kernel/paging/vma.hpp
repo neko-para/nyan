@@ -206,6 +206,13 @@ struct VMSpace {
             return true;
         }
     }
+
+    void free(UserDirectory& pageDir) {
+        for (const auto& vma : __addrs) {
+            __release_range(vma.__begin, vma.__end, pageDir);
+        }
+        __addrs.clear();
+    }
 };
 
 }  // namespace nyan::paging
