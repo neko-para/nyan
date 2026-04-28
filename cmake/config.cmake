@@ -13,7 +13,7 @@ add_compile_options(
   -Wnull-dereference)
 
 if(NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Debug")
-  # add_compile_options(-g)
+  add_compile_options(-g)
 endif()
 
 if(NYAN_ENABLE_OPTIMIZE)

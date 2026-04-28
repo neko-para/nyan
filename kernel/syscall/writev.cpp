@@ -8,6 +8,9 @@ ssize_t writev(int fd, const struct iovec* iov, size_t iovcnt) {
     }
     size_t result = 0;
     for (size_t i = 0; i < iovcnt; i++) {
+        if (!iov[i].iov_len) {
+            continue;
+        }
         auto ret = syscall::write(fd, iov[i].iov_base, iov[i].iov_len);
         if (ret < 0) {
             return ret;
