@@ -109,17 +109,17 @@ struct VMSpace {
                 return std::nullopt;
             }
 
-            auto next = std::next(pos);
-            if (next == __addrs.end()) {
+            auto next2 = std::next(pos);
+            if (next2 == __addrs.end()) {
                 // 一定会被stack夹住, 不可能没有next
                 return std::nullopt;
             }
 
-            auto rest = next->__begin - pos->__end;
+            auto rest = next2->__begin - pos->__end;
             if (rest >= size) {
                 return pos->__end;
             } else {
-                pos = next;
+                pos = next2;
             }
         }
         return std::nullopt;

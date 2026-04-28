@@ -1,96 +1,105 @@
 #pragma once
 
 #include <nyan/errno.h>
-#include <nyan/types.h>
 #include <signal.h>
 #include <stdint.h>
 #include <sys/types.h>
 #include <sys/uio.h>
 
-__NYAN_SYSCALL_BEGIN__
+namespace nyan::interrupt {
+struct SyscallFrame;
+}
+
+namespace nyan::syscall {
 
 // 1
-[[noreturn]] void __NYAN_SYSCALL__(exit)(int code);
+[[noreturn]] void exit(int code);
 
 // 2
-pid_t __NYAN_SYSCALL__(fork)(__NYAN_SYSCALL_FRAME__);
+pid_t fork(interrupt::SyscallFrame* frame);
 
 // 3
-ssize_t __NYAN_SYSCALL__(read)(int fd, void* buf, size_t size);
+ssize_t read(int fd, void* buf, size_t size);
 
 // 4
-ssize_t __NYAN_SYSCALL__(write)(int fd, const void* buf, size_t size);
+ssize_t write(int fd, const void* buf, size_t size);
 
 // 6
-int __NYAN_SYSCALL__(close)(int fd);
+int close(int fd);
 
 // 7
-pid_t __NYAN_SYSCALL__(waitpid)(pid_t pid, int* stat_loc, int options);
+pid_t waitpid(pid_t pid, int* stat_loc, int options);
 
 // 11
-int __NYAN_SYSCALL__(execve)(const char* pathname, char* const argv[], char* const envp[] __NYAN_SYSCALL_FRAME2__);
+int execve(const char* pathname, char* const argv[], char* const envp[], interrupt::SyscallFrame* frame);
 
 // 20
-pid_t __NYAN_SYSCALL__(getpid)();
+pid_t getpid();
 
 // 37
-int __NYAN_SYSCALL__(kill)(pid_t pid, int sig);
+int kill(pid_t pid, int sig);
 
 // 41
-int __NYAN_SYSCALL__(dup)(int fd);
+int dup(int fd);
 
 // 42
-int __NYAN_SYSCALL__(pipe)(int* fds);
+int pipe(int* fds);
 
 // 45
-void* __NYAN_SYSCALL__(brk)(const void* addr);
+void* brk(const void* addr);
 
 // 48
-sighandler_t __NYAN_SYSCALL__(signal)(int sig, sighandler_t handler);
+sighandler_t signal(int sig, sighandler_t handler);
 
 // 54
-int __NYAN_SYSCALL__(ioctl)(int fd, uint32_t request, uint32_t param);
+int ioctl(int fd, uint32_t request, uint32_t param);
 
 // 63
-int __NYAN_SYSCALL__(dup2)(int fd, int newFd);
+int dup2(int fd, int newFd);
 
 // 90
-void* __NYAN_SYSCALL__(mmap)(void* addr, size_t length, int prot, int flags, int fd, off_t offset);
+void* mmap(void* addr, size_t length, int prot, int flags, int fd, off_t offset);
 
 // 91
-void __NYAN_SYSCALL__(munmap)(void* addr, size_t length);
+void munmap(void* addr, size_t length);
 
 // 114
-pid_t __NYAN_SYSCALL__(wait4)(pid_t pid, int* stat_loc, int options, struct rusage* ru);
+pid_t wait4(pid_t pid, int* stat_loc, int options, struct rusage* ru);
 
 // 119
-void __NYAN_SYSCALL__(sigreturn)(void* frame);
+void sigreturn(void* frame);
 
 // 145
-ssize_t __NYAN_SYSCALL__(readv)(int fd, const struct iovec* iov, size_t iovcnt);
+ssize_t readv(int fd, const struct iovec* iov, size_t iovcnt);
 
 // 146
-ssize_t __NYAN_SYSCALL__(writev)(int fd, const struct iovec* iov, size_t iovcnt);
+ssize_t writev(int fd, const struct iovec* iov, size_t iovcnt);
 
 // 162
-int __NYAN_SYSCALL__(nanosleep)(const struct timespec* rqtp, struct timespec* rmtp);
+int nanosleep(const struct timespec* rqtp, struct timespec* rmtp);
+
+// 174
+int rt_sigaction(int sig, const struct sigaction* act, struct sigaction* oldact, size_t sigsetsize);
 
 // 175
-int __NYAN_SYSCALL__(rt_sigprocmask)(int how, const sigset_t* set, sigset_t* oldset, size_t sigsetsize);
+int rt_sigprocmask(int how, const sigset_t* set, sigset_t* oldset, size_t sigsetsize);
 
 // 224
-pid_t __NYAN_SYSCALL__(gettid)();
+pid_t gettid();
+
+// 238
+int tkill(pid_t tid, int sig);
 
 // 243
-int __NYAN_SYSCALL__(set_thread_area)(uint32_t user_desc[4]);
+int set_thread_area(uint32_t user_desc[4]);
 
 // 252
-[[noreturn]] void __NYAN_SYSCALL__(exit_group)(int code);
+[[noreturn]] void exit_group(int code);
 
 // 258
-int __NYAN_SYSCALL__(set_tid_address)(int* ptr);
+int set_tid_address(int* ptr);
 
 // 512
-pid_t __NYAN_SYSCALL__(spawn)(const char* name, const char* const* argv);
+pid_t spawn(const char* name, const char* const* argv);
 
-__NYAN_SYSCALL_END__
+}  // namespace nyan::syscall

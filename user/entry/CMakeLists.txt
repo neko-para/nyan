@@ -4,19 +4,10 @@ foreach(user_src ${user_srcs})
   get_filename_component(user_prog_name ${user_src} NAME_WLE)
 
   add_executable(${user_prog_name} ${user_src})
-  target_compile_options(${user_prog_name} PRIVATE -Wall -Wextra -g)
 
   target_compile_options(${user_prog_name} PRIVATE -ffunction-sections
                                                    -fdata-sections)
   target_link_options(${user_prog_name} PRIVATE -Wl,--gc-sections)
-
-  if(NYAN_ENABLE_OPTIMIZE)
-    target_compile_options(${user_prog_name} PRIVATE -flto=thin -funified-lto
-                                                     -O2 -fomit-frame-pointer)
-    target_link_options(${user_prog_name} PRIVATE -flto=thin)
-  else()
-    target_compile_options(${user_prog_name} PRIVATE -Og)
-  endif()
 
   install(TARGETS ${user_prog_name} RUNTIME DESTINATION bin)
 endforeach()

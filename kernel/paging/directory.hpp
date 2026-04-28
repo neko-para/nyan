@@ -87,9 +87,9 @@ struct MapperGuard {
 };
 
 struct UserDirectory {
-    MapperGuard mapper;
+    MapperGuard __mapper;
 
-    DirectoryData* data() const noexcept { return mapper.as<DirectoryData>(); }
+    DirectoryData* data() const noexcept { return __mapper.as<DirectoryData>(); }
     DirectoryData* operator->() const noexcept { return data(); }
 
     static UserDirectory from(PhysicalAddress addr) noexcept { return {{addr}}; }

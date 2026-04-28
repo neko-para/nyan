@@ -196,7 +196,7 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t size, const char* const* a
     fillStack(kernelStack, elfEntry, stack.userEsp().as<void>());
 
     tcb->userEsp = kernelStack.esp().addr;
-    tcb->cr3 = pageDir.mapper.paddr;
+    tcb->cr3 = pageDir.__mapper.paddr;
     tcb->kernelEsp = kernelStack.userBase.nextPage().addr;
     tcb->state = State::S_Ready;
     tcb->pid = KP_Invalid;
@@ -245,7 +245,7 @@ void execTask(uint8_t* file, size_t size, const char* const* argv, interrupt::Sy
     }
 
     tcb->userEsp = stack.userEsp().addr;
-    tcb->cr3 = pageDir.mapper.paddr;
+    tcb->cr3 = pageDir.__mapper.paddr;
     // tcb->kernelEsp
     // tcb->state
     // tcb->pid
@@ -258,11 +258,11 @@ void execTask(uint8_t* file, size_t size, const char* const* argv, interrupt::Sy
     // tcb->pendingSignals
     // tcb->signalMask
     if (tcb->signalActions) {
-        for (auto& entry : *tcb->signalActions) {
-            if (entry.__handler != SIG_IGN && entry.__handler != SIG_DFL) {
-                entry.__handler = SIG_DFL;
-                entry.__mask = 0;
-                entry.__flags = 0;
+        for (auto& act : *tcb->signalActions) {
+            if (act.__handler != SIG_IGN && act.__handler != SIG_DFL) {
+                act.__handler = SIG_DFL;
+                act.__mask = 0;
+                act.__flags = 0;
             }
         }
     }
@@ -277,7 +277,7 @@ void execTask(uint8_t* file, size_t size, const char* const* argv, interrupt::Sy
     tcb->stackRange = {0xC0000000_va - 0x800000, 0xC0000000_va};
     // tcb->pages
 
-    pageDir.mapper.paddr.setCr3();
+    pageDir.__mapper.paddr.setCr3();
     gdt::setTls(tcb->tls);
 
     frame->eip = entry.addr;
@@ -315,7 +315,7 @@ pid_t forkTask(interrupt::SyscallFrame* frame) {
 
     auto tcb = allocator::allocAs<TaskControlBlock>();
     tcb->userEsp = kernelStack.esp().addr;
-    tcb->cr3 = newPageDir.mapper.paddr;
+    tcb->cr3 = newPageDir.__mapper.paddr;
     tcb->kernelEsp = kernelStack.userBase.nextPage().addr;
     tcb->state = State::S_Ready;
     tcb->pid = KP_Invalid;

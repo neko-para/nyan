@@ -195,6 +195,7 @@ static void dump(SyscallFrame* frame, const char (&name)[N]) {
 extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
     // 简单处理, syscall中不可重入中断
     arch::InterruptGuard guard;
+    auto syscallId = frame->eax;
     switch (frame->eax) {
         case 1:
             CALL(exit)
@@ -257,11 +258,17 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
         case 162:
             CALL(nanosleep)
             break;
+        case 174:
+            CALL(rt_sigaction);
+            break;
         case 175:
             CALL(rt_sigprocmask);
             break;
         case 224:
             CALL(gettid);
+            break;
+        case 238:
+            CALL(tkill);
             break;
         case 243:
             CALL(set_thread_area);
@@ -279,6 +286,10 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             arch::kprint("syscall eax={}(missing) from {} {}\n", frame->eax, task::currentTask->pid,
                          task::currentTask->name);
             frame->eax = -SYS_ENOSYS;
+    }
+
+    if (static_cast<int32_t>(frame->eax) < 0) {
+        arch::kprint("syscall eax={} failed for {}\n", syscallId, -frame->eax);
     }
 }
 

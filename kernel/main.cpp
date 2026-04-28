@@ -54,9 +54,10 @@ extern "C" void kmain(boot::BootInfo* info) {
 
     task::load();
 
+    arch::kprint("=====\nkernel end {#010x}\n", paging::VirtualAddress(&_end).kernelToPhysical().addr);
+
     console::loadDeamons();
 
-    arch::kprint("kernel end {#010x}\n", paging::VirtualAddress(&_end).kernelToPhysical().addr);
     task::yield();
 
     for (;;) {

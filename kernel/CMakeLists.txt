@@ -62,8 +62,6 @@ set_source_files_properties(interrupt/isr.cpp PROPERTIES COMPILE_FLAGS
 set_target_properties(kernel PROPERTIES LINK_DEPENDS
                                         ${CMAKE_CURRENT_LIST_DIR}/linker.ld)
 
-target_compile_options(kernel PRIVATE -g -Wall -Wextra)
-target_compile_definitions(kernel PRIVATE __BUILDING_NYAN__)
 target_include_directories(
   kernel SYSTEM BEFORE
   PRIVATE ${CMAKE_CURRENT_LIST_DIR}/include
@@ -73,14 +71,5 @@ target_link_directories(kernel PRIVATE
 
 target_link_options(kernel PRIVATE -T ${CMAKE_CURRENT_LIST_DIR}/linker.ld)
 target_link_libraries(kernel PRIVATE kernel_embed clang_rt.builtins-i386)
-
-if(NYAN_ENABLE_OPTIMIZE)
-  target_compile_options(
-    kernel PRIVATE -flto=thin -funified-lto -O2 -fomit-frame-pointer
-                   -ffunction-sections -fdata-sections)
-  target_link_options(kernel PRIVATE --lto=thin --gc-sections)
-else()
-  target_compile_options(kernel PRIVATE -Og)
-endif()
 
 install(TARGETS kernel RUNTIME DESTINATION .)
