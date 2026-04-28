@@ -78,6 +78,9 @@ int __NYAN_SYSCALL__(nanosleep)(const struct timespec* rqtp, struct timespec* rm
 // 175
 int __NYAN_SYSCALL__(rt_sigprocmask)(int how, const sigset_t* set, sigset_t* oldset, size_t sigsetsize);
 
+// 224
+pid_t __NYAN_SYSCALL__(gettid)();
+
 // 243
 int __NYAN_SYSCALL__(set_thread_area)(uint32_t user_desc[4]);
 

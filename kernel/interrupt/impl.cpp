@@ -260,6 +260,9 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
         case 175:
             CALL(rt_sigprocmask);
             break;
+        case 224:
+            CALL(gettid);
+            break;
         case 243:
             CALL(set_thread_area);
             break;
