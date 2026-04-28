@@ -3,8 +3,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include "utils.hpp"
-
 bool readline(char* buf, size_t len) {
     if (fgets(buf, len, stdin)) {
         buf[strlen(buf) - 1] = 0;
@@ -31,7 +29,7 @@ void processArgv(char** argv, char* buf) {
     *argv = 0;
 }
 
-extern "C" int main() {
+int main() {
     char buf[256];
     fputs("> ", stdout);
     fflush(stdout);
@@ -65,13 +63,9 @@ extern "C" int main() {
                 int stat;
                 if (pid == waitpid(pid, &stat, 0)) {
                     if (WIFEXITED(stat)) {
-                        fputs("exit with ", stdout);
-                        printNum(WEXITSTATUS(stat), stdout);
-                        fputc('\n', stdout);
+                        printf("exit with %d\n", WEXITSTATUS(stat));
                     } else {
-                        fputs("signal with ", stdout);
-                        printNum(WTERMSIG(stat), stdout);
-                        fputc('\n', stdout);
+                        printf("signal with %d\n", WTERMSIG(stat));
                     }
                 } else {
                     fputs("wait failed\n", stdout);

@@ -11,7 +11,7 @@ void recursive(int count) {
     }
 }
 
-extern "C" int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
     int rep = atoi(argv[1] ?: "0");
     if (rep < 0) {
         rep = 0;

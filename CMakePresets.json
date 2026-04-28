@@ -11,10 +11,7 @@
             "displayName": "MacNinja",
             "description": "MacNinja",
             "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build",
-            "cacheVariables": {
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/i686-elf-mac.cmake"
-            }
+            "binaryDir": "${sourceDir}/build"
         },
         {
             "name": "LinuxNinja",

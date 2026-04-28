@@ -3,7 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 
-extern "C" int main(int argc, char* argv[]) {
+int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
     auto str = (char*)malloc(16);
     strcpy(str, "Hello!\n");
     fputs(str, stdout);

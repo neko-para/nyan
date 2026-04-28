@@ -1,3 +1,3 @@
-extern "C" int main() {
+int main() {
     return 1;
 }

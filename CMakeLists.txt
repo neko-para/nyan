@@ -1,17 +1,41 @@
 cmake_minimum_required(VERSION 3.30)
 
-project(nyan CXX ASM)
+project(nyan NONE)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+include(ExternalProject)
 
 option(NYAN_ENABLE_OPTIMIZE CACHE OFF)
 
-add_library(kernel_header INTERFACE)
-target_include_directories(kernel_header INTERFACE include)
+if(APPLE)
+  set(NYAN_PLATFORM mac)
+elseif(LINUX)
+  set(NYAN_PLATFORM linux)
+else()
+  set(NYAN_PLATFORM win)
+endif()
 
-add_subdirectory(user)
+set(KERNEL_TOOLCHAIN
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/toolchain-kernel-${NYAN_PLATFORM}.cmake")
+set(USER_TOOLCHAIN
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/toolchain-user-${NYAN_PLATFORM}.cmake")
 
-add_subdirectory(kernel)
+set(USER_INSTALL_DIR ${CMAKE_BINARY_DIR}/user_install)
+set(KERNEL_INSTALL_DIR ${CMAKE_BINARY_DIR}/kernel_install)
+
+ExternalProject_Add(
+  user_programs
+  SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/user
+  CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE=${USER_TOOLCHAIN}
+             -DCMAKE_INSTALL_PREFIX=${USER_INSTALL_DIR}
+             -DNYAN_ENABLE_OPTIMIZE=${NYAN_ENABLE_OPTIMIZE}
+  BUILD_ALWAYS ON)
+
+ExternalProject_Add(
+  kernel_build
+  SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/kernel
+  CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE=${KERNEL_TOOLCHAIN}
+             -DNYAN_ENABLE_OPTIMIZE=${NYAN_ENABLE_OPTIMIZE}
+             -DNYAN_USER_INSTALL_DIR=${USER_INSTALL_DIR}
+             -DCMAKE_INSTALL_PREFIX=${KERNEL_INSTALL_DIR}
+  BUILD_ALWAYS ON
+  DEPENDS user_programs)
