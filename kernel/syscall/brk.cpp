@@ -31,6 +31,7 @@ void* brk(const void* addr) {
             wantPage.nextPage(),
             MAP_PRIVATE | MAP_ANONYMOUS,
             PROT_READ | PROT_WRITE,
+            "brk",
         });
     } else {
         auto next = std::next(vma);

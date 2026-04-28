@@ -17,6 +17,8 @@ struct VMA {
     uint32_t __flags;
     uint32_t __protect;
 
+    std::string_view __name;
+
     bool contains(VirtualAddress addr) const noexcept { return __begin <= addr && addr < __end; }
 };
 
@@ -174,10 +176,7 @@ struct VMSpace {
             } else {
                 __release_range(lower, upper, pageDir);
                 VMA vma = {
-                    left->__begin,
-                    lower,
-                    left->__flags & (~MAP_GROWSDOWN),
-                    left->__protect,
+                    left->__begin, lower, left->__flags & (~MAP_GROWSDOWN), left->__protect, left->__name,
                 };
                 left->__begin = upper;
                 __addrs.insert(left, vma);
@@ -216,6 +215,14 @@ struct VMSpace {
             __release_range(vma.__begin, vma.__end, pageDir);
         }
         __addrs.clear();
+    }
+
+    void dump() {
+        arch::kprint("Dump VMSpace\n");
+        for (const auto& vma : __addrs) {
+            arch::kprint("{8}: {#10x} ~ {#10x} {x} {x}\n", vma.__name, vma.__begin.addr, vma.__end.addr, vma.__flags,
+                         vma.__protect);
+        }
     }
 };
 

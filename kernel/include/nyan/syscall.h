@@ -84,6 +84,9 @@ int rt_sigaction(int sig, const struct sigaction* act, struct sigaction* oldact,
 // 175
 int rt_sigprocmask(int how, const sigset_t* set, sigset_t* oldset, size_t sigsetsize);
 
+// 192
+void* mmap2(void* addr, size_t length, int prot, int flags, int fd, uint32_t pgoffset);
+
 // 224
 pid_t gettid();
 

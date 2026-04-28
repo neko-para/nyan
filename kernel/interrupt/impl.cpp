@@ -183,6 +183,37 @@ static void call(SyscallFrame* frame, Ret (*func)(Arg1, Arg2, Arg3, Arg4)) {
     }
 }
 
+template <typename Ret, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
+static void call(SyscallFrame* frame, Ret (*func)(Arg1, Arg2, Arg3, Arg4, Arg5)) {
+    auto a1 = castArg<Arg1>(frame->ebx);
+    auto a2 = castArg<Arg2>(frame->ecx);
+    auto a3 = castArg<Arg3>(frame->edx);
+    auto a4 = castArg<Arg4>(frame->esi);
+    auto a5 = castArg<Arg5>(frame->edi);
+    if constexpr (std::same_as<Ret, void>) {
+        frame->eax = 0;
+        func(a1, a2, a3, a4, a5);
+    } else {
+        frame->eax = castRet(func(a1, a2, a3, a4, a5));
+    }
+}
+
+template <typename Ret, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
+static void call(SyscallFrame* frame, Ret (*func)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6)) {
+    auto a1 = castArg<Arg1>(frame->ebx);
+    auto a2 = castArg<Arg2>(frame->ecx);
+    auto a3 = castArg<Arg3>(frame->edx);
+    auto a4 = castArg<Arg4>(frame->esi);
+    auto a5 = castArg<Arg5>(frame->edi);
+    auto a6 = castArg<Arg6>(frame->ebp);
+    if constexpr (std::same_as<Ret, void>) {
+        frame->eax = 0;
+        func(a1, a2, a3, a4, a5, a6);
+    } else {
+        frame->eax = castRet(func(a1, a2, a3, a4, a5, a6));
+    }
+}
+
 template <size_t N>
 static void dump(SyscallFrame* frame, const char (&name)[N]) {
     arch::kprint("syscall eax={}({}) from {} {}\n", frame->eax, name, task::currentTask->pid, task::currentTask->name);
@@ -263,6 +294,9 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             break;
         case 175:
             CALL(rt_sigprocmask);
+            break;
+        case 192:
+            CALL(mmap2);
             break;
         case 224:
             CALL(gettid);

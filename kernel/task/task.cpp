@@ -145,6 +145,7 @@ static LoadElfResult loadElf(paging::VMSpace& vmSpace, uint8_t* file, size_t) {
             vma.__protect |= PROT_READ;
         }
         vma.__flags = MAP_PRIVATE | MAP_ANONYMOUS;
+        vma.__name = "elf segs";
         vmSpace.insert(vma);
     }
 
@@ -185,6 +186,7 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t size, const char* const* a
         0xC0000000_va,
         MAP_PRIVATE | MAP_ANONYMOUS | MAP_GROWSDOWN,
         PROT_READ | PROT_WRITE,
+        "stack",
     });
 
     Stack stack(pageDir, 0xC0000000_va);
@@ -226,6 +228,7 @@ void execTask(uint8_t* file, size_t size, const char* const* argv, interrupt::Sy
         0xC0000000_va,
         MAP_PRIVATE | MAP_ANONYMOUS | MAP_GROWSDOWN,
         PROT_READ | PROT_WRITE,
+        "stack",
     });
 
     auto tcb = currentTask;
