@@ -288,6 +288,12 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
         case 63:
             CALL(dup2);
             break;
+        // case 90:
+        //     CALL(mmap);
+        //     break;
+        case 91:
+            CALL(munmap);
+            break;
         case 114:
             CALL(wait4);
             break;

@@ -57,11 +57,11 @@ int ioctl(int fd, uint32_t request, uint32_t param);
 // 63
 int dup2(int fd, int newFd);
 
-// 90
+// 90 not impl yet
 void* mmap(void* addr, size_t length, int prot, int flags, int fd, off_t offset);
 
 // 91
-void munmap(void* addr, size_t length);
+int munmap(void* addr, size_t length);
 
 // 114
 pid_t wait4(pid_t pid, int* stat_loc, int options, struct rusage* ru);

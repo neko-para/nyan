@@ -152,6 +152,10 @@ struct VMSpace {
     }
 
     bool erase(VirtualAddress addr, size_t size, UserDirectory& pageDir) {
+        size_t upperSum = 0;
+        if (addr >= 0xC0000000_va || __builtin_add_overflow(addr.addr, size, &upperSum) || upperSum >= 0xC0000000) {
+            return false;
+        }
         std::vector<VMA>::iterator next;
         auto left = find(addr, next);
         if (left == __addrs.end()) {
