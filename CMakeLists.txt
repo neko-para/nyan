@@ -29,6 +29,8 @@ ExternalProject_Add(
              -DCMAKE_INSTALL_PREFIX=${USER_INSTALL_DIR}
              -DNYAN_ENABLE_OPTIMIZE=${NYAN_ENABLE_OPTIMIZE}
   BUILD_ALWAYS ON)
+ExternalProject_Get_Property(user_programs BINARY_DIR)
+set(USER_BUILD_DIR ${BINARY_DIR})
 
 ExternalProject_Add(
   kernel_build
@@ -39,3 +41,15 @@ ExternalProject_Add(
              -DCMAKE_INSTALL_PREFIX=${KERNEL_INSTALL_DIR}
   BUILD_ALWAYS ON
   DEPENDS user_programs)
+ExternalProject_Get_Property(kernel_build BINARY_DIR)
+set(KERNEL_BUILD_DIR ${BINARY_DIR})
+
+find_program(COMPDB compdb HINTS ${CMAKE_SOURCE_DIR}/.venv/bin)
+
+if(COMPDB)
+  add_custom_target(
+    compile_commands ALL
+    COMMAND ${COMPDB} -p ${USER_BUILD_DIR} -p ${KERNEL_BUILD_DIR} list >
+            ${CMAKE_BINARY_DIR}/compile_commands.json
+    DEPENDS kernel_build user_programs)
+endif()
