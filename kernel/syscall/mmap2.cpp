@@ -25,14 +25,13 @@ void* mmap2(void* addr, size_t length, int prot, int flags, int, uint32_t) {
             task::currentTask->vmSpace.dump();
             return reinterpret_cast<void*>(-SYS_ENOMEM);
         }
-        if (!task::currentTask->vmSpace.insert(paging::VMA{
-                *place,
-                *place + length,
-                static_cast<uint32_t>(flags),
-                static_cast<uint32_t>(prot),
-                "mmap",
-            })) {
+        auto vma = paging::VMA{
+            *place, *place + length, static_cast<uint32_t>(flags), static_cast<uint32_t>(prot), "mmap",
+        };
+        if (!task::currentTask->vmSpace.insert(vma)) {
             return reinterpret_cast<void*>(-SYS_ENOMEM);
+        } else {
+            vma.alloc(pageDir);
         }
         return place->as<void>();
     }
@@ -46,9 +45,14 @@ void* mmap2(void* addr, size_t length, int prot, int flags, int, uint32_t) {
         if (!place) {
             return reinterpret_cast<void*>(-SYS_ENOMEM);
         }
-        if (!task::currentTask->vmSpace.insert(paging::VMA{*place, *place + length, static_cast<uint32_t>(flags),
-                                                           static_cast<uint32_t>(prot), "mmap"})) {
+        auto pageDir = paging::UserDirectory::from(task::currentTask->cr3);
+        auto vma = paging::VMA{
+            *place, *place + length, static_cast<uint32_t>(flags), static_cast<uint32_t>(prot), "mmap",
+        };
+        if (!task::currentTask->vmSpace.insert(vma)) {
             return reinterpret_cast<void*>(-SYS_ENOMEM);
+        } else {
+            vma.alloc(pageDir);
         }
         return place->as<void>();
     } else if (flags & MAP_SHARED) {

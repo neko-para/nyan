@@ -18,10 +18,7 @@
             "displayName": "LinuxNinja",
             "description": "LinuxNinja",
             "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build",
-            "cacheVariables": {
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/i686-elf-linux.cmake"
-            }
+            "binaryDir": "${sourceDir}/build"
         },
         {
             "name": "WinNinja",

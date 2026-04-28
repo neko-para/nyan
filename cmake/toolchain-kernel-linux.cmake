@@ -3,8 +3,7 @@ set(CMAKE_SYSTEM_PROCESSOR x86)
 
 set(TOOL_PREFIX /opt/llvm-22)
 
-set(CMAKE_SYSROOT "${CMAKE_CURRENT_LIST_DIR}/sysroot")
-set(LIBCXX_PREFIX "${CMAKE_CURRENT_LIST_DIR}/libcxx")
+set(CMAKE_SYSROOT ${CMAKE_CURRENT_LIST_DIR}/../sysroot)
 
 set(CMAKE_C_COMPILER_TARGET i686-elf)
 set(CMAKE_C_COMPILER ${TOOL_PREFIX}/bin/clang)
@@ -17,12 +16,10 @@ set(CMAKE_LINKER ${TOOL_PREFIX}/bin/ld.lld)
 set(CMAKE_C_LINK_EXECUTABLE
     "<CMAKE_LINKER> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
 set(CMAKE_CXX_LINK_EXECUTABLE
-    "<CMAKE_LINKER> <LINK_FLAGS> <OBJECTS> -o <TARGET> -L${CMAKE_SYSROOT}/usr/lib <LINK_LIBRARIES>"
-)
+    "<CMAKE_LINKER> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
 
 set(CMAKE_C_FLAGS "-ffreestanding -nostdlib -D_GNU_SOURCE")
 set(CMAKE_CXX_FLAGS
-    "-ffreestanding -nostdlib -fno-rtti -fno-exceptions -D_GNU_SOURCE -isystem ${LIBCXX_PREFIX}/include/c++/v1"
-)
+    "-ffreestanding -nostdlib -fno-rtti -fno-exceptions -D_GNU_SOURCE")
 
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)

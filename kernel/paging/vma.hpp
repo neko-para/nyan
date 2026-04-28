@@ -20,6 +20,19 @@ struct VMA {
     std::string_view __name;
 
     bool contains(VirtualAddress addr) const noexcept { return __begin <= addr && addr < __end; }
+
+    void alloc(UserDirectory& pageDir) noexcept {
+        for (auto page = __begin; page != __end; page = page.nextPage()) {
+            pageDir.ensure(page.tableLoc(), PDE_User | PDE_ReadWrite | PDE_Present);
+            pageDir.with(page.tableLoc(), [&](Table* table) {
+                auto attr = PTE_User | PTE_Present;
+                if (__protect & PROT_WRITE) {
+                    attr |= PTE_ReadWrite;
+                }
+                table->alloc(page, attr);
+            });
+        }
+    }
 };
 
 struct VMSpace {

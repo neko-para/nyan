@@ -26,13 +26,18 @@ ssize_t TtyObj::write(const void* buf, size_t size) noexcept {
 
 int TtyObj::ioctl(uint32_t req, uint32_t param) noexcept {
     switch (req) {
-        case TIOCSPGRP:
-            if (param && !task::findTask(param)) {
+        case TIOCSPGRP: {
+            if (!param) {
+                return -SYS_EFAULT;
+            }
+            auto pid = *reinterpret_cast<pid_t*>(param);
+            if (pid && !task::findTask(pid)) {
                 return -SYS_EINVAL;
             }
             // TODO: check same session
             tty->foregroundPid = param;
             return 0;
+        }
         case TIOCGWINSZ:
             winsize* ptr = reinterpret_cast<winsize*>(param);
             if (!ptr) {

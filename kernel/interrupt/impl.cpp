@@ -64,6 +64,16 @@ void exceptionHandlerImpl(SyscallFrame* frame) {
                 arch::kprint("Page Fault: {#010x} {}\n", arch::cr2(), frame->error_code);
                 arch::kprint("  pid {}\n", task::currentTask->pid);
                 arch::kprint("  eip {#010x}\n", frame->eip);
+                if (frame->error_code & PF_Present) {
+                    arch::kputs("Present ");
+                }
+                if (frame->error_code & PF_Write) {
+                    arch::kputs("Write ");
+                }
+                if (frame->error_code & PF_User) {
+                    arch::kputs("User ");
+                }
+                arch::kput('\n');
                 task::sendSignal(task::currentTask, SIGSEGV);
                 break;
             }

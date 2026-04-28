@@ -1,0 +1,21 @@
+set(CMAKE_SYSTEM_NAME Linux)
+set(CMAKE_SYSTEM_PROCESSOR x86)
+
+set(TOOL_PREFIX /opt/llvm-22)
+
+set(CMAKE_SYSROOT ${CMAKE_CURRENT_LIST_DIR}/../sysroot)
+
+set(CMAKE_C_COMPILER_TARGET i686-unknown-linux-musl)
+set(CMAKE_C_COMPILER ${TOOL_PREFIX}/bin/clang)
+set(CMAKE_CXX_COMPILER_TARGET i686-unknown-linux-musl)
+set(CMAKE_CXX_COMPILER ${TOOL_PREFIX}/bin/clang++)
+set(CMAKE_ASM_COMPILER_TARGET i686-unknown-linux-musl)
+set(CMAKE_ASM_COMPILER ${TOOL_PREFIX}/bin/clang)
+set(CMAKE_OBJCOPY ${TOOL_PREFIX}/bin/llvm-objcopy)
+
+set(CMAKE_C_FLAGS "-D_GNU_SOURCE")
+set(CMAKE_CXX_FLAGS "-D_GNU_SOURCE")
+set(CMAKE_EXE_LINKER_FLAGS
+    "-lc++abi -resource-dir ${CMAKE_SYSROOT}/usr -static")
+
+set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
