@@ -22,13 +22,14 @@ void exceptionHandlerImpl(SyscallFrame* frame) {
             break;
 
         case E_GeneralProtectionFault:
+            arch::kprint("General Protection Fault: selector {#4x}\n  pid {}\n  eip {#010x}\n", frame->error_code,
+                         task::currentTask->pid, frame->eip);
             if (gdt::isRing3(frame->cs)) {
                 task::sendSignal(task::currentTask, SIGSEGV);
                 break;
             }
 
-            arch::kfatal("General Protection Fault: selector {#4x}\n  pid {}\n  eip {#010x}\n", frame->error_code,
-                         task::currentTask->pid, frame->eip);
+            arch::kfatal();
             break;
 
         case E_PageFault: {
@@ -60,6 +61,9 @@ void exceptionHandlerImpl(SyscallFrame* frame) {
                     }
                 }
 
+                arch::kprint("Page Fault: {#010x} {}\n", arch::cr2(), frame->error_code);
+                arch::kprint("  pid {}\n", task::currentTask->pid);
+                arch::kprint("  eip {#010x}\n", frame->eip);
                 task::sendSignal(task::currentTask, SIGSEGV);
                 break;
             }

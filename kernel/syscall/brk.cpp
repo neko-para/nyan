@@ -25,7 +25,7 @@ void* brk(const void* addr) {
 
     auto& vmSpace = task::currentTask->vmSpace;
 
-    if (auto vma = vmSpace.find_exactly(task::currentTask->brkBase); vma == vmSpace.__addrs.end()) {
+    if (auto vma = vmSpace.find_name("brk"); vma == vmSpace.__addrs.end()) {
         vmSpace.insert(paging::VMA{
             task::currentTask->brkBase,
             wantPage.nextPage(),

@@ -70,6 +70,10 @@ struct VMSpace {
         }
     }
 
+    std::vector<VMA>::iterator find_name(std::string_view name) noexcept {
+        return std::find_if(__addrs.begin(), __addrs.end(), [&](const VMA& vma) { return vma.__name == name; });
+    }
+
     bool insert(const VMA& vma) noexcept {
         auto pos = std::lower_bound(__addrs.begin(), __addrs.end(), vma,
                                     [](const VMA& item, const VMA& vma) { return item.__begin < vma.__begin; });

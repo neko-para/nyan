@@ -35,7 +35,8 @@ static int consoleDeamon(void* param) {
 
         int stat = 0;
         syscall::waitpid(pid, &stat, 0);
-        tty->print("\ntty {}: shell exited, stat {} exit code {}\n", id, stat, WEXITSTATUS(stat));
+        tty->print("\ntty {}: shell exited, stat {} exit code {} signal {}\n", id, stat, WEXITSTATUS(stat),
+                   WTERMSIG(stat));
     }
 }
 
