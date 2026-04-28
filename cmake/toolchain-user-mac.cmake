@@ -15,5 +15,7 @@ set(CMAKE_OBJCOPY ${TOOL_PREFIX}/bin/llvm-objcopy)
 
 set(CMAKE_C_FLAGS "-D_GNU_SOURCE")
 set(CMAKE_CXX_FLAGS "-D_GNU_SOURCE")
+set(CMAKE_EXE_LINKER_FLAGS
+    "-lc++abi -resource-dir ${CMAKE_SYSROOT}/usr -static")
 
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)

@@ -1,83 +1,78 @@
-#include <stdio.h>
-#include <string.h>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
+
 #include <sys/wait.h>
 #include <unistd.h>
 
-bool readline(char* buf, size_t len) {
-    if (fgets(buf, len, stdin)) {
-        buf[strlen(buf) - 1] = 0;
-        return true;
-    } else {
-        return false;
+std::vector<std::string> parseArgs(const std::string& line) {
+    std::vector<std::string> args;
+    std::istringstream iss(line);
+    std::string token;
+    while (iss >> token) {
+        args.push_back(std::move(token));
     }
+    return args;
 }
 
-void processArgv(char** argv, char* buf) {
-    while (*buf) {
-        if (*buf == ' ') {
-            buf++;
-            continue;
-        }
-        *argv++ = buf;
-        char* next = strchr(buf, ' ');
-        if (!next) {
-            break;
-        }
-        *next++ = 0;
-        buf = next;
+std::vector<char*> toCArgv(std::vector<std::string>& args) {
+    std::vector<char*> argv;
+    for (auto& arg : args) {
+        argv.push_back(arg.data());
     }
-    *argv = 0;
+    argv.push_back(nullptr);
+    return argv;
 }
 
 int main() {
-    char buf[256];
-    fputs("> ", stdout);
-    fflush(stdout);
-    while (readline(buf, 255)) {
-        if (!strcmp(buf, "exit")) {
+    std::string line;
+    std::cout << "> " << std::flush;
+    while (std::getline(std::cin, line)) {
+        if (line == "exit") {
             break;
-        } else {
-            char* argv[128];
-            processArgv(argv, buf);
-            if (!argv[0]) {
-                fputs("\n> ", stdout);
-                fflush(stdout);
-                continue;
-            }
-            if (!strcmp(argv[0], "exec")) {
-                if (argv[1]) {
-                    if (execve(argv[1], argv + 1, 0) < 0) {
-                        fputs("launch failed\n\n> ", stdout);
-                        fflush(stdout);
-                        continue;
-                    }
-                } else {
-                    fputs("\n> ", stdout);
-                    fflush(stdout);
+        }
+
+        auto args = parseArgs(line);
+        if (args.empty()) {
+            std::cout << "\n> " << std::flush;
+            continue;
+        }
+
+        if (args[0] == "exec") {
+            if (args.size() > 1) {
+                auto execArgs = std::vector<std::string>(args.begin() + 1, args.end());
+                auto argv = toCArgv(execArgs);
+                if (execve(argv[0], argv.data(), nullptr) < 0) {
+                    std::cout << "launch failed\n\n> " << std::flush;
                     continue;
                 }
-            }
-
-            if (auto pid = fork()) {
-                tcsetpgrp(0, pid);
-                int stat;
-                if (pid == waitpid(pid, &stat, 0)) {
-                    if (WIFEXITED(stat)) {
-                        printf("exit with %d\n", WEXITSTATUS(stat));
-                    } else {
-                        printf("signal with %d\n", WTERMSIG(stat));
-                    }
-                } else {
-                    fputs("wait failed\n", stdout);
-                }
-                tcsetpgrp(0, getpid());
             } else {
-                execve(argv[0], argv, 0);
-                fputs("launch failed\n", stdout);
+                std::cout << "\n> " << std::flush;
+                continue;
             }
         }
-        fputs("\n> ", stdout);
-        fflush(stdout);
+
+        auto argv = toCArgv(args);
+        if (auto pid = fork()) {
+            tcsetpgrp(0, pid);
+            int stat;
+            if (pid == waitpid(pid, &stat, 0)) {
+                if (WIFEXITED(stat)) {
+                    std::cout << "exit with " << WEXITSTATUS(stat) << "\n";
+                } else {
+                    std::cout << "signal with " << WTERMSIG(stat) << "\n";
+                }
+            } else {
+                std::cout << "wait failed\n";
+            }
+            tcsetpgrp(0, getpid());
+        } else {
+            execve(argv[0], argv.data(), nullptr);
+            std::cout << "launch failed\n";
+        }
+
+        std::cout << "\n> " << std::flush;
     }
     return 0;
 }
