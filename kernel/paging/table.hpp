@@ -4,6 +4,7 @@
 #include <algorithm>
 
 #include "../allocator/alloc.hpp"
+#include "../arch/print.hpp"
 #include "address.hpp"
 #include "entry.hpp"
 
@@ -44,12 +45,13 @@ struct alignas(4096) Table {
         return physicalAddr;
     }
 
-    void free() noexcept {
+    void freeDangling() noexcept {
         for (size_t i = 0; i < 1024; i++) {
             if (!(data[i] & PTE_Present)) {
                 continue;
             }
-            allocator::physicalFrameRelease(PhysicalAddress{data[i]}.thisPage());
+            arch::kprint("dangling page detected, {} - {}\n", i, at(i).addr);
+            allocator::physicalFrameRelease(at(i));
         }
     }
 
@@ -58,6 +60,7 @@ struct alignas(4096) Table {
         if (isPresent(loc)) {
             allocator::physicalFrameRelease(at(loc));
             data[loc] = 0;
+            addr.invlpg();
         }
     }
 };

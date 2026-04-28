@@ -54,8 +54,7 @@ void exceptionHandlerImpl(SyscallFrame* frame) {
                         auto pageDir = paging::UserDirectory::from(task::currentTask->cr3);
                         while (next->__begin > targetAddr) {
                             next->__begin = next->__begin.prevPage();
-                            auto guard = pageDir.alloc(next->__begin, true);
-                            memset(guard.as<void>(), 0, 4096);
+                            pageDir.alloc(next->__begin, true);
                         }
                         break;
                     }

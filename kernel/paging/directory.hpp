@@ -109,20 +109,20 @@ struct UserDirectory {
         return func(mapper.as<Table>());
     }
 
-    void free() {
-        for (size_t i = 0; i < 768; i++) {
-            if (!data()->isPresent(i)) {
-                continue;
-            }
-            with(i, [](Table* table) { table->free(); });
-            allocator::physicalFrameRelease(data()->at(i));
-        }
-    }
-
     void freePage(VirtualAddress addr) {
         auto loc = addr.tableLoc();
         if (data()->isPresent(loc)) {
             with(loc, [addr](Table* table) { table->freePage(addr); });
+        }
+    }
+
+    void freePageTables() {
+        for (uint16_t i = 0; i < 768; i++) {
+            if (data()->isPresent(i)) {
+                with(i, [](Table* table) { table->freeDangling(); });
+                allocator::physicalFrameRelease(data()->at(i));
+                data()->data[i] = 0;
+            }
         }
     }
 

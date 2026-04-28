@@ -235,10 +235,11 @@ void execTask(uint8_t* file, size_t size, const char* const* argv, interrupt::Sy
     std::string name = lib::format("elf_{}", argv[0] ? argv[0] : "unknown");
     argv = nullptr;
 
-    if (auto oldCr3 = tcb->cr3; oldCr3 != paging::kernelPageDirectory.cr3()) {
-        auto oldPageDir = paging::UserDirectory::from(oldCr3);
-        tcb->vmSpace.free(oldPageDir);
-        allocator::physicalFrameRelease(oldCr3);
+    if (auto cr3 = tcb->cr3; cr3 != paging::kernelPageDirectory.cr3()) {
+        auto userPage = paging::UserDirectory::from(cr3);
+        tcb->vmSpace.free(userPage);
+        userPage.freePageTables();
+        allocator::physicalFrameRelease(cr3);
     } else {
         arch::kprint("perform exec on system task!\n");
     }
@@ -412,6 +413,7 @@ bool freeTask(pid_t pid, int* stat) {
     if (task->cr3 != paging::kernelPageDirectory.cr3()) {
         auto userPage = paging::UserDirectory::from(task->cr3);
         task->vmSpace.free(userPage);
+        userPage.freePageTables();
         allocator::physicalFrameRelease(task->cr3);
     }
 

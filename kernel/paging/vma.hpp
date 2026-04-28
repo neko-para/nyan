@@ -98,7 +98,11 @@ struct VMSpace {
         std::vector<VMA>::const_iterator next;
         auto pos = find(hint, next);
         if (pos == __addrs.end()) {
-            pos = std::prev(next);
+            if (next != __addrs.begin()) {
+                pos = std::prev(next);
+            } else {
+                pos = next;
+            }
         }
         while (pos != __addrs.end()) {
             if (pos->__end >= 0xC0000000_va) {
@@ -113,7 +117,7 @@ struct VMSpace {
 
             auto rest = next->__begin - pos->__end;
             if (rest >= size) {
-                return pos->__begin;
+                return pos->__end;
             } else {
                 pos = next;
             }
@@ -200,7 +204,7 @@ struct VMSpace {
                 for (auto it = first_to_remove; it != last_to_remove; it++) {
                     __release_range(it->__begin, it->__end, pageDir);
                 }
-                __addrs.erase(first_to_remove);
+                __addrs.erase(first_to_remove, last_to_remove);
             }
 
             return true;
