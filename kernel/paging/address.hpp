@@ -60,6 +60,7 @@ struct VirtualAddress : public BaseAddress<VirtualAddress> {
 
     void invlpg() const noexcept { arch::invlpg(addr); }
     constexpr uint16_t tableLoc() const noexcept { return addr >> 22; }
+    constexpr uint16_t tablePageLoc() const noexcept { return (addr >> 12) & 0x3FF; }
 
     template <typename T>
     T* as() const noexcept {

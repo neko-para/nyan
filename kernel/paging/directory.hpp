@@ -119,6 +119,13 @@ struct UserDirectory {
         }
     }
 
+    void freePage(VirtualAddress addr) {
+        auto loc = addr.tableLoc();
+        if (data()->isPresent(loc)) {
+            with(loc, [addr](Table* table) { table->freePage(addr); });
+        }
+    }
+
     MapperGuard alloc(VirtualAddress addr, bool writable);
     bool handleCOW(VirtualAddress addr) noexcept;
 };

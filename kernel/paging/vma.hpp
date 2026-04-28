@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "address.hpp"
+#include "directory.hpp"
 
 namespace nyan::paging {
 
@@ -23,6 +24,21 @@ struct VMSpace {
     std::vector<VMA> __addrs;
 
     std::vector<VMA>::iterator find(VirtualAddress addr, std::vector<VMA>::iterator& pos) noexcept {
+        pos = std::upper_bound(__addrs.begin(), __addrs.end(), addr,
+                               [](const VirtualAddress& addr, const VMA& item) { return addr < item.__end; });
+
+        if (pos == __addrs.end()) {
+            return pos;
+        }
+
+        if (pos->contains(addr)) {
+            return pos;
+        } else {
+            return __addrs.end();
+        }
+    }
+
+    std::vector<VMA>::const_iterator find(VirtualAddress addr, std::vector<VMA>::const_iterator& pos) const noexcept {
         pos = std::upper_bound(__addrs.begin(), __addrs.end(), addr,
                                [](const VirtualAddress& addr, const VMA& item) { return addr < item.__end; });
 
@@ -71,6 +87,124 @@ struct VMSpace {
 
         __addrs.insert(pos, vma);
         return true;
+    }
+
+    std::optional<VirtualAddress> find_free(size_t size, VirtualAddress hint = 0x40000000_va) const noexcept {
+        if (hint >= 0xC0000000_va) {
+            return std::nullopt;
+        } else if (hint < 0x00400000_va) {
+            hint = 0x00400000_va;
+        }
+        std::vector<VMA>::const_iterator next;
+        auto pos = find(hint, next);
+        if (pos == __addrs.end()) {
+            pos = std::prev(next);
+        }
+        while (pos != __addrs.end()) {
+            if (pos->__end >= 0xC0000000_va) {
+                return std::nullopt;
+            }
+
+            auto next = std::next(pos);
+            if (next == __addrs.end()) {
+                // 一定会被stack夹住, 不可能没有next
+                return std::nullopt;
+            }
+
+            auto rest = next->__begin - pos->__end;
+            if (rest >= size) {
+                return pos->__begin;
+            } else {
+                pos = next;
+            }
+        }
+        return std::nullopt;
+    }
+
+    void __release_range(VirtualAddress begin, VirtualAddress end, UserDirectory& pageDir) {
+        while (begin != end) {
+            pageDir.freePage(begin);
+            begin = begin.nextPage();
+        }
+    }
+
+    bool erase(VirtualAddress addr, size_t size, UserDirectory& pageDir) {
+        std::vector<VMA>::iterator next;
+        auto left = find(addr, next);
+        if (left == __addrs.end()) {
+            if (next == __addrs.end()) {
+                return true;
+            }
+            left = next;
+        }
+
+        auto right = find(addr + size - 1, next);
+        if (right == __addrs.end()) {
+            if (next == __addrs.begin()) {
+                return true;
+            }
+            right = std::prev(next);
+        }
+
+        auto lower = addr;
+        auto upper = addr + size;
+
+        if (left > right) {
+            return true;
+        } else if (left == right) {
+            // 仅影响这一页
+            if (left->__begin >= lower) {
+                if (left->__end <= upper) {
+                    __release_range(left->__begin, left->__end, pageDir);
+                    __addrs.erase(left);
+                    return true;
+                } else {
+                    __release_range(left->__begin, upper, pageDir);
+                    left->__begin = upper;
+                    return true;
+                }
+            } else if (left->__end <= upper) {
+                __release_range(lower, left->__end, pageDir);
+                left->__end = lower;
+                return true;
+            } else {
+                __release_range(lower, upper, pageDir);
+                VMA vma = {
+                    left->__begin,
+                    lower,
+                    left->__flags & (~MAP_GROWSDOWN),
+                    left->__protect,
+                };
+                left->__begin = upper;
+                __addrs.insert(left, vma);
+                return true;
+            }
+        } else {
+            // 影响若干页
+            auto first_to_remove = left;
+            auto last_to_remove = right;
+            if (left->__begin < lower) {
+                __release_range(lower, left->__end, pageDir);
+                left->__end = lower;
+                first_to_remove = std::next(first_to_remove);
+            }
+
+            if (right->__end > upper) {
+                __release_range(right->__begin, upper, pageDir);
+                right->__begin = upper;
+                last_to_remove = std::prev(right);
+            }
+
+            if (first_to_remove <= last_to_remove) {
+                last_to_remove = std::next(last_to_remove);
+                for (auto it = first_to_remove; it != last_to_remove; it++) {
+                    __release_range(it->__begin, it->__end, pageDir);
+                }
+                __addrs.erase(first_to_remove);
+            }
+
+            return true;
+        }
     }
 };
 

@@ -52,6 +52,14 @@ struct alignas(4096) Table {
             allocator::physicalFrameRelease(PhysicalAddress{data[i]}.thisPage());
         }
     }
+
+    void freePage(VirtualAddress addr) {
+        auto loc = addr.tablePageLoc();
+        if (isPresent(loc)) {
+            allocator::physicalFrameRelease(at(loc));
+            data[loc] = 0;
+        }
+    }
 };
 
 }  // namespace nyan::paging
