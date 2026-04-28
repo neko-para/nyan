@@ -8,7 +8,7 @@
 
 namespace nyan::allocator {
 
-constexpr uint32_t frameBase = 0xC0400000;
+constexpr uint32_t frameBase = 0xC0800000;
 constexpr uint32_t frameTop = 0xFFFFF000;
 
 constexpr uint32_t frameCount = (frameTop - frameBase) >> 12;
