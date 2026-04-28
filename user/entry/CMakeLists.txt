@@ -2,7 +2,7 @@ set(USER_PROGRAM_OBJECTS "")
 set(USER_PROGRAM_TARGETS "")
 
 set(CMAKE_CXX_LINK_EXECUTABLE
-    "<CMAKE_LINKER> <LINK_FLAGS> ${CMAKE_SYSROOT}/usr/lib/crt1.o ${CMAKE_SYSROOT}/usr/lib/crti.o <OBJECTS> ${CMAKE_SYSROOT}/usr/lib/crtn.o -o <TARGET> -L${CMAKE_SYSROOT}/usr/lib <LINK_LIBRARIES>"
+    "<CMAKE_LINKER> <LINK_FLAGS> ${CMAKE_SYSROOT}/usr/lib/crt1.o ${CMAKE_SYSROOT}/usr/lib/crti.o <OBJECTS> ${CMAKE_SYSROOT}/usr/lib/crtn.o -o <TARGET> -L${CMAKE_SYSROOT}/usr/lib -L${CMAKE_SYSROOT}/usr/lib/linux <LINK_LIBRARIES>"
 )
 
 function(add_user_program NAME SOURCE)

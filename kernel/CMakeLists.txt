@@ -14,9 +14,16 @@ set_target_properties(kernel PROPERTIES LINK_DEPENDS
 
 target_compile_options(kernel PRIVATE -g -Wall -Wextra)
 target_compile_definitions(kernel PRIVATE __BUILDING_NYAN__)
+target_include_directories(
+  kernel SYSTEM BEFORE
+  PRIVATE ${CMAKE_CURRENT_LIST_DIR}/runtime
+          ${CMAKE_CURRENT_LIST_DIR}/../sysroot/usr/include/c++/v1)
+target_link_directories(kernel PRIVATE
+                        ${CMAKE_CURRENT_LIST_DIR}/../sysroot/usr/lib/generic)
 
 target_link_options(kernel PRIVATE -T ${CMAKE_CURRENT_LIST_DIR}/linker.ld)
-target_link_libraries(kernel PRIVATE kernel_header kernel_embed clang_rt.builtins-i386)
+target_link_libraries(kernel PRIVATE kernel_header kernel_embed
+                                     clang_rt.builtins-i386)
 
 if(NYAN_ENABLE_OPTIMIZE)
   target_compile_options(
