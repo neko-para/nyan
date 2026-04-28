@@ -3,6 +3,7 @@
 #include <nyan/errno.h>
 #include <nyan/types.h>
 #include <signal.h>
+#include <stdint.h>
 #include <sys/types.h>
 #include <sys/uio.h>
 

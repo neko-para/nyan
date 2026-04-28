@@ -1,7 +1,7 @@
 #pragma once
 
-#include <stddef.h>
 #include <stdint.h>
+#include <sys/types.h>
 
 namespace nyan::boot {
 

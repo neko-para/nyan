@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>
 #include <sys/types.h>
 
 #include "../lib/format.hpp"

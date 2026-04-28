@@ -1,6 +1,7 @@
 #pragma once
 
 #include <signal.h>
+#include <stdint.h>
 #include <sys/types.h>
 #include <array>
 #include <memory>

@@ -1,5 +1,8 @@
 #pragma once
 
+#include <stdint.h>
+#include <sys/types.h>
+
 #include "../fs/file.hpp"
 #include "forward.hpp"
 

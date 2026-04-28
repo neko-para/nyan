@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>
 #include <sys/types.h>
 
 #define SYS_EPERM 1

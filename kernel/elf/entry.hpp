@@ -2,8 +2,8 @@
 
 // TODO: use <elf.h>
 
-#include <stddef.h>
 #include <stdint.h>
+#include <sys/types.h>
 
 namespace nyan::elf {
 

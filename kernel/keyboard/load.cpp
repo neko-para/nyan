@@ -1,5 +1,6 @@
 #include "load.hpp"
 
+#include <stdint.h>
 #include <sys/types.h>
 
 #include "../arch/port.hpp"
