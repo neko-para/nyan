@@ -82,7 +82,7 @@ async function handleEntry(entry: Entry) {
     const prefix = chalk.dim(entryPrefix(entry.payload))
     if (isLogEntry(entry)) {
         const info = await queryAddr(binaryPath, entry.payload.eip)
-        console.log(`${prefix} ${info} ${chalk.bold(entry.content.trim())}`)
+        console.log(`${prefix} ${chalk.dim(info)} ${chalk.bold(entry.content.trim())}`)
     } else if (isSyscallEntry(entry)) {
         const def = syscallTable[entry.content.id]
         if (!def) {

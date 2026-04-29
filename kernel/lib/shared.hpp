@@ -8,16 +8,16 @@
 namespace nyan::lib {
 
 struct Shared {
-    int32_t ref_count{1};
+    int32_t __ref_count{1};
 
     Shared() = default;
     Shared(const Shared&) = delete;
     virtual ~Shared() = default;
     Shared& operator=(const Shared&) = delete;
 
-    void ref() noexcept { ref_count++; }
+    void ref() noexcept { __ref_count++; }
     void unref() noexcept {
-        if (!--ref_count) {
+        if (!--__ref_count) {
             release();
         }
     }
@@ -25,8 +25,9 @@ struct Shared {
 };
 
 template <typename T>
-    requires std::is_base_of_v<Shared, T>
 struct Ref {
+    static_assert(std::is_base_of_v<Shared, T>);
+
     T* ptr{};
 
     Ref() noexcept = default;

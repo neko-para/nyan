@@ -6,6 +6,7 @@
 #include "arch/sse.hpp"
 #include "boot/multiboot.hpp"
 #include "console/load.hpp"
+#include "fs/load.hpp"
 #include "gdt/load.hpp"
 #include "interrupt/load.hpp"
 #include "keyboard/load.hpp"
@@ -53,6 +54,8 @@ extern "C" void kmain(boot::BootInfo* info) {
     keyboard::load();
 
     task::load();
+
+    fs::load();
 
     arch::kprint("kernel end {#010x}\n", paging::VirtualAddress(&_end).kernelToPhysical().addr);
     if (paging::VirtualAddress(&_end).kernelToPhysical() >= 0x00800000_pa) {
