@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export PATH=/opt/llvm-22/bin:$PATH
+
 PROJ_ROOT="`dirname "$0"`/.."
 PROJ_ROOT="`realpath "$PROJ_ROOT"`"
 LOG_FILE="${PROJ_ROOT}/scripts/nyan.log"
