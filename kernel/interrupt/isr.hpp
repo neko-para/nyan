@@ -66,6 +66,8 @@ enum Exception {
     E_VMMCommunicationException,
     E_SecurityException,
 
+    E_LastException = E_SecurityException,
+
     I_Timer = 32,
     I_Keyboard = 33,
     I_Syscall = 128,

@@ -13,6 +13,7 @@ import {
     type SyscallArgs,
     type SyscallContent,
     SyscallRole,
+    isExceptionEntry,
     isLogEntry,
     isSyscallEntry
 } from './types.ts'
@@ -81,7 +82,7 @@ async function handleEntry(entry: Entry) {
     const prefix = chalk.dim(entryPrefix(entry.payload))
     if (isLogEntry(entry)) {
         const info = await queryAddr(binaryPath, entry.payload.eip)
-        console.log(`${prefix} ${info} ${chalk.bold(entry.log.trim())}`)
+        console.log(`${prefix} ${info} ${chalk.bold(entry.content.trim())}`)
     } else if (isSyscallEntry(entry)) {
         const def = syscallTable[entry.content.eax]
         if (!def) {
@@ -113,6 +114,40 @@ async function handleEntry(entry: Entry) {
                     `${prefix} ${def.name}(${buildCall(def.args, entry.content)}) = ${formatReturn(entry.content.ret, def.ret)} ${duration}`
                 )
             }
+        }
+    } else if (isExceptionEntry(entry)) {
+        // TODO: support track addr for user addr
+        switch (entry.content.num) {
+            case 13: {
+                const { errcode: sel, eip } = entry.content
+                // GPF
+                console.log(
+                    `${prefix} ${chalk.bold('#GPF')} sel=${formatValue(sel, 'flags')} eip=${formatValue(eip, 'ptr')}`
+                )
+                break
+            }
+            case 14: {
+                // PF
+                const { errcode: flags, eip, cr2 } = entry.content
+                let type = ''
+                if (flags & 1) {
+                    type += 'P'
+                }
+                if (flags & 2) {
+                    type += 'W'
+                }
+                if (flags & 4) {
+                    type += 'U'
+                }
+                console.log(
+                    `${prefix} ${chalk.bold('#PF')} ${type.trim()} addr=${formatValue(cr2, 'ptr')} eip=${formatValue(eip, 'ptr')}`
+                )
+                break
+            }
+            default:
+                console.log(
+                    `${prefix} ${chalk.bold(`#${entry.content.num}`)} eip=${formatValue(entry.content.eip, 'ptr')}`
+                )
         }
     }
 }

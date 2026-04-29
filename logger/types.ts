@@ -1,6 +1,7 @@
 export const Type = {
     T_Log: 0,
-    T_Syscall: 1
+    T_Syscall: 1,
+    T_Exception: 2
 } as const
 export type Type = typeof Type
 export type TypeVal = Type[keyof Type]
@@ -36,6 +37,9 @@ export type Payload = {
           type: Type['T_Syscall']
           syscallRole: SyscallRoleVal
       }
+    | {
+          type: Type['T_Exception']
+      }
 )
 
 export type SyscallArgs = [number, number, number, number, number, number]
@@ -46,15 +50,22 @@ export type SyscallContent = {
     args: SyscallArgs
 }
 
+export type ExceptionContent = {
+    num: number
+    errcode: number
+    cs: number
+    eip: number
+    cr2: number
+}
+
 export type Entry = {
     payload: Payload
-    log?: string
-    content?: SyscallContent
+    content?: string | SyscallContent | ExceptionContent
 }
 
 export function isLogEntry(entry: Entry): entry is {
     payload: Payload & { type: Type['T_Log'] }
-    log: string
+    content: string
 } {
     return entry.payload.type === Type.T_Log
 }
@@ -64,4 +75,11 @@ export function isSyscallEntry(entry: Entry): entry is {
     content: SyscallContent
 } {
     return entry.payload.type === Type.T_Syscall
+}
+
+export function isExceptionEntry(entry: Entry): entry is {
+    payload: Payload & { type: Type['T_Exception'] }
+    content: ExceptionContent
+} {
+    return entry.payload.type === Type.T_Exception
 }

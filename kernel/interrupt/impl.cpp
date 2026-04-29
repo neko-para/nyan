@@ -16,14 +16,19 @@
 namespace nyan::interrupt {
 
 void exceptionHandlerImpl(SyscallFrame* frame) {
+    if (frame->isr_num <= E_LastException) {
+        logger::ExceptionContent content = {
+            frame->isr_num, frame->error_code, frame->cs, frame->eip, arch::cr2(),
+        };
+        logger::emitException(0, content);
+    }
+
     switch (frame->isr_num) {
         case E_Breakpoint:
             task::sendSignal(task::currentTask, SIGTRAP);
             break;
 
         case E_GeneralProtectionFault:
-            arch::kprint("General Protection Fault: selector {#4x}\n  pid {}\n  eip {#010x}\n", frame->error_code,
-                         task::currentTask->pid, frame->eip);
             if (gdt::isRing3(frame->cs)) {
                 task::sendSignal(task::currentTask, SIGSEGV);
                 break;
@@ -61,34 +66,10 @@ void exceptionHandlerImpl(SyscallFrame* frame) {
                     }
                 }
 
-                arch::kprint("Page Fault: {#010x} {}\n", arch::cr2(), frame->error_code);
-                arch::kprint("  pid {}\n", task::currentTask->pid);
-                arch::kprint("  eip {#010x}\n", frame->eip);
-                if (frame->error_code & PF_Present) {
-                    arch::kprint("Present ");
-                }
-                if (frame->error_code & PF_Write) {
-                    arch::kprint("Write ");
-                }
-                if (frame->error_code & PF_User) {
-                    arch::kprint("User ");
-                }
                 task::sendSignal(task::currentTask, SIGSEGV);
                 break;
             }
 
-            arch::kprint("Page Fault: {#010x} {}\n", arch::cr2(), frame->error_code);
-            arch::kprint("  pid {}\n", task::currentTask->pid);
-            arch::kprint("  eip {#010x}\n", frame->eip);
-            if (frame->error_code & PF_Present) {
-                arch::kprint("Present ");
-            }
-            if (frame->error_code & PF_Write) {
-                arch::kprint("Write ");
-            }
-            if (frame->error_code & PF_User) {
-                arch::kprint("User ");
-            }
             arch::kfatal();
         }
 
@@ -109,8 +90,7 @@ void exceptionHandlerImpl(SyscallFrame* frame) {
             break;
 
         default:
-            arch::kfatal("Exception {}: code {}\n  pid {}\n  eip {#010x}\n", frame->isr_num, frame->error_code,
-                         task::currentTask->pid, frame->eip);
+            arch::kfatal();
     }
 
     if (gdt::isRing3(frame->cs)) {

@@ -24,7 +24,6 @@ export function* parse(buffer: Buffer): Generator<Entry | null, void, Buffer | n
     }
 
     for (;;) {
-        // 等待足够的 header 数据
         if (!(yield* waitForData(16))) return
 
         switch (buffer.readUint8(ptr + 14) as TypeVal) {
@@ -38,11 +37,10 @@ export function* parse(buffer: Buffer): Generator<Entry | null, void, Buffer | n
                     logLevel: buffer.readUint8(ptr + 15) as LogLevelVal
                 }
                 ptr += 16
-                // 等待足够的 payload 数据
                 if (!(yield* waitForData(payload.len))) return
                 yield {
                     payload,
-                    log: buffer.subarray(ptr, ptr + payload.len).toString()
+                    content: buffer.subarray(ptr, ptr + payload.len).toString()
                 }
                 ptr += payload.len
                 break
@@ -57,7 +55,6 @@ export function* parse(buffer: Buffer): Generator<Entry | null, void, Buffer | n
                     syscallRole: buffer.readUint8(ptr + 15) as SyscallRoleVal
                 }
                 ptr += 16
-                // 等待足够的 payload 数据
                 if (!(yield* waitForData(payload.len))) return
                 yield {
                     payload,
@@ -77,9 +74,37 @@ export function* parse(buffer: Buffer): Generator<Entry | null, void, Buffer | n
                 ptr += payload.len
                 break
             }
-            default:
+            case Type.T_Exception: {
+                const payload: Payload = {
+                    ts: buffer.readUint32LE(ptr),
+                    eip: buffer.readUint32LE(ptr + 4),
+                    pid: buffer.readInt32LE(ptr + 8),
+                    len: buffer.readUint16LE(ptr + 12),
+                    type: Type.T_Exception
+                }
+                ptr += 16
+                if (!(yield* waitForData(payload.len))) return
+                yield {
+                    payload,
+                    content: {
+                        num: buffer.readUint32LE(ptr),
+                        errcode: buffer.readUint32LE(ptr + 4),
+                        cs: buffer.readUint32LE(ptr + 8),
+                        eip: buffer.readUint32LE(ptr + 16),
+                        cr2: buffer.readUint32LE(ptr + 12)
+                    }
+                }
+                ptr += payload.len
+                break
+            }
+            default: {
                 console.log('unknown type', buffer.readUint8(ptr + 14))
-                return
+                const len = buffer.readUint16LE(ptr + 12)
+                ptr += 16
+                if (!(yield* waitForData(len))) return
+                ptr += len
+                break
+            }
         }
     }
 }

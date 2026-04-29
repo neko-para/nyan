@@ -7,6 +7,7 @@ namespace nyan::logger {
 enum Type : uint8_t {
     T_Log,
     T_Syscall,
+    T_Exception,
 };
 
 enum LogLevel : uint8_t {
@@ -43,6 +44,14 @@ struct SyscallContent {
     uint32_t esi;
     uint32_t edi;
     uint32_t ebp;
+};
+
+struct ExceptionContent {
+    uint32_t num;
+    uint32_t errcode;
+    uint32_t cs;
+    uint32_t eip;
+    uint32_t cr2;
 };
 
 }  // namespace nyan::logger
