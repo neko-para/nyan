@@ -46,7 +46,7 @@ export type SyscallArgs = [number, number, number, number, number, number]
 
 export type SyscallContent = {
     ret: number
-    eax: number
+    id: number
     args: SyscallArgs
 }
 

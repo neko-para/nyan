@@ -13,6 +13,7 @@ void* mmap2(void* addr, size_t length, int prot, int flags, int, uint32_t) {
         if (length == 0) {
             return reinterpret_cast<void*>(-SYS_EINVAL);
         }
+        length = (length + 0xFFF) & (~0xFFF);
         auto begin = paging::VirtualAddress{addr};
         if (begin.thisPage() != begin) {
             return reinterpret_cast<void*>(-SYS_EINVAL);
@@ -20,7 +21,7 @@ void* mmap2(void* addr, size_t length, int prot, int flags, int, uint32_t) {
         auto pageDir = paging::UserDirectory::from(task::currentTask->cr3);
         task::currentTask->vmSpace.erase(begin, length, pageDir);
         auto place = task::currentTask->vmSpace.find_free(length, begin);
-        if (*place != begin) {
+        if (!place || *place != begin) {
             arch::kprint("mmap2 fixed failed, want {#10x}\n", begin.addr);
             task::currentTask->vmSpace.dump();
             return reinterpret_cast<void*>(-SYS_ENOMEM);
@@ -41,7 +42,7 @@ void* mmap2(void* addr, size_t length, int prot, int flags, int, uint32_t) {
         }
         length = (length + 0xFFF) & (~0xFFF);
         auto begin = paging::VirtualAddress{addr};
-        auto place = task::currentTask->vmSpace.find_free(length);
+        auto place = task::currentTask->vmSpace.find_free(length, begin);
         if (!place) {
             return reinterpret_cast<void*>(-SYS_ENOMEM);
         }

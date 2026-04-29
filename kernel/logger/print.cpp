@@ -22,10 +22,10 @@ void emitLog(void* eip, LogLevel level, std::string_view log) {
     arch::kwrite(log.data(), static_cast<uint16_t>(log.length()));
 }
 
-void emitSyscall(void* eip, SyscallRole role, const SyscallContent& content) {
+void emitSyscall(uint32_t eip, SyscallRole role, const SyscallContent& content) {
     Payload payload = {
         static_cast<uint32_t>(timer::msSinceBoot),
-        reinterpret_cast<uint32_t>(eip),
+        eip,
         task::currentTask ? task::currentTask->pid : 0,
         sizeof(SyscallContent),
         T_Syscall,

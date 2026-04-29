@@ -60,7 +60,7 @@ export function* parse(buffer: Buffer): Generator<Entry | null, void, Buffer | n
                     payload,
                     content: {
                         ret: buffer.readUint32LE(ptr),
-                        eax: buffer.readUint32LE(ptr + 4),
+                        id: buffer.readUint32LE(ptr + 4),
                         args: [
                             buffer.readUint32LE(ptr + 8),
                             buffer.readUint32LE(ptr + 12),
@@ -90,8 +90,8 @@ export function* parse(buffer: Buffer): Generator<Entry | null, void, Buffer | n
                         num: buffer.readUint32LE(ptr),
                         errcode: buffer.readUint32LE(ptr + 4),
                         cs: buffer.readUint32LE(ptr + 8),
-                        eip: buffer.readUint32LE(ptr + 16),
-                        cr2: buffer.readUint32LE(ptr + 12)
+                        eip: buffer.readUint32LE(ptr + 12),
+                        cr2: buffer.readUint32LE(ptr + 16)
                     }
                 }
                 ptr += payload.len

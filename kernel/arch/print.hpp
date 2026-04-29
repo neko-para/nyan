@@ -23,7 +23,8 @@ void kprint(void* eip, lib::format_string<std::type_identity_t<Args>...> fmt, Ar
     std::array<char, 256> buffer;
     auto final_iter = lib::format_to(lib::capped_iterator<256, std::array<char, 256>::iterator>{buffer.begin()}, fmt,
                                      std::forward<Args>(args)...);
-    logger::emitLog(eip, logger::LL_Info, std::string_view{buffer.begin(), buffer.begin() + final_iter.__count});
+    logger::emitLog(eip, logger::LL_Info,
+                    std::string_view{buffer.begin(), buffer.begin() + std::min<size_t>(256, final_iter.__count)});
 }
 
 template <typename... Args>

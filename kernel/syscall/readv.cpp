@@ -13,7 +13,7 @@ ssize_t readv(int fd, const struct iovec* iov, size_t iovcnt) {
         }
         auto ret = syscall::read(fd, iov[i].iov_base, iov[i].iov_len);
         if (ret < 0) {
-            return ret;
+            return result > 0 ? result : ret;
         } else {
             result += ret;
             if (static_cast<size_t>(ret) < iov[i].iov_len) {

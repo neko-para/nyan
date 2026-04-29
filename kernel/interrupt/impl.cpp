@@ -71,6 +71,7 @@ void exceptionHandlerImpl(SyscallFrame* frame) {
             }
 
             arch::kfatal();
+            break;
         }
 
         case I_Timer:
@@ -216,7 +217,7 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
     logger::SyscallContent content = {
         0, frame->eax, frame->ebx, frame->ecx, frame->edx, frame->esi, frame->edi, frame->ebp,
     };
-    logger::emitSyscall(0, logger::SR_Enter, content);
+    logger::emitSyscall(frame->eip, logger::SR_Enter, content);
 
     switch (frame->eax) {
         case 1:
@@ -320,7 +321,7 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
     }
 
     content.ret = frame->eax;
-    logger::emitSyscall(0, logger::SR_Leave, content);
+    logger::emitSyscall(frame->eip, logger::SR_Leave, content);
 }
 
 }  // namespace nyan::interrupt

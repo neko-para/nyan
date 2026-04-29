@@ -84,10 +84,10 @@ async function handleEntry(entry: Entry) {
         const info = await queryAddr(binaryPath, entry.payload.eip)
         console.log(`${prefix} ${info} ${chalk.bold(entry.content.trim())}`)
     } else if (isSyscallEntry(entry)) {
-        const def = syscallTable[entry.content.eax]
+        const def = syscallTable[entry.content.id]
         if (!def) {
             console.log(
-                `${prefix} unknown syscall ${entry.content.eax} ${entry.payload.syscallRole === SyscallRole.SR_Enter ? 'enter' : 'leave'}`
+                `${prefix} unknown syscall ${entry.content.id} ${entry.payload.syscallRole === SyscallRole.SR_Enter ? 'enter' : 'leave'}`
             )
             return
         }
@@ -97,14 +97,14 @@ async function handleEntry(entry: Entry) {
             } else {
                 pendingSyscall.set(entry.payload.pid, {
                     ts: entry.payload.ts,
-                    id: entry.content.eax,
+                    id: entry.content.id,
                     args: entry.content.args
                 })
             }
         } else {
             const prev = pendingSyscall.get(entry.payload.pid)
             pendingSyscall.delete(entry.payload.pid)
-            if (!prev || prev.id !== entry.content.eax) {
+            if (!prev || prev.id !== entry.content.id) {
                 console.log(
                     `${prefix} ${def.name}(${buildCall(def.args, entry.content)}) = ${formatReturn(entry.content.ret, def.ret)}`
                 )
