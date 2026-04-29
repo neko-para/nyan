@@ -64,6 +64,17 @@ int RamFSDirectoryVNode::mkdir(const char* name, uint32_t mode) noexcept {
     return 0;
 }
 
+int RamFSDirectoryVNode::touch(const char* name, uint32_t mode) noexcept {
+    if (lookup(name)) {
+        return -SYS_EEXIST;
+    }
+    __entries.push_back({
+        name,
+        lib::makeRef<RamFSFileVNode>(__super_block, mode),
+    });
+    return 0;
+}
+
 int RamFSDirectoryVNode::link(const char* name, lib::Ref<VNode> target) noexcept {
     if (target->__super_block->__fs != __super_block->__fs) {
         return -SYS_EXDEV;
@@ -90,9 +101,49 @@ int RamFSDirectoryVNode::unlink(const char* name) noexcept {
 int RamFSDirectoryVNode::stat(struct stat* buf) noexcept {
     memset(buf, 0, sizeof(struct stat));
     buf->st_dev = 1;
-    buf->st_mode = S_IFREG | __mode;
+    buf->st_mode = S_IFDIR | __mode;
     buf->st_nlink = __ref_count;
     buf->st_size = 0;
+    buf->st_blksize = 4096;
+    buf->st_ino = __inode;
+    return 0;
+}
+
+ssize_t RamFSFileVNode::read(void* buf, size_t size, off_t offset) noexcept {
+    if (offset >= __data.size()) {
+        return 0;
+    }
+    auto eff_size = std::min<size_t>(__data.size() - offset, size);
+    memcpy(buf, __data.data() + offset, eff_size);
+    return eff_size;
+}
+
+ssize_t RamFSFileVNode::write(const void* buf, size_t size, off_t offset) noexcept {
+    if (offset >= __data.size()) {
+        __data.resize(offset, 0);
+        __data.reserve(offset + size);
+    }
+    __data.insert(__data.begin() + offset, reinterpret_cast<const uint8_t*>(buf),
+                  reinterpret_cast<const uint8_t*>(buf) + size);
+    return size;
+}
+
+int RamFSFileVNode::truncate(off_t length) noexcept {
+    if (length < 0) {
+        length = 0;
+    }
+    if (__data.size() > length) {
+        __data.resize(length);
+    }
+    return 0;
+}
+
+int RamFSFileVNode::stat(struct stat* buf) noexcept {
+    memset(buf, 0, sizeof(struct stat));
+    buf->st_dev = 1;
+    buf->st_mode = S_IFREG | __mode;
+    buf->st_nlink = __ref_count;
+    buf->st_size = __data.size();
     buf->st_blksize = 4096;
     buf->st_ino = __inode;
     return 0;

@@ -34,14 +34,17 @@ struct RamFSDirectoryVNode : public RamFSVNode {
     virtual lib::Ref<VNode> lookup(const char* name) noexcept override;
     virtual int readdir(dirent* buf, size_t size, off_t* offset) noexcept override;
     virtual int mkdir(const char* name, uint32_t mode) noexcept override;
+    virtual int touch(const char* name, uint32_t mode) noexcept override;
     virtual int link(const char* name, lib::Ref<VNode> target) noexcept override;
     virtual int unlink(const char* name) noexcept override;
 
     virtual int stat(struct stat* buf) noexcept override;
 };
 
-struct RamFSFileVNode : public VNode {
-    RamFSFileVNode(SuperBlock* super_block);
+struct RamFSFileVNode : public RamFSVNode {
+    std::vector<uint8_t> __data;
+
+    RamFSFileVNode(SuperBlock* super_block, uint32_t mode) : RamFSVNode(VNT_Regular, super_block, mode) {}
 
     virtual ssize_t read(void* buf, size_t size, off_t offset) noexcept override;
     virtual ssize_t write(const void* buf, size_t size, off_t offset) noexcept override;
