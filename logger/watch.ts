@@ -1,3 +1,4 @@
+import chalk from 'chalk'
 import { watch } from 'node:fs'
 import { open, stat } from 'node:fs/promises'
 
@@ -76,9 +77,9 @@ const pendingSyscall: Map<
 > = new Map()
 
 function handleEntry(entry: Entry): void {
-    const prefix = entryPrefix(entry.payload)
+    const prefix = chalk.dim(entryPrefix(entry.payload))
     if (isLogEntry(entry)) {
-        console.log(`${prefix} ${entry.log.trim()}`)
+        console.log(`${prefix} ${chalk.bold(entry.log.trim())}`)
     } else if (isSyscallEntry(entry)) {
         const def = syscallTable[entry.content.eax]
         if (!def) {
@@ -105,8 +106,9 @@ function handleEntry(entry: Entry): void {
                     `${prefix} ${def.name}(${buildCall(def.args, entry.content)}) = ${formatReturn(entry.content.ret, def.ret)}`
                 )
             } else {
+                const duration = chalk.dim(`${entry.payload.ts - prev.ts}ms`)
                 console.log(
-                    `${prefix} ${def.name}(${buildCall(def.args, entry.content)}) = ${formatReturn(entry.content.ret, def.ret)} ${entry.payload.ts - prev.ts}ms`
+                    `${prefix} ${def.name}(${buildCall(def.args, entry.content)}) = ${formatReturn(entry.content.ret, def.ret)} ${duration}`
                 )
             }
         }
