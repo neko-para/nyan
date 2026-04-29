@@ -1,8 +1,9 @@
 #include "file.hpp"
 
 #include <nyan/errno.h>
+#include <string_view>
 
-#include "../arch/debug.hpp"
+#include "../arch/print.hpp"
 
 namespace nyan::arch {
 
@@ -13,7 +14,7 @@ ssize_t DebugConObj::read(void* buf, size_t size) noexcept {
 }
 
 ssize_t DebugConObj::write(const void* buf, size_t size) noexcept {
-    arch::kputs(static_cast<const char*>(buf), size);
+    arch::kprint("{}", std::string_view{static_cast<const char*>(buf), size});
     return size;
 }
 

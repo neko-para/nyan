@@ -65,15 +65,14 @@ void exceptionHandlerImpl(SyscallFrame* frame) {
                 arch::kprint("  pid {}\n", task::currentTask->pid);
                 arch::kprint("  eip {#010x}\n", frame->eip);
                 if (frame->error_code & PF_Present) {
-                    arch::kputs("Present ");
+                    arch::kprint("Present ");
                 }
                 if (frame->error_code & PF_Write) {
-                    arch::kputs("Write ");
+                    arch::kprint("Write ");
                 }
                 if (frame->error_code & PF_User) {
-                    arch::kputs("User ");
+                    arch::kprint("User ");
                 }
-                arch::kput('\n');
                 task::sendSignal(task::currentTask, SIGSEGV);
                 break;
             }
@@ -82,13 +81,13 @@ void exceptionHandlerImpl(SyscallFrame* frame) {
             arch::kprint("  pid {}\n", task::currentTask->pid);
             arch::kprint("  eip {#010x}\n", frame->eip);
             if (frame->error_code & PF_Present) {
-                arch::kputs("Present ");
+                arch::kprint("Present ");
             }
             if (frame->error_code & PF_Write) {
-                arch::kputs("Write ");
+                arch::kprint("Write ");
             }
             if (frame->error_code & PF_User) {
-                arch::kputs("User ");
+                arch::kprint("User ");
             }
             arch::kfatal();
         }

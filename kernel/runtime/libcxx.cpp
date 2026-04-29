@@ -4,11 +4,14 @@
 #include <string>
 
 #include "../allocator/alloc.hpp"
-#include "../arch/debug.hpp"
+#include "../arch/print.hpp"
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
 [[noreturn]] void __libcpp_verbose_abort(const char* fmt, ...) noexcept {
+    char buffer[256];
+    char* pbuf = buffer;
+
     va_list lst;
     va_start(lst, fmt);
     while (*fmt) {
@@ -16,11 +19,15 @@ _LIBCPP_BEGIN_NAMESPACE_STD
             case '%':
                 switch (fmt[1]) {
                     case '%':
-                        nyan::arch::kput('%');
+                        *pbuf++ = '%';
                         break;
                     case 's': {
                         auto str = va_arg(lst, const char*);
-                        nyan::arch::kputs(str ? str : "");
+                        if (str) {
+                            while (*str) {
+                                *pbuf++ = *str++;
+                            }
+                        }
                         break;
                     }
                     case 'i':
@@ -29,7 +36,7 @@ _LIBCPP_BEGIN_NAMESPACE_STD
                         char* ptr = cache;
                         int val = va_arg(lst, int);
                         if (val < 0) {
-                            nyan::arch::kput('-');
+                            *pbuf++ = '-';
                             val = -val;
                         }
                         do {
@@ -37,7 +44,7 @@ _LIBCPP_BEGIN_NAMESPACE_STD
                             val /= 10;
                         } while (val > 0);
                         while (ptr != cache) {
-                            nyan::arch::kput(*--ptr);
+                            *pbuf++ = *--ptr;
                         }
                         break;
                     }
@@ -47,10 +54,11 @@ _LIBCPP_BEGIN_NAMESPACE_STD
                 fmt += 2;
                 break;
             default:
-                nyan::arch::kput(*fmt);
+                *pbuf++ = *fmt;
                 fmt += 1;
         }
     }
+    nyan::arch::kprint("{}", std::string_view{buffer, pbuf});
     nyan::arch::kfatal();
 }
 

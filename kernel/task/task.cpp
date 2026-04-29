@@ -426,7 +426,7 @@ bool freeTask(pid_t pid, int* stat) {
     return true;
 }
 
-__attribute__((noinline)) void yield() {
+void yield() {
     arch::InterruptGuard guard;
     if (!pendingTasks.empty()) {
         auto next = pendingTasks.front();

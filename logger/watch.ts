@@ -2,6 +2,7 @@ import chalk from 'chalk'
 import { watch } from 'node:fs'
 import { open, stat } from 'node:fs/promises'
 
+import { queryAddr } from './addr.ts'
 import { errnoMap, getErrno, isError } from './errno.ts'
 import { parse } from './parser.ts'
 import { signalMap } from './signal.ts'
@@ -76,10 +77,11 @@ const pendingSyscall: Map<
     }
 > = new Map()
 
-function handleEntry(entry: Entry): void {
+async function handleEntry(entry: Entry) {
     const prefix = chalk.dim(entryPrefix(entry.payload))
     if (isLogEntry(entry)) {
-        console.log(`${prefix} ${chalk.bold(entry.log.trim())}`)
+        const info = await queryAddr(binaryPath, entry.payload.eip)
+        console.log(`${prefix} ${info} ${chalk.bold(entry.log.trim())}`)
     } else if (isSyscallEntry(entry)) {
         const def = syscallTable[entry.content.eax]
         if (!def) {
@@ -115,12 +117,12 @@ function handleEntry(entry: Entry): void {
     }
 }
 
-function drain(gen: ReturnType<typeof parse>, data?: Buffer | null): void {
+async function drain(gen: ReturnType<typeof parse>, data?: Buffer | null) {
     let result = gen.next(data)
     while (!result.done) {
         // yield null 表示等待更多数据，暂停消费
         if (result.value === null) return
-        handleEntry(result.value)
+        await handleEntry(result.value)
         result = gen.next()
     }
 }
@@ -132,7 +134,7 @@ async function watchFile(path: string): Promise<void> {
 
     const gen = parse(Buffer.alloc(0))
     // 启动 generator，推进到第一个 yield
-    drain(gen)
+    await drain(gen)
 
     async function readNew(): Promise<void> {
         if (reading) return
@@ -147,7 +149,7 @@ async function watchFile(path: string): Promise<void> {
             if (bytesRead === 0) return
             offset += bytesRead
 
-            drain(gen, buf.subarray(0, bytesRead))
+            await drain(gen, buf.subarray(0, bytesRead))
         } finally {
             reading = false
         }
@@ -167,8 +169,9 @@ async function watchFile(path: string): Promise<void> {
 }
 
 const filePath = process.argv[2]
-if (!filePath) {
-    console.error('Usage: watch.ts <log-file>')
+const binaryPath = process.argv[3]
+if (!filePath || !binaryPath) {
+    console.error('Usage: watch.ts <log-file> <kernel-file>')
     process.exit(1)
 }
 

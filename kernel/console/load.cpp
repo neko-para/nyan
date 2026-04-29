@@ -18,24 +18,24 @@ Tty* allTtys[count];
 static int consoleDeamon(void* param) {
     Tty* tty = static_cast<Tty*>(param);
     auto id = std::find(std::begin(allTtys), std::end(allTtys), tty) - std::begin(allTtys);
-    arch::kprint("tty {}: deamon entered, pid {}\n", id, task::currentTask->pid);
+    arch::kprint("tty {} deamon entered, pid {}\n", id, task::currentTask->pid);
 
     auto ttyObj = lib::makeRef<TtyObj>(tty);
     auto debugConObj = lib::makeRef<arch::DebugConObj>();
     task::currentTask->fdTable[0] = lib::makeRef<fs::FdObj>(ttyObj, O_RDONLY);
     task::currentTask->fdTable[1] = lib::makeRef<fs::FdObj>(ttyObj, O_WRONLY);
-    task::currentTask->fdTable[2] = lib::makeRef<fs::FdObj>(debugConObj, O_WRONLY);
+    task::currentTask->fdTable[2] = lib::makeRef<fs::FdObj>(ttyObj, O_WRONLY);
 
     while (true) {
         const char* argv[] = {"sh", 0};
         auto pid = syscall::spawn("sh", argv);
         tty->foregroundPid = pid;
 
-        arch::kprint("tty {}: shell started, pid {}\n", id, pid);
+        arch::kprint("tty {} shell started, pid {}\n", id, pid);
 
         int stat = 0;
         syscall::waitpid(pid, &stat, 0);
-        tty->print("\ntty {}: shell exited, stat {} exit code {} signal {}\n", id, stat, WEXITSTATUS(stat),
+        tty->print("\ntty {} shell exited, stat {} exit code {} signal {}\n", id, stat, WEXITSTATUS(stat),
                    WTERMSIG(stat));
     }
 }
@@ -53,10 +53,10 @@ void loadDeamons() {
     int id = 0;
     for (auto tty : allTtys) {
         auto tcb = task::createTask(consoleDeamon, tty);
-        tcb->name = lib::format("tty_deamon_{}", ++id);
+        tcb->name = lib::format("tty_deamon_{}", id);
         tcb->tty = tty;
         auto pid = task::addTask(tcb);
-        arch::kprint("tty {} deamon started, pid {}\n", id, pid);
+        arch::kprint("tty {} deamon started, pid {}\n", id++, pid);
     }
 }
 
