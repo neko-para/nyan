@@ -228,19 +228,17 @@ static void call(SyscallFrame* frame, Ret (*func)(Arg1, Arg2, Arg3, Arg4, Arg5, 
     }
 }
 
-template <size_t N>
-static void dump(SyscallFrame* frame, const char (&name)[N]) {
-    arch::kprint("syscall eax={}({}) from {} {}\n", frame->eax, name, task::currentTask->pid, task::currentTask->name);
-}
-
-#define CALL(func)      \
-    dump(frame, #func); \
-    call(frame, syscall::func);
+#define CALL(func) call(frame, syscall::func);
 
 extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
     // 简单处理, syscall中不可重入中断
     arch::InterruptGuard guard;
-    auto syscallId = frame->eax;
+
+    logger::SyscallContent content = {
+        0, frame->eax, frame->ebx, frame->ecx, frame->edx, frame->esi, frame->edi, frame->ebp,
+    };
+    logger::emitSyscall(0, logger::SR_Enter, content);
+
     switch (frame->eax) {
         case 1:
             CALL(exit)
@@ -342,9 +340,8 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             frame->eax = -SYS_ENOSYS;
     }
 
-    if (static_cast<int32_t>(frame->eax) < 0) {
-        arch::kprint("syscall eax={} failed for {}\n", syscallId, -frame->eax);
-    }
+    content.ret = frame->eax;
+    logger::emitSyscall(0, logger::SR_Leave, content);
 }
 
 }  // namespace nyan::interrupt

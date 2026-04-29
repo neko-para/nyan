@@ -12,8 +12,6 @@ add_compile_options(
   -Wcast-align
   -Wnull-dereference)
 
-add_compile_options("-ffile-prefix-map=${CMAKE_SOURCE_DIR}=.")
-
 if(NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Debug")
   add_compile_options(-g)
 endif()

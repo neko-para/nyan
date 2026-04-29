@@ -33,4 +33,11 @@ inline void kputs(const char* str, size_t len) {
     }
 }
 
+inline void kwrite(const void* data, size_t len) {
+    auto ptr = reinterpret_cast<const uint8_t*>(data);
+    while (len--) {
+        outb(0xe9, *ptr++);
+    }
+}
+
 }  // namespace nyan::arch

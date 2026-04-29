@@ -6,3 +6,6 @@ build
 
 3rdparty
 .venv
+nyan.log*
+
+node_modules

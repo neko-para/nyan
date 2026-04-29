@@ -20,7 +20,7 @@ pid_t spawn(const char* name, const char* const* argv) {
             return pid;
         }
     }
-    return -1;
+    return -SYS_ENOENT;
 }
 
 }  // namespace nyan::syscall
