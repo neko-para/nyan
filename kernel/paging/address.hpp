@@ -44,7 +44,7 @@ struct BaseAddress {
 struct PhysicalAddress : public BaseAddress<PhysicalAddress> {
     using BaseAddress::BaseAddress;
 
-    VirtualAddress kernelToVirtual() const noexcept;
+    constexpr VirtualAddress kernelToVirtual() const noexcept;
 
     void setCr3() const noexcept { arch::setCr3(addr); }
 
@@ -57,7 +57,7 @@ struct PhysicalAddress : public BaseAddress<PhysicalAddress> {
 struct VirtualAddress : public BaseAddress<VirtualAddress> {
     using BaseAddress::BaseAddress;
 
-    PhysicalAddress kernelToPhysical() const noexcept;
+    constexpr PhysicalAddress kernelToPhysical() const noexcept;
 
     void invlpg() const noexcept { arch::invlpg(addr); }
     constexpr uint16_t tableLoc() const noexcept { return addr >> 22; }
@@ -69,11 +69,11 @@ struct VirtualAddress : public BaseAddress<VirtualAddress> {
     }
 };
 
-inline VirtualAddress PhysicalAddress::kernelToVirtual() const noexcept {
+constexpr VirtualAddress PhysicalAddress::kernelToVirtual() const noexcept {
     return VirtualAddress{addr + 0xC0000000};
 }
 
-inline PhysicalAddress VirtualAddress::kernelToPhysical() const noexcept {
+constexpr PhysicalAddress VirtualAddress::kernelToPhysical() const noexcept {
     return PhysicalAddress{addr - 0xC0000000};
 }
 

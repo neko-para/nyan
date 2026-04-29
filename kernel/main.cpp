@@ -54,7 +54,10 @@ extern "C" void kmain(boot::BootInfo* info) {
 
     task::load();
 
-    arch::kprint("=====\nkernel end {#010x}\n", paging::VirtualAddress(&_end).kernelToPhysical().addr);
+    arch::kprint("kernel end {#010x}\n", paging::VirtualAddress(&_end).kernelToPhysical().addr);
+    if (paging::VirtualAddress(&_end).kernelToPhysical() >= 0x00800000_pa) {
+        arch::kfatal("kernel too large!\n");
+    }
 
     console::loadDeamons();
 

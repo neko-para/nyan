@@ -36,14 +36,32 @@ struct wrap_member_iterator {
     wrap_member_iterator& operator++(int) noexcept { return *this; }
 };
 
+template <size_t Max, typename Iter>
+struct capped_iterator {
+    using difference_type = ptrdiff_t;
+
+    Iter __underlying;
+    size_t __count = 0;
+
+    capped_iterator& operator=(char ch) noexcept {
+        if (__count++ < Max) {
+            *__underlying++ = ch;
+        }
+        return *this;
+    }
+    capped_iterator& operator*() noexcept { return *this; }
+    capped_iterator& operator++() noexcept { return *this; }
+    capped_iterator& operator++(int) noexcept { return *this; }
+};
+
 template <typename... Args>
 struct format_string {
     std::string_view fmt;
     std::tuple<__format::formatter<std::remove_cvref_t<Args>, std::string_view::iterator>...> formatters;
 
-    template <typename... SvArgs>
-        requires std::is_constructible_v<std::string_view, SvArgs...>
-    consteval format_string(SvArgs&&... args) : fmt(std::forward<SvArgs>(args)...) {
+    template <typename SvArgs>
+        requires std::is_constructible_v<std::string_view, SvArgs>
+    consteval format_string(SvArgs&& args) : fmt(std::forward<SvArgs>(args)) {
         check<0>(fmt);
     }
 
