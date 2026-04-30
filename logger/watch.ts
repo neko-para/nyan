@@ -175,16 +175,18 @@ async function watchFile(path: string): Promise<void> {
         if (reading) return
         reading = true
         try {
-            const { size } = await stat(path)
-            if (size <= offset) return
+            for (;;) {
+                const { size } = await stat(path)
+                if (size <= offset) return
 
-            const readLen = size - offset
-            const buf = Buffer.alloc(readLen)
-            const { bytesRead } = await fd.read(buf, 0, readLen, offset)
-            if (bytesRead === 0) return
-            offset += bytesRead
+                const readLen = size - offset
+                const buf = Buffer.alloc(readLen)
+                const { bytesRead } = await fd.read(buf, 0, readLen, offset)
+                if (bytesRead === 0) return
+                offset += bytesRead
 
-            await drain(gen, buf.subarray(0, bytesRead))
+                await drain(gen, buf.subarray(0, bytesRead))
+            }
         } finally {
             reading = false
         }
