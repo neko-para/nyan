@@ -39,28 +39,36 @@ void exceptionHandlerImpl(SyscallFrame* frame) {
 
         case E_PageFault: {
             paging::VirtualAddress targetAddr = paging::VirtualAddress{arch::cr2()};
-            std::vector<paging::VMA>::iterator next;
-            if (auto vma = task::currentTask->vmSpace.find(targetAddr, next);
-                vma != task::currentTask->vmSpace.__addrs.end()) {
-                if (targetAddr.addr < 0xC0000000 &&
-                    (frame->error_code & (PF_Present | PF_User | PF_Write)) == (PF_Present | PF_User | PF_Write) &&
-                    task::currentTask->cr3 != paging::kernelPageDirectory.cr3()) {
-                    auto pageDir = paging::UserDirectory::from(task::currentTask->cr3);
-                    if (pageDir.handleCOW(targetAddr)) {
-                        return;
-                    }
+            auto vma = task::currentTask->vmSpace.__locate(targetAddr);
+
+            bool checkUserland = targetAddr.addr >= 0x00400000 && targetAddr.addr < 0xC0000000;
+
+            constexpr auto COWFlag = PF_Present | PF_User | PF_Write;
+            bool checkCOW = checkUserland                                  //
+                            && vma->contains(targetAddr)                   //
+                            && ((frame->error_code & COWFlag) == COWFlag)  //
+                            && task::currentTask->cr3 != paging::kernelPageDirectory.cr3();
+
+            if (checkCOW) {
+                auto pageDir = paging::UserDirectory::from(task::currentTask->cr3);
+                if (pageDir.handleCOW(targetAddr)) {
+                    return;
                 }
             }
 
             if (gdt::isRing3(frame->cs)) {
-                if (next != task::currentTask->vmSpace.__addrs.end() && next->__flags & MAP_GROWSDOWN &&
-                    next->__end == task::currentTask->stackRange.second) {
+                bool checkStack = checkUserland                                //
+                                  && vma->bounds(*std::next(vma), targetAddr)  //
+                                  && (std::next(vma)->__flags & MAP_GROWSDOWN);
+
+                if (checkStack) {
                     // TODO: 之后可以引入基于ESP的检查
                     if (targetAddr >= task::currentTask->stackRange.first) {
                         auto pageDir = paging::UserDirectory::from(task::currentTask->cr3);
-                        while (next->__begin > targetAddr) {
-                            next->__begin = next->__begin.prevPage();
-                            pageDir.alloc(next->__begin, true);
+                        auto nextAddr = std::next(vma)->__begin;
+                        while (nextAddr > targetAddr) {
+                            nextAddr = nextAddr.prevPage();
+                            pageDir.alloc(nextAddr, true);
                         }
                         break;
                     }
