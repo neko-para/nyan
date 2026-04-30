@@ -1,6 +1,5 @@
 #pragma once
 
-#include <new>
 #include <utility>
 
 #include "../paging/address.hpp"

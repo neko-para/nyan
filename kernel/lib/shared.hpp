@@ -1,9 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include <concepts>
-
-#include "../allocator/alloc.hpp"
+#include <type_traits>
 
 namespace nyan::lib {
 
@@ -21,7 +19,7 @@ struct Shared {
             release();
         }
     }
-    void release() noexcept { allocator::freeAs(this); }
+    void release() noexcept { delete this; }
 };
 
 template <typename T>
@@ -81,7 +79,7 @@ struct Ref {
 
 template <typename T, typename... Args>
 inline Ref<T> makeRef(Args&&... args) {
-    return Ref<T>{allocator::allocAs<T>(std::forward<Args>(args)...)};
+    return Ref<T>{new T(std::forward<Args>(args)...)};
 }
 
 }  // namespace nyan::lib

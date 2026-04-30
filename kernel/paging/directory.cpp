@@ -1,6 +1,23 @@
 #include "directory.hpp"
 
+#include "../allocator/alloc.hpp"
+
 namespace nyan::paging {
+
+MapperGuard::MapperGuard(PhysicalAddress addr) noexcept : paddr(addr) {
+    vaddr = allocator::virtualFrameAlloc();
+    kernelPageDirectory.map(vaddr, paddr, PTE_Present | PTE_ReadWrite);
+    vaddr.invlpg();
+}
+
+MapperGuard::~MapperGuard() {
+    if (vaddr) {
+        PhysicalAddress _;
+        kernelPageDirectory.unmap({vaddr}, _);
+        vaddr.invlpg();
+        allocator::virtualFrameFree(vaddr);
+    }
+}
 
 UserDirectory UserDirectory::fork(const KernelDirectory& directory) noexcept {
     auto physicalAddr = allocator::physicalFrameAlloc();
@@ -44,7 +61,32 @@ UserDirectory UserDirectory::forkCOW(const UserDirectory& oldDir) noexcept {
     return newDir;
 }
 
-MapperGuard UserDirectory::alloc(VirtualAddress addr, bool writable) {
+void UserDirectory::ensure(uint16_t location, uint16_t attr) noexcept {
+    if (!data()->isPresent(location)) {
+        paging::MapperGuard mapper(allocator::physicalFrameAlloc());
+        mapper.as<paging::Table>()->clear();
+        data()->set(mapper.paddr, location, attr);
+    }
+}
+
+void UserDirectory::freePage(VirtualAddress addr) noexcept {
+    auto loc = addr.tableLoc();
+    if (data()->isPresent(loc)) {
+        with(loc, [addr](Table* table) { table->freePage(addr); });
+    }
+}
+
+void UserDirectory::freePageTables() noexcept {
+    for (uint16_t i = 0; i < 768; i++) {
+        if (data()->isPresent(i)) {
+            with(i, [](Table* table) { table->freeDangling(); });
+            allocator::physicalFrameRelease(data()->at(i));
+            data()->data[i] = 0;
+        }
+    }
+}
+
+MapperGuard UserDirectory::alloc(VirtualAddress addr, bool writable) noexcept {
     auto tableLocation = addr.tableLoc();
     ensure(tableLocation, paging::PDE_Present | paging::PDE_ReadWrite | paging::PDE_User);
     auto physicalAddr = with(tableLocation, [&](paging::Table* table) {

@@ -42,7 +42,7 @@ static int consoleDeamon(void* param) {
 
 void load() {
     for (auto& tty : allTtys) {
-        tty = allocator::frameAllocAs<Tty>();
+        tty = new Tty();
         tty->clear();
     }
     activeTty = allTtys[0];

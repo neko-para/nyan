@@ -11,11 +11,11 @@
 namespace nyan::fs {
 
 PipeObj::PipeObj() {
-    __buffer = allocator::frameAllocAs<char>();
+    __buffer = new char[4096];
 }
 
 PipeObj::~PipeObj() {
-    allocator::frameFreeAs(__buffer);
+    delete[] __buffer;
 }
 
 std::optional<arch::InterruptGuard> PipeObj::syncWaitForRead() noexcept {

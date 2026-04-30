@@ -34,7 +34,7 @@ pid_t allocPid(TaskControlBlock* task) {
 void setupKnownTasks() {
     std::fill_n(allTasks, MaxTaskCount, nullptr);
 
-    TaskControlBlock* initTask = allocator::allocAs<TaskControlBlock>();
+    TaskControlBlock* initTask = new TaskControlBlock;
     initTask->cr3 = paging::kernelPageDirectory.cr3();
     initTask->state = State::S_Running;
     initTask->pid = KP_Init;

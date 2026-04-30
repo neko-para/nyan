@@ -46,24 +46,13 @@ struct KernelDirectory : public DirectoryData {
 };
 
 struct MapperGuard {
-    MapperGuard(PhysicalAddress addr) noexcept : paddr(addr) {
-        vaddr = allocator::virtualFrameAlloc();
-        kernelPageDirectory.map(vaddr, paddr, PTE_Present | PTE_ReadWrite);
-        vaddr.invlpg();
-    }
+    MapperGuard(PhysicalAddress addr) noexcept;
     MapperGuard(const MapperGuard&) = delete;
     MapperGuard(MapperGuard&& mapper) noexcept : paddr(mapper.paddr), vaddr(mapper.vaddr.addr) {
         mapper.paddr = 0_pa;
         mapper.vaddr = 0_va;
     }
-    ~MapperGuard() noexcept {
-        if (vaddr) {
-            PhysicalAddress _;
-            kernelPageDirectory.unmap({vaddr}, _);
-            vaddr.invlpg();
-            allocator::virtualFrameFree(vaddr);
-        }
-    }
+    ~MapperGuard();
     MapperGuard& operator=(const MapperGuard&) = delete;
     MapperGuard& operator=(MapperGuard&& mapper) noexcept {
         if (this == &mapper) {
@@ -96,13 +85,7 @@ struct UserDirectory {
     static UserDirectory fork(const KernelDirectory& directory) noexcept;
     static UserDirectory forkCOW(const UserDirectory& directory) noexcept;
 
-    void ensure(uint16_t location, uint16_t attr) noexcept {
-        if (!data()->isPresent(location)) {
-            paging::MapperGuard mapper(allocator::physicalFrameAlloc());
-            mapper.as<paging::Table>()->clear();
-            data()->set(mapper.paddr, location, attr);
-        }
-    }
+    void ensure(uint16_t location, uint16_t attr) noexcept;
 
     template <typename Func>
     auto with(uint16_t location, Func func) const noexcept {
@@ -110,24 +93,9 @@ struct UserDirectory {
         return func(mapper.as<Table>());
     }
 
-    void freePage(VirtualAddress addr) {
-        auto loc = addr.tableLoc();
-        if (data()->isPresent(loc)) {
-            with(loc, [addr](Table* table) { table->freePage(addr); });
-        }
-    }
-
-    void freePageTables() {
-        for (uint16_t i = 0; i < 768; i++) {
-            if (data()->isPresent(i)) {
-                with(i, [](Table* table) { table->freeDangling(); });
-                allocator::physicalFrameRelease(data()->at(i));
-                data()->data[i] = 0;
-            }
-        }
-    }
-
-    MapperGuard alloc(VirtualAddress addr, bool writable);
+    void freePage(VirtualAddress addr) noexcept;
+    void freePageTables() noexcept;
+    MapperGuard alloc(VirtualAddress addr, bool writable) noexcept;
     bool handleCOW(VirtualAddress addr) noexcept;
 };
 

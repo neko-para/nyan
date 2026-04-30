@@ -65,7 +65,7 @@ TaskControlBlock* createTask(int (*func)(void* param), void* param) {
     Stack kernelStack;
     Stack stack;
     fillStack(stack, func, param);
-    auto tcb = allocator::allocAs<TaskControlBlock>();
+    auto tcb = new TaskControlBlock;
     tcb->userEsp = stack.esp().addr;
     tcb->cr3 = paging::kernelPageDirectory.cr3();
     tcb->kernelEsp = kernelStack.esp().addr;
@@ -178,7 +178,7 @@ static void loadArgv(Stack& stack, const char* const* argv) {
 }
 
 TaskControlBlock* createElfTask(uint8_t* file, size_t size, const char* const* argv) {
-    auto tcb = allocator::allocAs<TaskControlBlock>();
+    auto tcb = new TaskControlBlock;
 
     auto [pageDir, brkAddr, entry] = loadElf(tcb->vmSpace, file, size);
 
@@ -322,7 +322,7 @@ pid_t forkTask(interrupt::SyscallFrame* frame) {
     newFrame->eax = 0;
     fillStack(kernelStack, forkEntry, kernelStack.esp().as<void>());
 
-    auto tcb = allocator::allocAs<TaskControlBlock>();
+    auto tcb = new TaskControlBlock;
     tcb->userEsp = kernelStack.esp().addr;
     tcb->cr3 = newPageDir.__mapper.paddr;
     tcb->kernelEsp = kernelStack.userBase.nextPage().addr;
@@ -428,7 +428,7 @@ bool freeTask(pid_t pid, int* stat) {
         allocator::physicalFrameRelease(task->cr3);
     }
 
-    allocator::freeAs(task);
+    delete task;
     allTasks[pid] = nullptr;
 
     return true;
