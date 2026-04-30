@@ -10,11 +10,11 @@ RamFSVNode::RamFSVNode(VNodeType type, SuperBlock* sb, uint32_t mode) {
     __inode = ++super_block()->__counter;
 }
 
-std::vector<RamFSDirectoryVNode::Entry>::iterator RamFSDirectoryVNode::__find(const char* name) noexcept {
+std::vector<RamFSDirectoryVNode::Entry>::iterator RamFSDirectoryVNode::__find(std::string_view name) noexcept {
     return std::find_if(__entries.begin(), __entries.end(), [&](const Entry& entry) { return entry.__name == name; });
 }
 
-lib::Ref<VNode> RamFSDirectoryVNode::lookup(const char* name) noexcept {
+lib::Ref<VNode> RamFSDirectoryVNode::lookup(std::string_view name) noexcept {
     if (auto it = __find(name); it != __entries.end()) {
         return it->__vnode;
     } else {
@@ -53,7 +53,7 @@ int RamFSDirectoryVNode::readdir(dirent* buf, size_t size, off_t* offset) noexce
     return written;
 }
 
-int RamFSDirectoryVNode::mkdir(const char* name, uint32_t mode) noexcept {
+int RamFSDirectoryVNode::mkdir(std::string_view name, uint32_t mode) noexcept {
     if (lookup(name)) {
         return -SYS_EEXIST;
     }
@@ -64,7 +64,7 @@ int RamFSDirectoryVNode::mkdir(const char* name, uint32_t mode) noexcept {
     return 0;
 }
 
-int RamFSDirectoryVNode::touch(const char* name, uint32_t mode) noexcept {
+int RamFSDirectoryVNode::create(std::string_view name, uint32_t mode) noexcept {
     if (lookup(name)) {
         return -SYS_EEXIST;
     }
@@ -75,7 +75,7 @@ int RamFSDirectoryVNode::touch(const char* name, uint32_t mode) noexcept {
     return 0;
 }
 
-int RamFSDirectoryVNode::link(const char* name, lib::Ref<VNode> target) noexcept {
+int RamFSDirectoryVNode::link(std::string_view name, lib::Ref<VNode> target) noexcept {
     if (target->__super_block->__fs != __super_block->__fs) {
         return -SYS_EXDEV;
     }
@@ -89,7 +89,7 @@ int RamFSDirectoryVNode::link(const char* name, lib::Ref<VNode> target) noexcept
     return 0;
 }
 
-int RamFSDirectoryVNode::unlink(const char* name) noexcept {
+int RamFSDirectoryVNode::unlink(std::string_view name) noexcept {
     if (auto it = __find(name); it != __entries.end()) {
         __entries.erase(it);
         return 0;

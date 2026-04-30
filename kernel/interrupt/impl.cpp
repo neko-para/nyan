@@ -43,7 +43,7 @@ void exceptionHandlerImpl(SyscallFrame* frame) {
 
             bool checkUserland = targetAddr.addr >= 0x00400000 && targetAddr.addr < 0xC0000000;
 
-            constexpr auto COWFlag = PF_Present | PF_User | PF_Write;
+            constexpr auto COWFlag = PF_Present | PF_Write;
             bool checkCOW = checkUserland                                  //
                             && vma->contains(targetAddr)                   //
                             && ((frame->error_code & COWFlag) == COWFlag)  //

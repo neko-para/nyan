@@ -4,6 +4,7 @@
 #include <nyan/errno.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <string_view>
 
 #include "../lib/shared.hpp"
 #include "forward.hpp"
@@ -34,12 +35,12 @@ struct VNode : public lib::Shared {
     virtual int truncate(off_t length) noexcept { return -SYS_EISDIR; }
 
     // Directory
-    virtual lib::Ref<VNode> lookup(const char* name) noexcept { return {}; }
+    virtual lib::Ref<VNode> lookup(std::string_view name) noexcept { return {}; }
     virtual int readdir(dirent* buf, size_t size, off_t* offset) noexcept { return -SYS_ENOTDIR; }
-    virtual int mkdir(const char* name, uint32_t mode) noexcept { return -SYS_ENOTDIR; }
-    virtual int touch(const char* name, uint32_t mode) noexcept { return -SYS_ENOTDIR; }
-    virtual int link(const char* name, lib::Ref<VNode> target) noexcept { return -SYS_ENOTDIR; }
-    virtual int unlink(const char* name) noexcept { return -SYS_ENOTDIR; }
+    virtual int mkdir(std::string_view name, uint32_t mode) noexcept { return -SYS_ENOTDIR; }
+    virtual int create(std::string_view name, uint32_t mode) noexcept { return -SYS_ENOTDIR; }
+    virtual int link(std::string_view name, lib::Ref<VNode> target) noexcept { return -SYS_ENOTDIR; }
+    virtual int unlink(std::string_view name) noexcept { return -SYS_ENOTDIR; }
 
     // General
     virtual int stat(struct stat* buf) noexcept = 0;

@@ -5,7 +5,8 @@
             "request": "launch",
             "name": "Attach",
             "targetCreateCommands": [
-                "target create ${workspaceFolder}/build/kernel_install/kernel"
+                "target create ${workspaceFolder}/build/kernel_install/kernel",
+                "command script import ${workspaceFolder}/scripts/lldb_nyan.py"
             ],
             "processCreateCommands": ["gdb-remote localhost:1234"]
         }

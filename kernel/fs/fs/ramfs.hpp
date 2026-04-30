@@ -23,20 +23,24 @@ struct RamFSDirectoryVNode : public RamFSVNode {
     struct Entry {
         std::string __name;
         lib::Ref<VNode> __vnode;
+
+        Entry() = default;
+        template <typename T, typename U>
+        Entry(T&& name, U&& vnode) : __name(std::forward<T>(name)), __vnode(std::forward<U>(vnode)) {}
     };
 
     std::vector<Entry> __entries;
 
     RamFSDirectoryVNode(SuperBlock* super_block, uint32_t mode) : RamFSVNode(VNT_Directory, super_block, mode) {}
 
-    std::vector<Entry>::iterator __find(const char* name) noexcept;
+    std::vector<Entry>::iterator __find(std::string_view name) noexcept;
 
-    virtual lib::Ref<VNode> lookup(const char* name) noexcept override;
+    virtual lib::Ref<VNode> lookup(std::string_view name) noexcept override;
     virtual int readdir(dirent* buf, size_t size, off_t* offset) noexcept override;
-    virtual int mkdir(const char* name, uint32_t mode) noexcept override;
-    virtual int touch(const char* name, uint32_t mode) noexcept override;
-    virtual int link(const char* name, lib::Ref<VNode> target) noexcept override;
-    virtual int unlink(const char* name) noexcept override;
+    virtual int mkdir(std::string_view name, uint32_t mode) noexcept override;
+    virtual int create(std::string_view name, uint32_t mode) noexcept override;
+    virtual int link(std::string_view name, lib::Ref<VNode> target) noexcept override;
+    virtual int unlink(std::string_view name) noexcept override;
 
     virtual int stat(struct stat* buf) noexcept override;
 };

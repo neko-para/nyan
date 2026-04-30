@@ -109,7 +109,9 @@ void* largeFrameAlloc(size_t page) {
         curr.invlpg();
         memset(curr.as<void>(), 0, 4096);
         curr = curr.nextPage();
+        arch::kprint("large alloc {#10x}+{} -> {#10x}", addr->addr, i, pAddr.addr);
     }
+
     return addr->as<void>();
 }
 
@@ -118,6 +120,7 @@ void largeFrameFree(void* frame) {
 
     paging::VirtualAddress addr{frame};
     auto page = largeFrameManager->free(addr);
+    arch::kprint("large free {#10x} {}", addr.addr, page);
     for (size_t i = 0; i < page; i++) {
         paging::PhysicalAddress pAddr;
         if (!paging::kernelPageDirectory.unmap(addr, pAddr)) {
@@ -125,6 +128,7 @@ void largeFrameFree(void* frame) {
         }
         addr.invlpg();
         physicalFrameRelease(pAddr);
+        addr = addr.nextPage();
     }
 }
 
