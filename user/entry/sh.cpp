@@ -25,30 +25,51 @@ std::vector<char*> toCArgv(std::vector<std::string>& args) {
     return argv;
 }
 
-int main() {
-    std::string line;
-    std::cout << "> " << std::flush;
-    while (std::getline(std::cin, line)) {
-        if (line == "exit") {
-            break;
-        }
+std::string cwd() {
+    char buf[256];
+    getcwd(buf, 256);
+    return buf;
+}
 
+void printPrompt() {
+    std::cout << cwd() << "$ " << std::flush;
+}
+
+int main() {
+    printPrompt();
+    std::string line;
+    while (std::getline(std::cin, line)) {
         auto args = parseArgs(line);
         if (args.empty()) {
-            std::cout << "\n> " << std::flush;
+            printPrompt();
             continue;
         }
 
-        if (args[0] == "exec") {
+        if (args[0] == "exit") {
+            break;
+        } else if (args[0] == "cd") {
+            if (args.size() > 1) {
+                chdir(args[1].c_str());
+            } else {
+                chdir("/");
+            }
+            printPrompt();
+            continue;
+        } else if (args[0] == "pwd") {
+            std::cout << cwd() << std::endl;
+            printPrompt();
+            continue;
+        } else if (args[0] == "exec") {
             if (args.size() > 1) {
                 auto execArgs = std::vector<std::string>(args.begin() + 1, args.end());
                 auto argv = toCArgv(execArgs);
                 if (execve(argv[0], argv.data(), nullptr) < 0) {
-                    std::cout << "launch failed\n\n> " << std::flush;
+                    std::cout << "launch failed" << std::endl;
+                    printPrompt();
                     continue;
                 }
             } else {
-                std::cout << "\n> " << std::flush;
+                printPrompt();
                 continue;
             }
         }
@@ -59,20 +80,20 @@ int main() {
             int stat;
             if (pid == waitpid(pid, &stat, 0)) {
                 if (WIFEXITED(stat)) {
-                    std::cout << "exit with " << WEXITSTATUS(stat) << "\n";
+                    std::cout << "exit with " << WEXITSTATUS(stat) << std::endl;
                 } else {
-                    std::cout << "signal with " << WTERMSIG(stat) << "\n";
+                    std::cout << "signal with " << WTERMSIG(stat) << std::endl;
                 }
             } else {
-                std::cout << "wait failed\n";
+                std::cout << "wait failed" << std::endl;
             }
             tcsetpgrp(0, getpid());
         } else {
             execve(argv[0], argv.data(), nullptr);
-            std::cout << "launch failed\n";
+            std::cout << "launch failed" << std::endl;
         }
 
-        std::cout << "\n> " << std::flush;
+        printPrompt();
     }
     return 0;
 }

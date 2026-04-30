@@ -53,12 +53,11 @@ target_include_directories(kernel_embed PRIVATE ${CMAKE_CURRENT_LIST_DIR}/data)
 file(GLOB_RECURSE kernel_srcs CONFIGURE_DEPENDS *.cpp *.s)
 
 add_executable(kernel ${kernel_srcs})
+target_compile_definitions(kernel PRIVATE __nyan_kernel__)
 
 # 不能开启向量化, 会产生内存引用, 提前启用sse也不行
 set_source_files_properties(paging/kernel.cpp PROPERTIES COMPILE_FLAGS
                                                          "-mno-sse")
-set_source_files_properties(interrupt/isr.cpp PROPERTIES COMPILE_FLAGS
-                                                         "-mgeneral-regs-only")
 set_target_properties(kernel PROPERTIES LINK_DEPENDS
                                         ${CMAKE_CURRENT_LIST_DIR}/linker.ld)
 

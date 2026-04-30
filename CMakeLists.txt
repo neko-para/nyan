@@ -55,7 +55,9 @@ find_program(COMPDB compdb HINTS ${CMAKE_SOURCE_DIR}/.venv/bin)
 if(COMPDB)
   add_custom_target(
     compile_commands ALL
-    COMMAND ${COMPDB} -p ${USER_BUILD_DIR} -p ${KERNEL_BUILD_DIR} list >
-            ${CMAKE_BINARY_DIR}/compile_commands.json
+    COMMAND
+      ${COMPDB} -p ${USER_BUILD_DIR} -p ${KERNEL_BUILD_DIR} list | node
+      ${CMAKE_CURRENT_LIST_DIR}/scripts/filter_asm.ts >
+      ${CMAKE_BINARY_DIR}/compile_commands.json
     DEPENDS kernel_build user_programs)
 endif()

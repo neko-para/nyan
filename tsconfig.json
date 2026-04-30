@@ -10,5 +10,5 @@
         "allowImportingTsExtensions": true,
         "types": ["@types/node"]
     },
-    "include": ["logger/**/*.ts"]
+    "include": ["logger/**/*.ts", "scripts/**/*.ts"]
 }

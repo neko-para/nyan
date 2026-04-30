@@ -6,6 +6,7 @@ struct VNode;
 struct SuperBlock;
 struct FileSystem;
 struct Device;
+struct MountEntry;
 
 struct RamFS;
 

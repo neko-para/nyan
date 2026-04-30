@@ -62,6 +62,11 @@ export const syscallTable: Record<number, SyscallDef> = {
             { name: 'envp', type: 'ptr' }
         ]
     },
+    12: {
+        name: 'chdir',
+        ret: 'int',
+        args: [{ name: 'pathname', type: 'str' }]
+    },
     20: { name: 'getpid', ret: 'pid', args: [] },
     37: {
         name: 'kill',

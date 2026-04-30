@@ -250,6 +250,9 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             frame->eax = syscall::execve(castArg<const char*>(frame->ebx), castArg<char* const*>(frame->ecx),
                                          castArg<char* const*>(frame->edx), frame);
             break;
+        case 12:
+            CALL(chdir);
+            break;
         case 20:
             CALL(getpid)
             break;

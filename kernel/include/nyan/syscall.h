@@ -33,6 +33,9 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options);
 // 11
 int execve(const char* pathname, char* const argv[], char* const envp[], interrupt::SyscallFrame* frame);
 
+// 12
+int chdir(const char* pathname);
+
 // 20
 pid_t getpid();
 

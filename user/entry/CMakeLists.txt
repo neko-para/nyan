@@ -4,6 +4,7 @@ foreach(user_src ${user_srcs})
   get_filename_component(user_prog_name ${user_src} NAME_WLE)
 
   add_executable(${user_prog_name} ${user_src})
+  target_compile_definitions(${user_prog_name} PRIVATE __nyan__)
 
   target_compile_options(${user_prog_name} PRIVATE -ffunction-sections
                                                    -fdata-sections)
