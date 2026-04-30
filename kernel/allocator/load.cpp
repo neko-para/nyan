@@ -1,6 +1,7 @@
 #include "load.hpp"
 
 #include "frame.hpp"
+#include "large_frame.hpp"
 #include "physicalFrame.hpp"
 #include "pool.hpp"
 #include "slab.hpp"
@@ -16,12 +17,14 @@ PoolManager* poolManager;
 FrameManager* frameManager;
 SlabManager* slabManager;
 PhysicalFrameManager* physicalFrameManager;
+LargeFrameManager* largeFrameManager;
 
 void load(uint32_t upper) {
     poolManager = new (__poolStorage) PoolManager(upper - poolBase);
     frameManager = new (__frameStorage) FrameManager;
     slabManager = new (__slabStorage) SlabManager;
     physicalFrameManager = new (__physicalFrameStorage) PhysicalFrameManager(upper - poolBase);
+    largeFrameManager = new LargeFrameManager;
 }
 
 }  // namespace nyan::allocator

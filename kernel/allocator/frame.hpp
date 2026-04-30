@@ -5,11 +5,9 @@
 #include <algorithm>
 
 #include "../arch/print.hpp"
+#include "map.hpp"
 
 namespace nyan::allocator {
-
-constexpr uint32_t frameBase = 0xC0800000;
-constexpr uint32_t frameTop = 0xFFFFF000;
 
 constexpr uint32_t frameCount = (frameTop - frameBase) >> 12;
 

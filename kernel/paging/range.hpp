@@ -20,6 +20,9 @@ struct RangeEntryBase {
     VirtualAddress __begin;
     VirtualAddress __end;
 
+    RangeEntryBase() = default;
+    RangeEntryBase(VirtualAddress begin, VirtualAddress end) : __begin(begin), __end(end) {}
+
     bool contains(VirtualAddress addr) const noexcept { return __begin <= addr && addr < __end; }
     template <typename Entry>
     bool bounds(const Entry& right, const Entry& target) const noexcept {
@@ -191,6 +194,8 @@ struct RangeManager {
             return true;
         }
     }
+
+    void __erase(const_iterator iter) noexcept { __addrs.erase(iter); }
 };
 
 }  // namespace nyan::paging

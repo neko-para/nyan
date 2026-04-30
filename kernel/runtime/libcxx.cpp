@@ -65,31 +65,31 @@ _LIBCPP_BEGIN_NAMESPACE_STD
 _LIBCPP_END_NAMESPACE_STD
 
 void* operator new(size_t size) {
-    return nyan::allocator::slabAlloc(size, size);
+    return nyan::allocator::autoAlloc(size);
 }
 
 void* operator new[](size_t size) {
-    return nyan::allocator::slabAlloc(size, size);
+    return nyan::allocator::autoAlloc(size);
 }
 
 void* operator new(size_t size, std::align_val_t align) {
-    return nyan::allocator::slabAlloc(size, static_cast<size_t>(align));
+    return nyan::allocator::autoAlloc(std::max(size, static_cast<size_t>(align)));
 }
 
 void operator delete(void* ptr) noexcept {
-    nyan::allocator::slabFree(ptr);
+    nyan::allocator::autoFree(ptr);
 }
 
 void operator delete(void* ptr, size_t) noexcept {
-    nyan::allocator::slabFree(ptr);
+    nyan::allocator::autoFree(ptr);
 }
 
 void operator delete(void* ptr, size_t, std::align_val_t) noexcept {
-    nyan::allocator::slabFree(ptr);
+    nyan::allocator::autoFree(ptr);
 }
 
 void operator delete[](void* ptr) noexcept {
-    nyan::allocator::slabFree(ptr);
+    nyan::allocator::autoFree(ptr);
 }
 
 template class std::basic_string<char>;

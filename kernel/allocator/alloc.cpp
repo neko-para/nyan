@@ -4,6 +4,7 @@
 #include "../paging/directory.hpp"
 #include "../paging/entry.hpp"
 #include "frame.hpp"
+#include "large_frame.hpp"
 #include "load.hpp"
 #include "physicalFrame.hpp"
 #include "pool.hpp"
@@ -92,6 +93,39 @@ void slabFree(void* addr) {
     }
     arch::InterruptGuard guard;
     slabManager->free(addr);
+}
+
+void* largeFrameAlloc(size_t page) {
+    arch::InterruptGuard guard;
+
+    auto addr = largeFrameManager->alloc(page);
+    if (!addr) {
+        arch::kfatal("large frame alloc failed");
+    }
+    auto curr = *addr;
+    for (size_t i = 0; i < page; i++) {
+        auto pAddr = physicalFrameAlloc();
+        paging::kernelPageDirectory.map(curr, pAddr, paging::PTE_Present | paging::PTE_ReadWrite);
+        curr.invlpg();
+        memset(curr.as<void>(), 0, 4096);
+        curr = curr.nextPage();
+    }
+    return addr->as<void>();
+}
+
+void largeFrameFree(void* frame) {
+    arch::InterruptGuard guard;
+
+    paging::VirtualAddress addr{frame};
+    auto page = largeFrameManager->free(addr);
+    for (size_t i = 0; i < page; i++) {
+        paging::PhysicalAddress pAddr;
+        if (!paging::kernelPageDirectory.unmap(addr, pAddr)) {
+            arch::kfatal("largeFrameFree unmap failed");
+        }
+        addr.invlpg();
+        physicalFrameRelease(pAddr);
+    }
 }
 
 }  // namespace nyan::allocator

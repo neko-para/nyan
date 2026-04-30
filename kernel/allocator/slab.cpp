@@ -30,6 +30,9 @@ void SlabHeader::free(void* addr) noexcept {
 }
 
 void* SlabManager::alloc(size_t size) noexcept {
+    if (size == 0) {
+        size = 1;
+    }
     size_t chunk_size;
     auto cache = findSuitableCache(size, chunk_size);
 
