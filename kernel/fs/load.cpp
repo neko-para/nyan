@@ -6,6 +6,7 @@
 
 #include "../arch/print.hpp"
 #include "../data/embed.hpp"
+#include "../task/tcb.hpp"
 #include "fs/ramfs.hpp"
 #include "mount.hpp"
 
@@ -32,12 +33,18 @@ void load() {
 }
 
 lib::Ref<VNode> resolve(std::string_view path) {
-    if (path[0] != '/') {
-        // TODO: via current task cwd
-        arch::kfatal("relative path not supported yet");
+    if (path.empty()) {
+        return {};
     }
 
     auto current = rootSuperBlock->__root;
+    if (path[0] != '/') {
+        current = resolve(task::currentTask->cwd);
+        if (!current) {
+            return {};
+        }
+    }
+
     for (const auto& item : path | std::views::split('/')) {
         std::string_view portion{item.begin(), item.end()};
         if (portion.empty()) {

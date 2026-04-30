@@ -164,6 +164,14 @@ export const syscallTable: Record<number, SyscallDef> = {
             { name: 'sigsetsize', type: 'size' }
         ]
     },
+    183: {
+        name: 'getcwd',
+        ret: 'str',
+        args: [
+            { name: 'buf', type: 'ptr' },
+            { name: 'size', type: 'size' }
+        ]
+    },
     192: {
         name: 'mmap2',
         ret: 'ptr',

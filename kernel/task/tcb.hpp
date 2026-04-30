@@ -72,6 +72,8 @@ struct TaskControlBlock : public TaskControlBlockMetaInfo,
     std::pair<paging::VirtualAddress, paging::VirtualAddress> stackRange;
     std::vector<uint32_t> pages;
 
+    std::string cwd;
+
     union {
         ExitInfo exitInfo;
         BlockSleepInfo sleepInfo;

@@ -301,6 +301,9 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
         case 175:
             CALL(rt_sigprocmask);
             break;
+        case 183:
+            CALL(getcwd);
+            break;
         case 192:
             CALL(mmap2);
             break;
