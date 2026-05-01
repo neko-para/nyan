@@ -1,13 +1,14 @@
 #pragma once
 
 #include "../lib/shared.hpp"
-#include "vnode.hpp"
+#include "forward.hpp"
 
 namespace nyan::fs {
 
-struct MountEntry {
-    lib::Ref<VNode> __mount_point;
-    SuperBlock* __super_block;
+struct MountEntry : lib::Shared {
+    lib::Ref<DEntry> __mount_point;
+    lib::Ref<SuperBlock> __super_block;
+    lib::Ref<VNode> __root_node;
 };
 
 }  // namespace nyan::fs

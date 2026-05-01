@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import { watch } from 'node:fs'
+import { existsSync, watch } from 'node:fs'
 import { open, stat } from 'node:fs/promises'
 
 import { queryAddr } from './addr.ts'
@@ -149,6 +149,10 @@ async function handleEntry(entry: Entry) {
                     `${prefix} ${chalk.bold(`#${entry.content.num}`)} eip=${formatValue(entry.content.eip, 'ptr')}`
                 )
         }
+
+        if (entry.content.eip >= 0xc0000000) {
+            console.log(await queryAddr(binaryPath, entry.content.eip))
+        }
     }
 }
 
@@ -176,6 +180,9 @@ async function watchFile(path: string): Promise<void> {
         reading = true
         try {
             for (;;) {
+                if (!existsSync(path)) {
+                    break
+                }
                 const { size } = await stat(path)
                 if (size <= offset) return
 

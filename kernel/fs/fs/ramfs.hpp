@@ -14,9 +14,9 @@ struct RamFSSuperBlock : public SuperBlock {
 };
 
 struct RamFSVNode : public VNode {
-    RamFSVNode(VNodeType type, SuperBlock* sb, uint32_t mode);
+    RamFSVNode(VNodeType type, lib::Ref<SuperBlock> sb, uint32_t mode);
 
-    RamFSSuperBlock* super_block() const noexcept { return static_cast<RamFSSuperBlock*>(__super_block); }
+    RamFSSuperBlock* super_block() const noexcept { return __super_block.as<RamFSSuperBlock>(); }
 };
 
 struct RamFSDirectoryVNode : public RamFSVNode {
@@ -31,7 +31,8 @@ struct RamFSDirectoryVNode : public RamFSVNode {
 
     std::vector<Entry> __entries;
 
-    RamFSDirectoryVNode(SuperBlock* super_block, uint32_t mode) : RamFSVNode(VNT_Directory, super_block, mode) {}
+    RamFSDirectoryVNode(lib::Ref<SuperBlock> super_block, uint32_t mode)
+        : RamFSVNode(VNT_Directory, super_block, mode) {}
 
     std::vector<Entry>::iterator __find(std::string_view name) noexcept;
 
@@ -48,7 +49,7 @@ struct RamFSDirectoryVNode : public RamFSVNode {
 struct RamFSFileVNode : public RamFSVNode {
     std::vector<uint8_t> __data;
 
-    RamFSFileVNode(SuperBlock* super_block, uint32_t mode) : RamFSVNode(VNT_Regular, super_block, mode) {}
+    RamFSFileVNode(lib::Ref<SuperBlock> super_block, uint32_t mode) : RamFSVNode(VNT_Regular, super_block, mode) {}
 
     virtual ssize_t read(void* buf, size_t size, off_t offset) noexcept override;
     virtual ssize_t write(const void* buf, size_t size, off_t offset) noexcept override;
@@ -58,7 +59,8 @@ struct RamFSFileVNode : public RamFSVNode {
 };
 
 struct RamFS : public FileSystem {
-    virtual SuperBlock* mount(Device* device, const char* options) noexcept override;
+    virtual std::tuple<lib::Ref<SuperBlock>, lib::Ref<VNode>> mount(Device* device,
+                                                                    const char* options) noexcept override;
 };
 
 }  // namespace nyan::fs

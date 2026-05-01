@@ -93,3 +93,6 @@ void operator delete[](void* ptr) noexcept {
 }
 
 template class std::basic_string<char>;
+
+template std::string std::operator+
+    <char, std::char_traits<char>, std::allocator<char>>(char const*, std::basic_string<char> const&);

@@ -1,6 +1,7 @@
 #include <nyan/syscall.h>
 
-#include "../fs/load.hpp"
+#include "../fs/dentry.hpp"
+#include "../fs/mount.hpp"
 #include "../fs/vnode.hpp"
 #include "../task/tcb.hpp"
 
@@ -11,14 +12,14 @@ int chdir(const char* pathname) {
         return -SYS_EFAULT;
     }
     // TODO: deal relative
-    auto vnode = fs::resolve(pathname);
-    if (!vnode) {
+    auto dentry = fs::resolve(pathname);
+    if (!dentry || !dentry->__node) {
         return -SYS_ENOENT;
     }
-    if (vnode->__type != fs::VNT_Directory) {
+    if (dentry->__node->__type != fs::VNT_Directory) {
         return -SYS_ENOTDIR;
     }
-    task::currentTask->cwd = pathname;
+    task::currentTask->cwd = dentry;
     return 0;
 }
 

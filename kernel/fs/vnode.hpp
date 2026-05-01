@@ -25,7 +25,7 @@ enum VNodeType {
 
 struct VNode : public lib::Shared {
     VNodeType __type;
-    SuperBlock* __super_block;
+    lib::Ref<SuperBlock> __super_block;
     uint32_t __mode;
     uint64_t __inode;
 

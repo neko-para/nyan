@@ -1,73 +1,37 @@
 #include "load.hpp"
 
-#include <algorithm>
-#include <ranges>
-#include <vector>
-
-#include "../arch/print.hpp"
 #include "../data/embed.hpp"
-#include "../task/tcb.hpp"
+#include "dentry.hpp"
 #include "fs/ramfs.hpp"
 #include "mount.hpp"
 
 namespace nyan::fs {
 
-std::vector<MountEntry>* mountPoints;
+std::vector<lib::Ref<MountEntry>>* mountPoints;
 RamFS* ramFS;
-SuperBlock* rootSuperBlock;
 
 void load() {
-    mountPoints = new std::vector<MountEntry>{};
+    dentryCacheManager = new DEntryCacheManager;
+
+    mountPoints = new std::vector<lib::Ref<MountEntry>>{};
     ramFS = new RamFS;
-    rootSuperBlock = ramFS->mount(nullptr, nullptr);
+    auto [rootSuperBlock, rootNode] = ramFS->mount(nullptr, nullptr);
+    auto rootEntry = lib::makeRef<MountEntry>();
+    rootEntry->__mount_point = lib::makeRef<DEntry>();
+    rootEntry->__mount_point->__id = allocDEntryId();
+    rootEntry->__mount_point->__mount = rootEntry;
+    rootEntry->__super_block = rootSuperBlock;
+    rootEntry->__root_node = rootNode;
+    mountPoints->push_back(rootEntry);
 
-    rootSuperBlock->__root->mkdir("bin", 0755);
-
-    auto bin = rootSuperBlock->__root->lookup("bin");
+    rootEntry->__root_node->mkdir("bin", 0755);
+    auto bin = rootEntry->__root_node->lookup("bin");
     for (size_t i = 0; i < data::programCount; i++) {
         const auto& prog = data::programs[i];
         bin->create(prog.name, 0755);
         auto file = bin->lookup(prog.name);
         file->write(prog.data, prog.size, 0);
     }
-}
-
-lib::Ref<VNode> resolve(std::string_view path) {
-    if (path.empty()) {
-        return {};
-    }
-
-    auto current = rootSuperBlock->__root;
-    if (path[0] != '/') {
-        current = resolve(task::currentTask->cwd);
-        if (!current) {
-            return {};
-        }
-    }
-
-    for (const auto& item : path | std::views::split('/')) {
-        std::string_view portion{item.begin(), item.end()};
-        if (portion.empty()) {
-            continue;
-        } else if (portion == ".") {
-            continue;
-        } else if (portion == "..") {
-            // TODO
-            arch::kfatal("goto parent not supported");
-        } else {
-            auto next = current->lookup(portion);
-            if (!next) {
-                return {};
-            }
-            if (auto mp = std::find_if(mountPoints->begin(), mountPoints->end(),
-                                       [&](const MountEntry& entry) noexcept { return entry.__mount_point == next; });
-                mp != mountPoints->end()) {
-                next = mp->__super_block->__root;
-            }
-            current = next;
-        }
-    }
-    return current;
 }
 
 }  // namespace nyan::fs

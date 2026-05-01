@@ -53,9 +53,9 @@ extern "C" void kmain(boot::BootInfo* info) {
     timer::load();
     keyboard::load();
 
-    task::load();
-
     fs::load();
+
+    task::load();
 
     arch::kprint("kernel end {#010x}\n", paging::VirtualAddress(&_end).kernelToPhysical().addr);
     if (paging::VirtualAddress(&_end).kernelToPhysical() >= 0x00800000_pa) {

@@ -13,19 +13,25 @@ struct Shared {
     virtual ~Shared() = default;
     Shared& operator=(const Shared&) = delete;
 
-    void ref() noexcept { __ref_count++; }
+    void ref() noexcept {
+        __ref_count++;
+        onRefInc();
+    }
     void unref() noexcept {
-        if (!--__ref_count) {
+        __ref_count--;
+        onRefDec();
+        if (!__ref_count) {
             release();
         }
     }
     void release() noexcept { delete this; }
+
+    virtual void onRefInc() noexcept {}
+    virtual void onRefDec() noexcept {}
 };
 
 template <typename T>
 struct Ref {
-    static_assert(std::is_base_of_v<Shared, T>);
-
     T* ptr{};
 
     Ref() noexcept = default;
@@ -70,6 +76,12 @@ struct Ref {
     T* get() const noexcept { return ptr; }
     T* operator->() const noexcept { return ptr; }
     template <typename U>
+    U* as() const noexcept {
+        return static_cast<U*>(ptr);
+    }
+    // TODO: cast ref itself
+
+    template <typename U>
         requires std::is_convertible_v<T*, U*>
     operator Ref<U>() const noexcept {
         ptr->Shared::ref();
@@ -79,7 +91,9 @@ struct Ref {
 
 template <typename T, typename... Args>
 inline Ref<T> makeRef(Args&&... args) {
-    return Ref<T>{new T(std::forward<Args>(args)...)};
+    auto ref = Ref<T>{new T(std::forward<Args>(args)...)};
+    ref->onRefInc();
+    return ref;
 }
 
 }  // namespace nyan::lib

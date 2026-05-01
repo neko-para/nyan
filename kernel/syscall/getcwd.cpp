@@ -1,5 +1,6 @@
 #include <nyan/syscall.h>
 
+#include "../fs/dentry.hpp"
 #include "../task/tcb.hpp"
 
 namespace nyan::syscall {
@@ -11,10 +12,11 @@ char* getcwd(char* buf, size_t size) {
     if (size == 0) {
         return reinterpret_cast<char*>(-SYS_EINVAL);
     }
-    if (size < task::currentTask->cwd.size() + 1) {
+    auto cwd = task::currentTask->cwd->asPath();
+    if (size < cwd.size() + 1) {
         return reinterpret_cast<char*>(-SYS_ERANGE);
     }
-    memcpy(buf, task::currentTask->cwd.c_str(), task::currentTask->cwd.size() + 1);
+    memcpy(buf, cwd.c_str(), cwd.size() + 1);
     return buf;
 }
 

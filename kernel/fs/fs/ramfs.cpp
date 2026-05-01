@@ -2,7 +2,7 @@
 
 namespace nyan::fs {
 
-RamFSVNode::RamFSVNode(VNodeType type, SuperBlock* sb, uint32_t mode) {
+RamFSVNode::RamFSVNode(VNodeType type, lib::Ref<SuperBlock> sb, uint32_t mode) {
     __type = type;
     __super_block = sb;
     __mode = mode;
@@ -149,15 +149,11 @@ int RamFSFileVNode::stat(struct stat* buf) noexcept {
     return 0;
 }
 
-SuperBlock* RamFS::mount(Device*, const char*) noexcept {
-    auto super_block = new RamFSSuperBlock{
-        {
-            this,
-            {},
-        },
-    };
-    super_block->__root = lib::makeRef<RamFSDirectoryVNode>(super_block, 0755);
-    return super_block;
+std::tuple<lib::Ref<SuperBlock>, lib::Ref<VNode>> RamFS::mount(Device*, const char*) noexcept {
+    auto super_block = lib::makeRef<RamFSSuperBlock>();
+    super_block->__fs = this;
+    auto root_node = lib::makeRef<RamFSDirectoryVNode>(super_block, 0755);
+    return std::tie(super_block, root_node);
 }
 
 }  // namespace nyan::fs

@@ -1,18 +1,20 @@
 #pragma once
 
-#include <string_view>
 #include <vector>
 
 #include "../lib/shared.hpp"
 #include "forward.hpp"
+#include "mount.hpp"
 
 namespace nyan::fs {
 
-extern std::vector<MountEntry>* mountPoints;
+extern std::vector<lib::Ref<MountEntry>>* mountPoints;
 extern RamFS* ramFS;
-extern SuperBlock* rootSuperBlock;
 
 void load();
-lib::Ref<VNode> resolve(std::string_view path);
+
+inline auto rootEntry() {
+    return (*mountPoints)[0];
+}
 
 }  // namespace nyan::fs

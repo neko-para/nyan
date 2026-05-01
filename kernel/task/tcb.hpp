@@ -9,6 +9,7 @@
 #include <utility>
 #include <vector>
 
+#include "../fs/dentry.hpp"
 #include "../fs/fd.hpp"
 #include "../gdt/entry.hpp"
 #include "../lib/function.hpp"
@@ -72,7 +73,7 @@ struct TaskControlBlock : public TaskControlBlockMetaInfo,
     std::pair<paging::VirtualAddress, paging::VirtualAddress> stackRange;
     std::vector<uint32_t> pages;
 
-    std::string cwd;
+    lib::Ref<fs::DEntry> cwd;
 
     union {
         ExitInfo exitInfo;

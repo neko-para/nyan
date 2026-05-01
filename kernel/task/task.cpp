@@ -7,6 +7,7 @@
 #include "../allocator/alloc.hpp"
 #include "../arch/guard.hpp"
 #include "../elf/entry.hpp"
+#include "../fs/load.hpp"
 #include "../gdt/load.hpp"
 #include "../paging/directory.hpp"
 #include "../paging/translator.hpp"
@@ -80,7 +81,7 @@ TaskControlBlock* createTask(int (*func)(void* param), void* param) {
     tcb->pages.push_back(kernelStack.userBase.addr);
     tcb->pages.push_back(stack.userBase.addr);
 
-    tcb->cwd = "/";
+    tcb->cwd = fs::rootEntry()->__mount_point;
 
     currentTask->childTasks.push_back(tcb);
 
@@ -214,7 +215,7 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t size, const char* const* a
     tcb->stackRange = {0xC0000000_va - 0x800000, 0xC0000000_va};
     tcb->pages.push_back(kernelStack.userBase.addr);
 
-    tcb->cwd = "/";
+    tcb->cwd = fs::rootEntry()->__mount_point;
 
     currentTask->childTasks.push_back(tcb);
 

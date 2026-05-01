@@ -3,8 +3,8 @@
 #include <string_view>
 
 #include "../arch/print.hpp"
-#include "../data/embed.hpp"
-#include "../fs/load.hpp"
+#include "../fs/dentry.hpp"
+#include "../fs/mount.hpp"
 #include "../fs/vnode.hpp"
 #include "../task/task.hpp"
 
@@ -16,13 +16,13 @@ int execve(const char* pathname,
            interrupt::SyscallFrame* frame) {
     // TODO: resolve via PATH
 
-    auto vnode = fs::resolve(pathname);
-    if (!vnode) {
+    auto dentry = fs::resolve(pathname);
+    if (!dentry || !dentry->__node) {
         return -SYS_ENOENT;
     }
 
     struct stat info;
-    if (vnode->stat(&info)) {
+    if (dentry->__node->stat(&info)) {
         return -SYS_EACCES;
     }
 
@@ -32,7 +32,7 @@ int execve(const char* pathname,
     }
 
     std::unique_ptr<uint8_t[]> file(new uint8_t[info.st_size]);
-    auto ret = vnode->read(file.get(), info.st_size, 0);
+    auto ret = dentry->__node->read(file.get(), info.st_size, 0);
     if (ret < 0) {
         return ret;
     }
