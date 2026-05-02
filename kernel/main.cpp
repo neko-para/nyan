@@ -5,7 +5,7 @@
 #include "arch/print.hpp"
 #include "arch/sse.hpp"
 #include "boot/multiboot.hpp"
-#include "console/load.hpp"
+#include "console/mod.hpp"
 #include "fs/load.hpp"
 #include "gdt/load.hpp"
 #include "interrupt/load.hpp"
@@ -62,7 +62,7 @@ extern "C" void kmain(boot::BootInfo* info) {
         arch::kfatal("kernel too large!\n");
     }
 
-    console::loadDeamons();
+    console::startDeamons();
 
     task::yield();
 

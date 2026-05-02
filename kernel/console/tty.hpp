@@ -4,32 +4,22 @@
 #include <string>
 
 #include "../arch/guard.hpp"
+#include "../interrupt/forward.hpp"
+#include "../keyboard/forward.hpp"
 #include "../task/wait.hpp"
 #include "buffer.hpp"
-
-namespace nyan::keyboard {
-struct Message;
-}
-
-namespace nyan::arch {
-struct InterruptGuard;
-}
-
-namespace nyan::interrupt {
-struct SyscallFrame;
-}
 
 namespace nyan::console {
 
 struct Tty : public ScreenBuffer {
-    pid_t foregroundPid{task::KP_Invalid};
+    pid_t __foreground_pid{task::KP_Invalid};
 
-    std::string lineBuffer;
+    std::string __line_buffer;
 
-    std::string inputBuffer;
-    task::WaitList waitList;
+    std::string __input_buffer;
+    task::WaitList __wait_list;
 
-    bool pendingEof{};
+    bool __pending_eof{};
 
     void activate();
     void deactivate();

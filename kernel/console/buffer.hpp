@@ -6,8 +6,9 @@
 
 namespace nyan::console {
 
-constexpr size_t width = vga::width;
-constexpr size_t height = vga::height;
+// TODO: 大概应该改成Tty上的状态
+constexpr size_t __width = vga::width;
+constexpr size_t __height = vga::height;
 
 enum Flags {
     F_Active = 1 << 0,
@@ -17,12 +18,12 @@ enum Flags {
 };
 
 struct ScreenBuffer {
-    vga::Entry buffer[width * height];
+    vga::Entry __buffer[__width * __height];
 
-    int rowPtr = 0;
-    int colPtr = 0;
-    uint8_t currentAttr = vga::makeAttr(vga::C_LightGray, vga::C_Black);
-    uint8_t flags = F_ShowCursor | F_Canonical | F_Echo;
+    int __row_ptr = 0;
+    int __col_ptr = 0;
+    uint8_t __current_attr = vga::makeAttr(vga::C_LightGray, vga::C_Black);
+    uint8_t __flags = F_ShowCursor | F_Canonical | F_Echo;
 
     void flush();
     void flushBuffer();

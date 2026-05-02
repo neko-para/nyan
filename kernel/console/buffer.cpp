@@ -12,65 +12,65 @@ void ScreenBuffer::flush() {
 }
 
 void ScreenBuffer::flushBuffer() {
-    if (!(flags & F_Active)) {
+    if (!(__flags & F_Active)) {
         return;
     }
-    std::copy(std::begin(buffer), std::end(buffer), std::begin(vga::buffer));
+    std::copy(std::begin(__buffer), std::end(__buffer), std::begin(vga::buffer));
 }
 
 void ScreenBuffer::flushCursor() {
-    if (!(flags & F_Active)) {
+    if (!(__flags & F_Active)) {
         return;
     }
-    if (flags & (F_ShowCursor)) {
+    if (__flags & (F_ShowCursor)) {
         vga::showCursor();
-        vga::updateCursor(colPtr, rowPtr);
+        vga::updateCursor(__col_ptr, __row_ptr);
     } else {
         vga::hideCursor();
     }
 }
 
 void ScreenBuffer::clear() {
-    std::fill_n(buffer, width * height, vga::Entry{0, currentAttr});
+    std::fill_n(__buffer, __width * __height, vga::Entry{0, __current_attr});
 }
 
 void ScreenBuffer::scroll(size_t row) {
-    size_t offset = row * width;
-    size_t count = height * width - offset;
-    std::copy_n(buffer + offset, count, buffer);
-    std::fill_n(buffer + count, offset, vga::Entry{0, currentAttr});
+    size_t offset = row * __width;
+    size_t count = __height * __width - offset;
+    std::copy_n(__buffer + offset, count, __buffer);
+    std::fill_n(__buffer + count, offset, vga::Entry{0, __current_attr});
 }
 
 void ScreenBuffer::putcImpl(char ch) {
     if (ch == '\n') {
         goto putLF;
     } else if (ch == '\r') {
-        colPtr = 0;
+        __col_ptr = 0;
         return;
     } else if (ch == '\b') {
-        if (colPtr > 0) {
-            colPtr -= 1;
+        if (__col_ptr > 0) {
+            __col_ptr -= 1;
         }
         return;
     } else if (ch == '\t') {
-        colPtr += 4 - (colPtr & 3);
-        if (colPtr == width) {
+        __col_ptr += 4 - (__col_ptr & 3);
+        if (__col_ptr == __width) {
             goto putLF;
         }
         return;
     }
 
-    buffer[rowPtr * width + colPtr].ch = ch;
-    if (flags & F_Active) {
-        vga::buffer[rowPtr * width + colPtr].ch = ch;
+    __buffer[__row_ptr * __width + __col_ptr].ch = ch;
+    if (__flags & F_Active) {
+        vga::buffer[__row_ptr * __width + __col_ptr].ch = ch;
     }
 
-    if (++colPtr == width) {
+    if (++__col_ptr == __width) {
     putLF:
-        colPtr = 0;
-        if (++rowPtr == height) {
+        __col_ptr = 0;
+        if (++__row_ptr == __height) {
             scroll(1);
-            rowPtr = height - 1;
+            __row_ptr = __height - 1;
             flushBuffer();
         }
     }

@@ -4,15 +4,16 @@
 #include <sys/ioctl.h>
 
 #include "../task/pid.hpp"
+#include "buffer.hpp"
 #include "tty.hpp"
 
 namespace nyan::console {
 
 ssize_t TtyObj::read(void* buf, size_t size) noexcept {
-    if (auto guard = tty->syncWaitInput()) {
-        auto result = std::min(tty->inputBuffer.size(), size);
-        std::copy_n(tty->inputBuffer.data(), result, static_cast<uint8_t*>(buf));
-        tty->inputBuffer.erase(0, result);
+    if (auto guard = __tty->syncWaitInput()) {
+        auto result = std::min(__tty->__input_buffer.size(), size);
+        std::copy_n(__tty->__input_buffer.data(), result, static_cast<uint8_t*>(buf));
+        __tty->__input_buffer.erase(0, result);
         return result;
     } else {
         return -SYS_EINTR;
@@ -20,7 +21,7 @@ ssize_t TtyObj::read(void* buf, size_t size) noexcept {
 }
 
 ssize_t TtyObj::write(const void* buf, size_t size) noexcept {
-    tty->puts(static_cast<const char*>(buf), size);
+    __tty->puts(static_cast<const char*>(buf), size);
     return size;
 }
 
@@ -35,7 +36,7 @@ int TtyObj::ioctl(uint32_t req, uint32_t param) noexcept {
                 return -SYS_EINVAL;
             }
             // TODO: check same session
-            tty->foregroundPid = param;
+            __tty->__foreground_pid = param;
             return 0;
         }
         case TIOCGWINSZ:
@@ -43,8 +44,8 @@ int TtyObj::ioctl(uint32_t req, uint32_t param) noexcept {
             if (!ptr) {
                 return -SYS_EFAULT;
             }
-            ptr->ws_row = 25;
-            ptr->ws_col = 80;
+            ptr->ws_row = __height;
+            ptr->ws_col = __width;
             ptr->ws_xpixel = 0;
             ptr->ws_ypixel = 0;
             return 0;

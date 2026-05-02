@@ -1,5 +1,3 @@
-#include "load.hpp"
-
 #include <fcntl.h>
 #include <nyan/syscall.h>
 #include <sys/wait.h>
@@ -8,16 +6,17 @@
 #include "../task/task.hpp"
 #include "../task/tcb.hpp"
 #include "file.hpp"
+#include "mod.hpp"
 #include "tty.hpp"
 
 namespace nyan::console {
 
-Tty* activeTty;
-Tty* allTtys[count];
+Tty* __active_tty;
+Tty* __all_ttys[__tty_count];
 
 static int consoleDeamon(void* param) {
     Tty* tty = static_cast<Tty*>(param);
-    auto id = std::find(std::begin(allTtys), std::end(allTtys), tty) - std::begin(allTtys);
+    auto id = std::find(std::begin(__all_ttys), std::end(__all_ttys), tty) - std::begin(__all_ttys);
     arch::kprint("tty {} deamon entered, pid {}\n", id, task::currentTask->pid);
 
     auto ttyObj = lib::makeRef<TtyObj>(tty);
@@ -30,7 +29,7 @@ static int consoleDeamon(void* param) {
         const char* argv[] = {"sh", 0};
         const char* envp[] = {"PATH=/bin", "SHELL=/bin/sh", 0};
         auto pid = syscall::spawn("sh", argv, envp);
-        tty->foregroundPid = pid;
+        tty->__foreground_pid = pid;
 
         arch::kprint("tty {} shell started, pid {}\n", id, pid);
 
@@ -41,18 +40,18 @@ static int consoleDeamon(void* param) {
     }
 }
 
-void load() {
-    for (auto& tty : allTtys) {
+void load() noexcept {
+    for (auto& tty : __all_ttys) {
         tty = new Tty();
         tty->clear();
     }
-    activeTty = allTtys[0];
-    activeTty->activate();
+    __active_tty = __all_ttys[0];
+    __active_tty->activate();
 }
 
-void loadDeamons() {
+void startDeamons() noexcept {
     int id = 0;
-    for (auto tty : allTtys) {
+    for (auto tty : __all_ttys) {
         auto tcb = task::createTask(consoleDeamon, tty);
         tcb->name = lib::format("tty_deamon_{}", id);
         tcb->tty = tty;
@@ -61,15 +60,19 @@ void loadDeamons() {
     }
 }
 
-void switchTo(Tty* tty) {
-    if (tty->flags & F_Active) {
+void switchTo(Tty* tty) noexcept {
+    if (tty->__flags & F_Active) {
         return;
     }
 
     arch::InterruptGuard guard;
-    activeTty->deactivate();
-    activeTty = tty;
+    __active_tty->deactivate();
+    __active_tty = tty;
     tty->activate();
+}
+
+void handleInput(const keyboard::Message& msg, interrupt::SyscallFrame* frame) noexcept {
+    __active_tty->input(msg, frame);
 }
 
 }  // namespace nyan::console

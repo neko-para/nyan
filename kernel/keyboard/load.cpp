@@ -4,8 +4,7 @@
 #include <sys/types.h>
 
 #include "../arch/port.hpp"
-#include "../console/load.hpp"
-#include "../console/tty.hpp"
+#include "../console/mod.hpp"
 #include "../interrupt/load.hpp"
 #include "message.hpp"
 
@@ -29,12 +28,12 @@ void load() {
 static void handle(const Message& msg, interrupt::SyscallFrame* frame) {
     if (!(msg.flag & F_Release) && (msg.flag & F_Ctrl) && (msg.flag & F_Alt)) {
         if (msg.key >= SC_F1 && msg.key <= SC_F2) {
-            console::switchTo(console::allTtys[msg.key - SC_F1]);
+            console::switchTo(console::__all_ttys[msg.key - SC_F1]);
             return;
         }
     }
 
-    console::activeTty->input(msg, frame);
+    console::handleInput(msg, frame);
 }
 
 bool push(uint8_t dat, interrupt::SyscallFrame* frame) {

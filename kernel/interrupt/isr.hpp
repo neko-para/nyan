@@ -7,12 +7,6 @@ namespace nyan::interrupt {
 
 struct Entry;
 
-struct Frame {
-    uint32_t eip;
-    uint32_t cs;
-    uint32_t flags;
-};
-
 struct SyscallFrame {
     uint16_t user_gs;
     uint16_t user_fs;
