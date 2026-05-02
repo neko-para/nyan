@@ -109,7 +109,7 @@ void* largeFrameAlloc(size_t page) {
         curr.invlpg();
         memset(curr.as<void>(), 0, 4096);
         curr = curr.nextPage();
-        arch::kprint("large alloc {#10x}+{} -> {#10x}", addr->addr, i, pAddr.addr);
+        // arch::kprint("large alloc {#10x}+{} -> {#10x}", addr->addr, i, pAddr.addr);
     }
 
     return addr->as<void>();

@@ -15,13 +15,10 @@ void load() {
 
     mountPoints = new std::vector<lib::Ref<MountEntry>>{};
     ramFS = new RamFS;
-    auto [rootSuperBlock, rootNode] = ramFS->mount(nullptr, nullptr);
-    auto rootEntry = lib::makeRef<MountEntry>();
+    auto rootEntry = ramFS->mount(nullptr, nullptr);
     rootEntry->__mount_point = lib::makeRef<DEntry>();
     rootEntry->__mount_point->__id = allocDEntryId();
     rootEntry->__mount_point->__mount = rootEntry;
-    rootEntry->__super_block = rootSuperBlock;
-    rootEntry->__root_node = rootNode;
     mountPoints->push_back(rootEntry);
 
     rootEntry->__root_node->mkdir("bin", 0755);

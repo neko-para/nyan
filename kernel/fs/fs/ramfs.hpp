@@ -59,8 +59,7 @@ struct RamFSFileVNode : public RamFSVNode {
 };
 
 struct RamFS : public FileSystem {
-    virtual std::tuple<lib::Ref<SuperBlock>, lib::Ref<VNode>> mount(Device* device,
-                                                                    const char* options) noexcept override;
+    virtual lib::Ref<MountEntry> mount(Device* device, const char* options) noexcept override;
 };
 
 }  // namespace nyan::fs

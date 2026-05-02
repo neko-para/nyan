@@ -1,5 +1,7 @@
 #include "ramfs.hpp"
 
+#include "../mount.hpp"
+
 namespace nyan::fs {
 
 RamFSVNode::RamFSVNode(VNodeType type, lib::Ref<SuperBlock> sb, uint32_t mode) {
@@ -149,11 +151,12 @@ int RamFSFileVNode::stat(struct stat* buf) noexcept {
     return 0;
 }
 
-std::tuple<lib::Ref<SuperBlock>, lib::Ref<VNode>> RamFS::mount(Device*, const char*) noexcept {
-    auto super_block = lib::makeRef<RamFSSuperBlock>();
-    super_block->__fs = this;
-    auto root_node = lib::makeRef<RamFSDirectoryVNode>(super_block, 0755);
-    return std::tie(super_block, root_node);
+lib::Ref<MountEntry> RamFS::mount(Device*, const char*) noexcept {
+    auto entry = lib::makeRef<MountEntry>();
+    entry->__super_block = lib::makeRef<RamFSSuperBlock>();
+    entry->__super_block->__fs = this;
+    entry->__root_node = lib::makeRef<RamFSDirectoryVNode>(entry->__super_block, 0755);
+    return entry;
 }
 
 }  // namespace nyan::fs

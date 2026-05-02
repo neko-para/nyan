@@ -32,31 +32,31 @@ struct Shared {
 
 template <typename T>
 struct Ref {
-    T* ptr{};
+    Shared* __ptr{};
 
     Ref() noexcept = default;
-    Ref(T* ptr) noexcept : ptr(ptr) {}
-    Ref(const Ref& ref) noexcept : ptr(ref.ptr) {
-        if (ptr) {
-            ptr->Shared::ref();
+    Ref(T* ptr) noexcept : __ptr(ptr) {}
+    Ref(const Ref& ref) noexcept : __ptr(ref.__ptr) {
+        if (__ptr) {
+            __ptr->ref();
         }
     }
-    Ref(Ref&& ref) noexcept : ptr(ref.ptr) { ref.ptr = nullptr; }
+    Ref(Ref&& ref) noexcept : __ptr(ref.__ptr) { ref.__ptr = nullptr; }
     ~Ref() {
-        if (ptr) {
-            ptr->Shared::unref();
+        if (__ptr) {
+            __ptr->unref();
         }
     }
     Ref& operator=(const Ref& ref) noexcept {
         if (this == &ref) {
             return *this;
         }
-        if (ptr) {
-            ptr->Shared::unref();
+        if (__ptr) {
+            __ptr->Shared::unref();
         }
-        ptr = ref.ptr;
-        if (ptr) {
-            ptr->Shared::ref();
+        __ptr = ref.__ptr;
+        if (__ptr) {
+            __ptr->Shared::ref();
         }
         return *this;
     }
@@ -64,28 +64,28 @@ struct Ref {
         if (this == &ref) {
             return *this;
         }
-        if (ptr) {
-            ptr->Shared::unref();
+        if (__ptr) {
+            __ptr->Shared::unref();
         }
-        ptr = ref.ptr;
-        ref.ptr = nullptr;
+        __ptr = ref.__ptr;
+        ref.__ptr = nullptr;
         return *this;
     }
 
-    operator bool() const noexcept { return ptr; }
-    T* get() const noexcept { return ptr; }
-    T* operator->() const noexcept { return ptr; }
+    operator bool() const noexcept { return __ptr; }
+    T* get() const noexcept { return static_cast<T*>(__ptr); }
+    T* operator->() const noexcept { return static_cast<T*>(__ptr); }
     template <typename U>
     U* as() const noexcept {
-        return static_cast<U*>(ptr);
+        return static_cast<U*>(__ptr);
     }
     // TODO: cast ref itself
 
     template <typename U>
         requires std::is_convertible_v<T*, U*>
     operator Ref<U>() const noexcept {
-        ptr->Shared::ref();
-        return Ref<U>{ptr};
+        __ptr->ref();
+        return Ref<U>{static_cast<T*>(__ptr)};
     }
 };
 
