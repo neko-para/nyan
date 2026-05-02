@@ -109,6 +109,6 @@ int set_thread_area(uint32_t user_desc[4]);
 int set_tid_address(int* ptr);
 
 // 512
-pid_t spawn(const char* name, const char* const* argv);
+pid_t spawn(const char* name, const char* const* argv, const char* const* envp);
 
 }  // namespace nyan::syscall

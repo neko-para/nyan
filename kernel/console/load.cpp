@@ -28,7 +28,8 @@ static int consoleDeamon(void* param) {
 
     while (true) {
         const char* argv[] = {"sh", 0};
-        auto pid = syscall::spawn("sh", argv);
+        const char* envp[] = {"PATH=/bin", "SHELL=/bin/sh", 0};
+        auto pid = syscall::spawn("sh", argv, envp);
         tty->foregroundPid = pid;
 
         arch::kprint("tty {} shell started, pid {}\n", id, pid);

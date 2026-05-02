@@ -7,11 +7,11 @@
 
 namespace nyan::syscall {
 
-pid_t spawn(const char* name, const char* const* argv) {
+pid_t spawn(const char* name, const char* const* argv, const char* const* envp) {
     for (size_t i = 0; i < data::programCount; i++) {
         const auto& prog = data::programs[i];
         if (std::string_view{prog.name} == name) {
-            auto task = task::createElfTask(prog.data, prog.size, argv);
+            auto task = task::createElfTask(prog.data, prog.size, argv, envp);
             // TODO: close-on-exec
             task->fdTable = task::currentTask->fdTable;
             task->tty = task::currentTask->tty;

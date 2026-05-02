@@ -38,7 +38,7 @@ int execve(const char* pathname,
     }
 
     arch::kprint("exec {}\n", pathname);
-    task::execTask(file.get(), info.st_size, argv, frame);
+    task::execTask(file.get(), info.st_size, argv, envp, frame);
     return 0;
 }
 

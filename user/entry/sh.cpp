@@ -59,11 +59,17 @@ int main() {
             std::cout << cwd() << std::endl;
             printPrompt();
             continue;
+        } else if (args[0] == "env") {
+            for (auto ptr = environ; *ptr; ptr++) {
+                std::cout << *ptr << std::endl;
+            }
+            printPrompt();
+            continue;
         } else if (args[0] == "exec") {
             if (args.size() > 1) {
                 auto execArgs = std::vector<std::string>(args.begin() + 1, args.end());
                 auto argv = toCArgv(execArgs);
-                if (execve(argv[0], argv.data(), nullptr) < 0) {
+                if (execve(argv[0], argv.data(), environ) < 0) {
                     std::cout << "launch failed" << std::endl;
                     printPrompt();
                     continue;

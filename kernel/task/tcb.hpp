@@ -74,6 +74,7 @@ struct TaskControlBlock : public TaskControlBlockMetaInfo,
     std::vector<uint32_t> pages;
 
     lib::Ref<fs::DEntry> cwd;
+    // std::vector<std::string> env;
 
     union {
         ExitInfo exitInfo;

@@ -155,10 +155,16 @@ static LoadElfResult loadElf(paging::VMSpace& vmSpace, uint8_t* file, size_t) {
     return {std::move(pageDir), brkAddr, paging::VirtualAddress{header->entry_offset}};
 }
 
-static void loadArgv(Stack& stack, const char* const* argv) {
+static void loadArgv(Stack& stack, const char* const* argv, const char* const* envp) {
     std::vector<paging::VirtualAddress> args;
     for (auto arg = argv; *arg; arg++) {
         args.push_back(stack.translator.toUser(stack.pushString(*arg)));
+    }
+    std::vector<paging::VirtualAddress> envs;
+    if (envp) {
+        for (auto env = envp; *env; env++) {
+            envs.push_back(stack.translator.toUser(stack.pushString(*env)));
+        }
     }
 
     // auxv
@@ -169,6 +175,9 @@ static void loadArgv(Stack& stack, const char* const* argv) {
 
     // envp
     stack.pushVal(0);
+    for (auto it = envs.rbegin(); it != envs.rend(); it++) {
+        stack.pushVal(it->addr);
+    }
 
     // argv
     stack.pushVal(0);
@@ -178,7 +187,7 @@ static void loadArgv(Stack& stack, const char* const* argv) {
     stack.pushVal(args.size());
 }
 
-TaskControlBlock* createElfTask(uint8_t* file, size_t size, const char* const* argv) {
+TaskControlBlock* createElfTask(uint8_t* file, size_t size, const char* const* argv, const char* const* envp) {
     auto tcb = new TaskControlBlock;
 
     auto [pageDir, brkAddr, entry] = loadElf(tcb->vmSpace, file, size);
@@ -193,7 +202,7 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t size, const char* const* a
     });
 
     Stack stack(pageDir, 0xC0000000_va);
-    loadArgv(stack, argv);
+    loadArgv(stack, argv, envp);
     stack.pushVal(stack.userEsp().addr);
     stack.pushVal(entry.addr);
 
@@ -222,7 +231,11 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t size, const char* const* a
     return tcb;
 }
 
-void execTask(uint8_t* file, size_t size, const char* const* argv, interrupt::SyscallFrame* frame) {
+void execTask(uint8_t* file,
+              size_t size,
+              const char* const* argv,
+              const char* const* envp,
+              interrupt::SyscallFrame* frame) {
     paging::VMSpace vmSpace;
 
     auto [pageDir, brkAddr, entry] = loadElf(vmSpace, file, size);
@@ -239,7 +252,7 @@ void execTask(uint8_t* file, size_t size, const char* const* argv, interrupt::Sy
     auto tcb = currentTask;
 
     Stack stack(pageDir, 0xC0000000_va);
-    loadArgv(stack, argv);
+    loadArgv(stack, argv, envp);
     std::string name = lib::format("elf_{}", argv[0] ? argv[0] : "unknown");
     argv = nullptr;
 
