@@ -1,6 +1,6 @@
 #include "directory.hpp"
 
-#include "../allocator/alloc.hpp"
+#include "../allocator/mod.hpp"
 
 namespace nyan::paging {
 

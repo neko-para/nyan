@@ -1,64 +1,63 @@
-#include "alloc.hpp"
+#include "mod.hpp"
 
 #include "../arch/guard.hpp"
 #include "../paging/directory.hpp"
-#include "../paging/entry.hpp"
+#include "forward.hpp"
 #include "frame.hpp"
 #include "large_frame.hpp"
-#include "load.hpp"
-#include "physicalFrame.hpp"
+#include "physical_frame.hpp"
 #include "pool.hpp"
 #include "slab.hpp"
 
 namespace nyan::allocator {
 
-paging::PhysicalAddress physicalFrameAlloc() {
+paging::PhysicalAddress physicalFrameAlloc() noexcept {
     arch::InterruptGuard guard;
 
-    auto offset = poolManager->alloc();
-    physicalFrameManager->info[offset] = {.ref = 1};
+    auto offset = __pool_manager->alloc();
+    __physical_frame_manager->__info[offset] = {.__ref = 1};
     return paging::PhysicalAddress{PoolManager::pageAt(offset)};
 }
 
-void physicalFrameRetain(paging::PhysicalAddress addr) {
+void physicalFrameRetain(paging::PhysicalAddress addr) noexcept {
     arch::InterruptGuard guard;
 
     auto offset = PoolManager::pageFor(addr.addr);
-    physicalFrameManager->info[offset].ref += 1;
+    __physical_frame_manager->__info[offset].__ref += 1;
 }
 
-void physicalFrameRelease(paging::PhysicalAddress addr) {
+void physicalFrameRelease(paging::PhysicalAddress addr) noexcept {
     arch::InterruptGuard guard;
 
     auto offset = PoolManager::pageFor(addr.addr);
-    physicalFrameManager->info[offset].ref -= 1;
-    if (!physicalFrameManager->info[offset].ref) {
-        poolManager->free(offset);
+    __physical_frame_manager->__info[offset].__ref -= 1;
+    if (!__physical_frame_manager->__info[offset].__ref) {
+        __pool_manager->free(offset);
     }
 }
 
-uint16_t physicalFrameGetRef(paging::PhysicalAddress addr) {
+uint16_t physicalFrameGetRef(paging::PhysicalAddress addr) noexcept {
     arch::InterruptGuard guard;
 
     auto offset = PoolManager::pageFor(addr.addr);
-    return physicalFrameManager->info[offset].ref;
+    return __physical_frame_manager->__info[offset].__ref;
 }
 
-paging::VirtualAddress virtualFrameAlloc() {
+paging::VirtualAddress virtualFrameAlloc() noexcept {
     arch::InterruptGuard guard;
 
-    auto virtualOffset = frameManager->alloc();
+    auto virtualOffset = __frame_manager->alloc();
     return paging::VirtualAddress{FrameManager::frameAt(virtualOffset)};
 }
 
-void virtualFrameFree(paging::VirtualAddress addr) {
+void virtualFrameFree(paging::VirtualAddress addr) noexcept {
     arch::InterruptGuard guard;
 
     auto virtualOffset = FrameManager::frameFor(addr.addr);
-    frameManager->free(virtualOffset);
+    __frame_manager->free(virtualOffset);
 }
 
-void* frameAlloc() {
+void* frameAlloc() noexcept {
     arch::InterruptGuard guard;
 
     auto physicalAddr = physicalFrameAlloc();
@@ -69,7 +68,7 @@ void* frameAlloc() {
     return virtualAddr.as<void>();
 }
 
-void frameFree(void* frame) {
+void frameFree(void* frame) noexcept {
     arch::InterruptGuard guard;
 
     paging::VirtualAddress virtualAddr = paging::VirtualAddress{frame};
@@ -82,23 +81,10 @@ void frameFree(void* frame) {
     physicalFrameRelease(physicalAddr);
 }
 
-void* slabAlloc(size_t size, size_t align) {
-    arch::InterruptGuard guard;
-    return slabManager->alloc(std::max(size, align));
-}
-
-void slabFree(void* addr) {
-    if (!addr) {
-        return;
-    }
-    arch::InterruptGuard guard;
-    slabManager->free(addr);
-}
-
-void* largeFrameAlloc(size_t page) {
+void* largeFrameAlloc(size_t page) noexcept {
     arch::InterruptGuard guard;
 
-    auto addr = largeFrameManager->alloc(page);
+    auto addr = __large_frame_manager->alloc(page);
     if (!addr) {
         arch::kfatal("large frame alloc failed");
     }
@@ -115,11 +101,11 @@ void* largeFrameAlloc(size_t page) {
     return addr->as<void>();
 }
 
-void largeFrameFree(void* frame) {
+void largeFrameFree(void* frame) noexcept {
     arch::InterruptGuard guard;
 
     paging::VirtualAddress addr{frame};
-    auto page = largeFrameManager->free(addr);
+    auto page = __large_frame_manager->free(addr);
     arch::kprint("large free {#10x} {}", addr.addr, page);
     for (size_t i = 0; i < page; i++) {
         paging::PhysicalAddress pAddr;
@@ -129,6 +115,33 @@ void largeFrameFree(void* frame) {
         addr.invlpg();
         physicalFrameRelease(pAddr);
         addr = addr.nextPage();
+    }
+}
+
+void* autoAlloc(size_t size) noexcept {
+    if (size <= 512) {
+        arch::InterruptGuard guard;
+        return __slab_manager->alloc(size);
+    } else if (size <= 4096) {
+        return frameAlloc();
+    } else {
+        return largeFrameAlloc((size + 0xFFF) >> 12);
+    }
+}
+
+void autoFree(void* frame) noexcept {
+    if (!frame) {
+        return;
+    }
+    auto addr = reinterpret_cast<uint32_t>(frame);
+
+    if (addr >= __large_frame_base) {
+        largeFrameFree(frame);
+    } else if (addr & 0xFFF) {
+        arch::InterruptGuard guard;
+        __slab_manager->free(frame);
+    } else {
+        frameFree(frame);
     }
 }
 

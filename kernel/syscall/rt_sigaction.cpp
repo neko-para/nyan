@@ -1,7 +1,7 @@
 
 #include <nyan/syscall.h>
 
-#include "../allocator/alloc.hpp"
+#include "../allocator/mod.hpp"
 #include "../arch/guard.hpp"
 #include "../task/tcb.hpp"
 
@@ -36,7 +36,7 @@ int rt_sigaction(int sig, const struct sigaction* act, struct sigaction* oldact,
         if (!act && !oldact) {
             return 0;
         }
-        task::currentTask->signalActions.reset(allocator::allocAs<std::array<task::SigAction, NSIG>>());
+        task::currentTask->signalActions.reset(new std::array<task::SigAction, NSIG>());
     }
 
     auto& entry = task::currentTask->signalActions->operator[](sig);

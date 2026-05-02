@@ -4,7 +4,7 @@
 #include <bit>
 #include <vector>
 
-#include "../allocator/alloc.hpp"
+#include "../allocator/mod.hpp"
 #include "../arch/guard.hpp"
 #include "../elf/entry.hpp"
 #include "../fs/load.hpp"
@@ -351,7 +351,7 @@ pid_t forkTask(interrupt::SyscallFrame* frame) {
     tcb->pendingSignals = 0;
     tcb->signalMask = currentTask->signalMask;
     if (currentTask->signalActions) {
-        tcb->signalActions.reset(allocator::allocAs<std::array<SigAction, NSIG>>(*currentTask->signalActions));
+        tcb->signalActions.reset(new std::array<SigAction, NSIG>(*currentTask->signalActions));
     }
 
     tcb->fdTable = currentTask->fdTable;

@@ -1,6 +1,6 @@
 #include "table.hpp"
 
-#include "../allocator/alloc.hpp"
+#include "../allocator/mod.hpp"
 #include "../arch/print.hpp"
 
 namespace nyan::paging {

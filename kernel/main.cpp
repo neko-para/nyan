@@ -1,7 +1,7 @@
 #include <nyan/syscall.h>
 #include <string.h>
 
-#include "allocator/load.hpp"
+#include "allocator/mod.hpp"
 #include "arch/print.hpp"
 #include "arch/sse.hpp"
 #include "boot/multiboot.hpp"

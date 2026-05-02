@@ -3,7 +3,7 @@
 #include <new>
 #include <string>
 
-#include "../allocator/alloc.hpp"
+#include "../allocator/mod.hpp"
 #include "../arch/print.hpp"
 
 _LIBCPP_BEGIN_NAMESPACE_STD
