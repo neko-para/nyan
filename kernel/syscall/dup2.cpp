@@ -5,21 +5,19 @@
 namespace nyan::syscall {
 
 int dup2(int fd, int newFd) {
-    if (fd < 0 || static_cast<size_t>(fd) >= task::MAXFD) {
+    auto fileObjPtr = task::currentTask->__file.getFile(fd);
+    if (!fileObjPtr) {
         return -SYS_EBADF;
     }
     if (fd == newFd) {
         return fd;
     }
-    if (newFd < 0 || static_cast<size_t>(newFd) >= task::MAXFD) {
+
+    auto fileObjSlotPtr = task::currentTask->__file.getFile(newFd);
+    if (!fileObjPtr) {
         return -SYS_EBADF;
     }
-    auto& fileObj = task::currentTask->fdTable[fd];
-    if (!fileObj) {
-        return -SYS_EBADF;
-    }
-    auto& fileObjSlot = task::currentTask->fdTable[newFd];
-    fileObjSlot = fileObj;
+    *fileObjSlotPtr = *fileObjPtr;
     return newFd;
 }
 

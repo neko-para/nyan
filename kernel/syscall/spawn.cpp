@@ -13,8 +13,7 @@ pid_t spawn(const char* name, const char* const* argv, const char* const* envp) 
         if (std::string_view{prog.name} == name) {
             auto task = task::createElfTask(prog.data, prog.size, argv, envp);
             // TODO: close-on-exec
-            task->fdTable = task::currentTask->fdTable;
-            task->tty = task::currentTask->tty;
+            task->__file = task::currentTask->__file;
             auto pid = task::addTask(task);
             arch::kprint("spawn {} as {}\n", name, pid);
             return pid;

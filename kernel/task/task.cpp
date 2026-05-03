@@ -276,17 +276,7 @@ void execTask(uint8_t* file,
     // tcb->parentPid
     // tcb->groupPid
 
-    // tcb->pendingSignals
-    // tcb->signalMask
-    if (tcb->signalActions) {
-        for (auto& act : *tcb->signalActions) {
-            if (act.__handler != SIG_IGN && act.__handler != SIG_DFL) {
-                act.__handler = SIG_DFL;
-                act.__mask = 0;
-                act.__flags = 0;
-            }
-        }
-    }
+    tcb->__signal.prepareForExec();
 
     // fdTable close-on-exec
     // tty
@@ -348,15 +338,8 @@ pid_t forkTask(interrupt::SyscallFrame* frame) {
     tcb->parentPid = currentTask->pid;
     tcb->groupPid = currentTask->groupPid;
 
-    tcb->pendingSignals = 0;
-    tcb->signalMask = currentTask->signalMask;
-    if (currentTask->signalActions) {
-        tcb->signalActions.reset(new std::array<SigAction, NSIG>(*currentTask->signalActions));
-    }
-
-    tcb->fdTable = currentTask->fdTable;
-
-    tcb->tty = currentTask->tty;
+    tcb->__signal.prepareForFork(currentTask->__signal);
+    tcb->__file = currentTask->__file;
 
     tcb->tls = currentTask->tls;
 
@@ -398,10 +381,10 @@ pid_t addTask(TaskControlBlock* task) {
     currentTask->exitInfo.stat = (code << 8) | sig;
     if (!currentTask->childTasks.empty()) {
         allTasks[KP_Init]->childTasks.splice(allTasks[KP_Init]->childTasks.end(), currentTask->childTasks);
-        sendSignal(allTasks[KP_Init], SIGCHLD);
+        allTasks[KP_Init]->sendSignal(SIGCHLD);
     }
     if (auto parent = findTask(currentTask->parentPid)) {
-        sendSignal(parent, SIGCHLD);
+        parent->sendSignal(SIGCHLD);
     }
     if (!pendingTasks.empty()) {
         auto task = pendingTasks.front();
@@ -534,100 +517,6 @@ void checkSleep() {
     if ((timer::msSinceBoot % 10 == 0) && currentTask) {
         yield();
     }
-}
-
-bool isSignalDefaultIgnore(int sig) {
-    return sig == SIGCHLD || sig == SIGURG || sig == SIGWINCH;
-}
-
-void sendSignal(TaskControlBlock* task, int sig) {
-    arch::InterruptGuard guard;
-    if (task->ended()) {
-        arch::kprint("signal {} ignored for pid {} as it is ended\n", sig, task->pid);
-        return;
-    }
-    task->pendingSignals |= 1ull << sig;
-    if (task->signalMask & (1ull << sig)) {
-        arch::kprint("signal {} masked for pid {}\n", sig, task->pid);
-        return;
-    }
-    if (task->state == State::S_Blocked) {
-        unblock(task, WakeReason::WR_Signal);
-    }
-}
-
-void defaultSignalLogic(int sig) {
-    if (isSignalDefaultIgnore(sig)) {
-        return;
-    }
-    exitTask(255, sig);
-}
-
-bool peekSignal() {
-    SigSet sigs = currentTask->pendingSignals & ~currentTask->signalMask;
-    if (!sigs) {
-        return false;
-    }
-
-    while (sigs) {
-        auto sig = std::countr_zero(sigs);
-        sigs ^= 1ull << sig;
-        if (!currentTask->signalActions) {
-            if (!isSignalDefaultIgnore(sig)) {
-                return true;
-            }
-        } else {
-            const auto& entry = currentTask->signalActions->operator[](sig);
-            if (entry.__handler == SIG_IGN) {
-                continue;
-            } else if (entry.__handler == SIG_DFL) {
-                if (!isSignalDefaultIgnore(sig)) {
-                    return true;
-                }
-            } else {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-bool checkSignal(interrupt::SyscallFrame* frame) {
-    // TODO: 假设一定来自用户态. 需要有个地方检查frame->cs
-    arch::InterruptGuard guard;
-    SigSet sigs = currentTask->pendingSignals & ~currentTask->signalMask;
-    if (!sigs) {
-        return false;
-    }
-    auto sig = std::countr_zero(sigs);
-    currentTask->pendingSignals ^= 1ull << sig;
-    if (!currentTask->signalActions) {
-        defaultSignalLogic(sig);
-    } else {
-        const auto& entry = currentTask->signalActions->operator[](sig);
-        if (entry.__handler == SIG_IGN) {
-            ;
-        } else if (entry.__handler == SIG_DFL) {
-            defaultSignalLogic(sig);
-        } else {
-            auto mask = currentTask->signalMask;
-            currentTask->signalMask |= entry.__mask;
-
-            // TODO: 这里关闭了中断, 需要检查是否跨页了.
-            auto esp = frame->user_esp;
-            esp -= sizeof(task::SignalFrame);
-            auto userFrame = reinterpret_cast<task::SignalFrame*>(esp);
-            userFrame->retAddr = (0xFFFFF000_va + (sigreturn_trampoline - trampoline_start)).addr;
-            userFrame->signal = sig;
-            userFrame->oldMask = mask;
-            userFrame->frame = *frame;
-
-            frame->eip = reinterpret_cast<uint32_t>(entry.__handler);
-            frame->user_esp = esp;
-            return true;
-        }
-    }
-    return true;
 }
 
 }  // namespace nyan::task

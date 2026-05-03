@@ -5,14 +5,11 @@
 namespace nyan::syscall {
 
 int close(int fd) {
-    if (fd < 0 || static_cast<size_t>(fd) >= task::MAXFD) {
+    auto fileObjPtr = task::currentTask->__file.getFile(fd);
+    if (!fileObjPtr) {
         return -SYS_EBADF;
     }
-    auto& fileObj = task::currentTask->fdTable[fd];
-    if (!fileObj) {
-        return -SYS_EBADF;
-    }
-    fileObj = {};
+    (*fileObjPtr) = {};
     return 0;
 }
 

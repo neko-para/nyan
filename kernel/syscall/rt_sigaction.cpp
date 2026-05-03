@@ -32,14 +32,14 @@ int rt_sigaction(int sig, const struct sigaction* act, struct sigaction* oldact,
         }
     }
 
-    if (!task::currentTask->signalActions) {
+    if (!task::currentTask->__signal.__signal_actions) {
         if (!act && !oldact) {
             return 0;
         }
-        task::currentTask->signalActions.reset(new std::array<task::SigAction, NSIG>());
+        task::currentTask->__signal.ensureActions();
     }
 
-    auto& entry = task::currentTask->signalActions->operator[](sig);
+    auto& entry = task::currentTask->__signal.__signal_actions->operator[](sig);
 
     // 输出旧的 sigaction
     if (oldact) {

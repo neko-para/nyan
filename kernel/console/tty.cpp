@@ -4,6 +4,7 @@
 
 #include "../keyboard/forward.hpp"
 #include "../task/task.hpp"
+#include "../task/tcb.hpp"
 
 namespace nyan::console {
 
@@ -27,7 +28,7 @@ void Tty::input(const keyboard::Message& msg) noexcept {
         }
         __line_buffer.clear();
         if (auto task = task::findTask(__foreground_pid)) {
-            task::sendSignal(task, SIGINT);
+            task->sendSignal(SIGINT);
         }
         return;
     }

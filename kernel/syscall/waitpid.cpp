@@ -38,7 +38,7 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
 
             task::currentTask->waitTaskInfo = {pid};
             if (block(task::BlockReason::BR_WaitTask) == task::WakeReason::WR_Signal) {
-                if (task::peekSignal()) {
+                if (task::currentTask->peekSignal()) {
                     return -SYS_EINTR;
                 }
             }
@@ -61,7 +61,7 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
 
                 task::currentTask->waitTaskInfo = {pid};
                 if (task::block(task::BlockReason::BR_WaitTask) == task::WakeReason::WR_Signal) {
-                    if (task::peekSignal()) {
+                    if (task::currentTask->peekSignal()) {
                         return -SYS_EINTR;
                     }
                 }

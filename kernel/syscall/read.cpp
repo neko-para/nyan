@@ -11,14 +11,11 @@ ssize_t read(int fd, void* buf, size_t size) {
     if (size > INT_MAX) {
         return -SYS_EINVAL;
     }
-    if (fd < 0 || static_cast<size_t>(fd) >= task::MAXFD) {
+    auto fileObjPtr = task::currentTask->__file.getFile(fd);
+    if (!fileObjPtr) {
         return -SYS_EBADF;
     }
-    const auto& fileObj = task::currentTask->fdTable[fd];
-    if (!fileObj) {
-        return -SYS_EBADF;
-    }
-    return fileObj->read(buf, size);
+    return (*fileObjPtr)->read(buf, size);
 }
 
 }  // namespace nyan::syscall

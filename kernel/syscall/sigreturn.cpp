@@ -11,7 +11,7 @@ void sigreturn(void* frame) {
 
     auto esp = sysFrame->user_esp;
     esp += 4;  // signum
-    task::currentTask->signalMask = *reinterpret_cast<task::SigSet*>(esp);
+    task::currentTask->__signal.__signal_mask = *reinterpret_cast<task::SigSet*>(esp);
     esp += sizeof(task::SigSet);  // sigmask
     auto userFrame = reinterpret_cast<interrupt::SyscallFrame*>(esp);
     *sysFrame = *userFrame;

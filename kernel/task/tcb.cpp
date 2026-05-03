@@ -4,6 +4,7 @@
 
 #include "../timer/load.hpp"
 #include "task.hpp"
+#include "trampoline.h"
 
 namespace nyan::task {
 
@@ -41,6 +42,70 @@ void TaskControlBlock::dump() {
             }
             break;
     }
+}
+
+void TaskControlBlock::sendSignal(int sig) noexcept {
+    arch::InterruptGuard guard;
+    if (ended()) {
+        arch::kprint("signal {} ignored for pid {} as it is ended\n", sig, pid);
+        return;
+    }
+    __signal.__pending_signals |= 1ull << sig;
+    if (__signal.isMasked(sig)) {
+        arch::kprint("signal {} masked for pid {}\n", sig, pid);
+        return;
+    }
+    if (state == State::S_Blocked) {
+        unblock(this, WakeReason::WR_Signal);
+    }
+}
+
+static void defaultSignalLogic(int sig) {
+    if (isSignalDefaultIgnore(sig)) {
+        return;
+    }
+    exitTask(255, sig);
+}
+
+bool TaskControlBlock::checkSignal(interrupt::SyscallFrame* frame) noexcept {
+    if (this != currentTask) {
+        arch::kfatal("checkSignal should be called with currentTask");
+    }
+
+    // TODO: 假设一定来自用户态. 需要有个地方检查frame->cs
+    arch::InterruptGuard guard;
+    SigSet sigs = __signal.restSignals();
+    if (!sigs) {
+        return false;
+    }
+    auto sig = std::countr_zero(sigs);
+    __signal.__pending_signals ^= 1ull << sig;
+    if (!__signal.__signal_actions) {
+        defaultSignalLogic(sig);
+    } else {
+        const auto& entry = __signal.__signal_actions->operator[](sig);
+        if (entry.__handler == SIG_IGN) {
+            ;
+        } else if (entry.__handler == SIG_DFL) {
+            defaultSignalLogic(sig);
+        } else {
+            auto mask = __signal.__signal_mask;
+            __signal.__signal_mask |= entry.__mask;
+
+            // TODO: 这里关闭了中断, 需要检查是否跨页了.
+            auto esp = frame->user_esp;
+            esp -= sizeof(task::SignalFrame);
+            auto userFrame = reinterpret_cast<task::SignalFrame*>(esp);
+            userFrame->retAddr = (0xFFFFF000_va + (sigreturn_trampoline - trampoline_start)).addr;
+            userFrame->signal = sig;
+            userFrame->oldMask = mask;
+            userFrame->frame = *frame;
+
+            frame->eip = reinterpret_cast<uint32_t>(entry.__handler);
+            frame->user_esp = esp;
+        }
+    }
+    return true;
 }
 
 }  // namespace nyan::task

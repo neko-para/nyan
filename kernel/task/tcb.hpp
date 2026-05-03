@@ -3,25 +3,19 @@
 #include <signal.h>
 #include <stdint.h>
 #include <sys/types.h>
-#include <array>
-#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "../fs/dentry.hpp"
-#include "../fs/fd.hpp"
 #include "../gdt/entry.hpp"
 #include "../lib/function.hpp"
 #include "../lib/list.hpp"
 #include "../paging/vma.hpp"
 #include "forward.hpp"
-#include "signal.hpp"
+#include "tcb/file.hpp"
+#include "tcb/signal.hpp"
 #include "wait.hpp"
-
-namespace nyan::console {
-struct Tty;
-}
 
 namespace nyan::task {
 
@@ -47,9 +41,6 @@ struct BlockWaitTaskInfo {
     pid_t pid;
 };
 
-// TODO: 这玩意是不是要动态?
-constexpr size_t MAXFD = 16;
-
 struct TaskControlBlock : public TaskControlBlockMetaInfo,
                           public lib::ListNodes<TaskControlBlockTag, TaskControlBlockChildTag> {
     paging::VMSpace vmSpace;
@@ -58,12 +49,8 @@ struct TaskControlBlock : public TaskControlBlockMetaInfo,
     pid_t groupPid{KP_Invalid};
     lib::List<TaskControlBlockChildTag, true> childTasks;
 
-    SigSet pendingSignals{};
-    SigSet signalMask{};
-    std::unique_ptr<std::array<SigAction, NSIG>> signalActions;
-
-    std::array<lib::Ref<fs::FdObj>, MAXFD> fdTable;
-    console::Tty* tty{};
+    TaskSignalInfo __signal;
+    TaskFileInfo __file;
 
     gdt::Segment tls;
 
@@ -74,6 +61,7 @@ struct TaskControlBlock : public TaskControlBlockMetaInfo,
     std::vector<uint32_t> pages;
 
     lib::Ref<fs::DEntry> cwd;
+    // std::vector<std::string> argv;
     // std::vector<std::string> env;
 
     union {
@@ -85,6 +73,11 @@ struct TaskControlBlock : public TaskControlBlockMetaInfo,
 
     bool ended() const noexcept { return state == State::S_Exited; }
     void dump();
+
+    void sendSignal(int sig) noexcept;
+    bool peekSignal() const noexcept { return __signal.peek(); }
+    // 几乎总是应该用 currentTask 来调用
+    bool checkSignal(interrupt::SyscallFrame* frame) noexcept;
 };
 
 extern TaskControlBlock* currentTask asm("currentTask");

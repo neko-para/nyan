@@ -45,4 +45,7 @@ enum KnownPid : pid_t {
     KP_FirstUser = 16,
 };
 
+// TODO: 这玩意是不是要动态?
+constexpr size_t __max_fd = 16;
+
 }  // namespace nyan::task

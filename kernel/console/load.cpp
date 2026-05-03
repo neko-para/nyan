@@ -21,9 +21,9 @@ static int consoleDeamon(void* param) {
 
     auto ttyObj = lib::makeRef<TtyObj>(tty);
     auto debugConObj = lib::makeRef<arch::DebugConObj>();
-    task::currentTask->fdTable[0] = lib::makeRef<fs::FdObj>(ttyObj, O_RDONLY);
-    task::currentTask->fdTable[1] = lib::makeRef<fs::FdObj>(ttyObj, O_WRONLY);
-    task::currentTask->fdTable[2] = lib::makeRef<fs::FdObj>(ttyObj, O_WRONLY);
+    task::currentTask->__file.__fd_table[0] = lib::makeRef<fs::FdObj>(ttyObj, O_RDONLY);
+    task::currentTask->__file.__fd_table[1] = lib::makeRef<fs::FdObj>(ttyObj, O_WRONLY);
+    task::currentTask->__file.__fd_table[2] = lib::makeRef<fs::FdObj>(ttyObj, O_WRONLY);
 
     while (true) {
         const char* argv[] = {"sh", 0};
@@ -54,7 +54,6 @@ void startDeamons() noexcept {
     for (auto tty : __all_ttys) {
         auto tcb = task::createTask(consoleDeamon, tty);
         tcb->name = lib::format("tty_deamon_{}", id);
-        tcb->tty = tty;
         auto pid = task::addTask(tcb);
         arch::kprint("tty {} deamon started, pid {}\n", id++, pid);
     }
