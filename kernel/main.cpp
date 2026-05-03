@@ -9,7 +9,7 @@
 #include "fs/load.hpp"
 #include "gdt/load.hpp"
 #include "interrupt/load.hpp"
-#include "keyboard/load.hpp"
+#include "keyboard/mod.hpp"
 #include "lib/format.hpp"
 #include "paging/address.hpp"
 #include "paging/kernel.hpp"

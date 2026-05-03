@@ -2,7 +2,7 @@
 
 #include <signal.h>
 
-#include "../keyboard/message.hpp"
+#include "../keyboard/forward.hpp"
 #include "../task/task.hpp"
 
 namespace nyan::console {

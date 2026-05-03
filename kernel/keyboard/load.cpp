@@ -1,4 +1,3 @@
-#include "load.hpp"
 
 #include <stdint.h>
 #include <sys/types.h>
@@ -7,16 +6,17 @@
 #include "../console/mod.hpp"
 #include "../interrupt/load.hpp"
 #include "message.hpp"
+#include "mod.hpp"
 
 namespace nyan::keyboard {
 
-static void waitReady() {
+static void waitReady() noexcept {
     while (arch::inb(0x64) & 0x2) {
         ;
     }
 }
 
-void load() {
+void load() noexcept {
     waitReady();
     arch::outb(0x64, 0x60);
     waitReady();
@@ -25,7 +25,7 @@ void load() {
     interrupt::unmask(1);
 }
 
-static void handle(const Message& msg, interrupt::SyscallFrame* frame) {
+static void handle(const Message& msg, interrupt::SyscallFrame* frame) noexcept {
     if (!(msg.flag & F_Release) && (msg.flag & F_Ctrl) && (msg.flag & F_Alt)) {
         if (msg.key >= SC_F1 && msg.key <= SC_F2) {
             console::switchTo(console::__all_ttys[msg.key - SC_F1]);
@@ -36,7 +36,7 @@ static void handle(const Message& msg, interrupt::SyscallFrame* frame) {
     console::handleInput(msg, frame);
 }
 
-bool push(uint8_t dat, interrupt::SyscallFrame* frame) {
+bool push(uint8_t dat, interrupt::SyscallFrame* frame) noexcept {
     static int state = 0;
 
     Message msg;

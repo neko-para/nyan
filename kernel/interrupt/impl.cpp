@@ -5,7 +5,7 @@
 #include "../arch/instr.hpp"
 #include "../arch/print.hpp"
 #include "../gdt/load.hpp"
-#include "../keyboard/load.hpp"
+#include "../keyboard/mod.hpp"
 #include "../lib/format.hpp"
 #include "../paging/directory.hpp"
 #include "../task/task.hpp"

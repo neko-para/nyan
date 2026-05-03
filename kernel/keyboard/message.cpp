@@ -10,9 +10,9 @@ static const char SC_to_char[] =
     "\0\0  \0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
     "778899--445566++11223300..\0";
 
-uint8_t flags = 0;
+uint8_t __flags = 0;
 
-Message merge(uint16_t scan) {
+Message merge(uint16_t scan) noexcept {
     Message msg;
     msg.code = scan;
     msg.key = scan & (~F_Release);
@@ -29,7 +29,7 @@ Message merge(uint16_t scan) {
             msg.ch = '/';
         }
     } else if (scan < sizeof(SC_to_char) / 2) {
-        msg.ch = SC_to_char[(scan << 1) | ((flags & F_Shift) ? 1 : 0)];
+        msg.ch = SC_to_char[(scan << 1) | ((__flags & F_Shift) ? 1 : 0)];
     }
 
     uint8_t mod = 0;
@@ -49,12 +49,12 @@ Message merge(uint16_t scan) {
     }
     if (mod) {
         if (msg.flag & F_Release) {
-            flags &= ~mod;
+            __flags &= ~mod;
         } else {
-            flags |= mod;
+            __flags |= mod;
         }
     }
-    msg.flag |= flags;
+    msg.flag |= __flags;
 
     return msg;
 }
