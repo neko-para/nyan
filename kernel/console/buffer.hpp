@@ -25,19 +25,19 @@ struct ScreenBuffer {
     uint8_t __current_attr = vga::makeAttr(vga::C_LightGray, vga::C_Black);
     uint8_t __flags = F_ShowCursor | F_Canonical | F_Echo;
 
-    void flush();
-    void flushBuffer();
-    void flushCursor();
-    void clear();
-    void scroll(size_t row);
-    void putcImpl(char ch);
+    void flush() noexcept;
+    void flushBuffer() noexcept;
+    void flushCursor() noexcept;
+    void clear() noexcept;
+    void scroll(size_t row) noexcept;
+    void putcImpl(char ch) noexcept;
 
-    void putc(char ch);
-    void puts(const char* str);
-    void puts(const char* str, size_t len);
+    void putc(char ch) noexcept;
+    void puts(const char* str) noexcept;
+    void puts(const char* str, size_t len) noexcept;
 
     template <typename... Args>
-    void print(lib::format_string<std::type_identity_t<Args>...> fmt, Args&&... args) {
+    void print(lib::format_string<std::type_identity_t<Args>...> fmt, Args&&... args) noexcept {
         lib::format_to(lib::wrap_member_iterator<ScreenBuffer, &ScreenBuffer::putcImpl>{this}, fmt,
                        std::forward<Args>(args)...);
         flushCursor();

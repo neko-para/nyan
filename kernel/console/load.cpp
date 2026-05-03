@@ -71,8 +71,8 @@ void switchTo(Tty* tty) noexcept {
     tty->activate();
 }
 
-void handleInput(const keyboard::Message& msg, interrupt::SyscallFrame* frame) noexcept {
-    __active_tty->input(msg, frame);
+void handleInput(const keyboard::Message& msg) noexcept {
+    __active_tty->input(msg);
 }
 
 }  // namespace nyan::console

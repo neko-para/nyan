@@ -7,6 +7,6 @@
 namespace nyan::keyboard {
 
 void load() noexcept;
-bool push(uint8_t dat, interrupt::SyscallFrame* frame) noexcept;
+bool push(uint8_t dat) noexcept;
 
 }  // namespace nyan::keyboard

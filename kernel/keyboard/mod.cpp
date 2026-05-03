@@ -25,7 +25,7 @@ void load() noexcept {
     interrupt::unmask(1);
 }
 
-static void handle(const Message& msg, interrupt::SyscallFrame* frame) noexcept {
+static void handle(const Message& msg) noexcept {
     if (!(msg.flag & F_Release) && (msg.flag & F_Ctrl) && (msg.flag & F_Alt)) {
         if (msg.key >= SC_F1 && msg.key <= SC_F2) {
             console::switchTo(console::__all_ttys[msg.key - SC_F1]);
@@ -33,10 +33,10 @@ static void handle(const Message& msg, interrupt::SyscallFrame* frame) noexcept 
         }
     }
 
-    console::handleInput(msg, frame);
+    console::handleInput(msg);
 }
 
-bool push(uint8_t dat, interrupt::SyscallFrame* frame) noexcept {
+bool push(uint8_t dat) noexcept {
     static int state = 0;
 
     Message msg;
@@ -48,13 +48,13 @@ bool push(uint8_t dat, interrupt::SyscallFrame* frame) noexcept {
                 return false;
             } else {
                 msg = merge(dat);
-                handle(msg, frame);
+                handle(msg);
                 return true;
             }
         case 1:
             msg = merge(0xE000 | dat);
             state = 0;
-            handle(msg, frame);
+            handle(msg);
             return true;
         default:
             return false;

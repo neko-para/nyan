@@ -6,19 +6,19 @@
 
 namespace nyan::console {
 
-void ScreenBuffer::flush() {
+void ScreenBuffer::flush() noexcept {
     flushBuffer();
     flushCursor();
 }
 
-void ScreenBuffer::flushBuffer() {
+void ScreenBuffer::flushBuffer() noexcept {
     if (!(__flags & F_Active)) {
         return;
     }
     std::copy(std::begin(__buffer), std::end(__buffer), std::begin(vga::buffer));
 }
 
-void ScreenBuffer::flushCursor() {
+void ScreenBuffer::flushCursor() noexcept {
     if (!(__flags & F_Active)) {
         return;
     }
@@ -30,18 +30,18 @@ void ScreenBuffer::flushCursor() {
     }
 }
 
-void ScreenBuffer::clear() {
+void ScreenBuffer::clear() noexcept {
     std::fill_n(__buffer, __width * __height, vga::Entry{0, __current_attr});
 }
 
-void ScreenBuffer::scroll(size_t row) {
+void ScreenBuffer::scroll(size_t row) noexcept {
     size_t offset = row * __width;
     size_t count = __height * __width - offset;
     std::copy_n(__buffer + offset, count, __buffer);
     std::fill_n(__buffer + count, offset, vga::Entry{0, __current_attr});
 }
 
-void ScreenBuffer::putcImpl(char ch) {
+void ScreenBuffer::putcImpl(char ch) noexcept {
     if (ch == '\n') {
         goto putLF;
     } else if (ch == '\r') {
@@ -76,19 +76,19 @@ void ScreenBuffer::putcImpl(char ch) {
     }
 }
 
-void ScreenBuffer::putc(char ch) {
+void ScreenBuffer::putc(char ch) noexcept {
     putcImpl(ch);
     flushCursor();
 }
 
-void ScreenBuffer::puts(const char* str) {
+void ScreenBuffer::puts(const char* str) noexcept {
     while (*str) {
         putcImpl(*str++);
     }
     flushCursor();
 }
 
-void ScreenBuffer::puts(const char* str, size_t len) {
+void ScreenBuffer::puts(const char* str, size_t len) noexcept {
     while (len-- > 0) {
         putcImpl(*str++);
     }

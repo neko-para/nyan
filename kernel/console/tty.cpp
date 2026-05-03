@@ -7,16 +7,16 @@
 
 namespace nyan::console {
 
-void Tty::activate() {
+void Tty::activate() noexcept {
     __flags |= F_Active;
     flush();
 }
 
-void Tty::deactivate() {
+void Tty::deactivate() noexcept {
     __flags &= ~F_Active;
 }
 
-void Tty::input(const keyboard::Message& msg, interrupt::SyscallFrame*) {
+void Tty::input(const keyboard::Message& msg) noexcept {
     if (msg.flag & keyboard::F_Release) {
         return;
     }
@@ -119,12 +119,12 @@ void Tty::input(const keyboard::Message& msg, interrupt::SyscallFrame*) {
     __wait_list.wakeOne(task::WakeReason::WR_Normal);
 }
 
-bool Tty::inputEmpty() {
+bool Tty::inputEmpty() noexcept {
     arch::InterruptGuard guard;
     return __input_buffer.empty();
 }
 
-std::optional<arch::InterruptGuard> Tty::syncWaitInput() {
+std::optional<arch::InterruptGuard> Tty::syncWaitInput() noexcept {
     while (true) {
         arch::InterruptGuard guard;
         if (!__input_buffer.empty()) {

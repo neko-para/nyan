@@ -90,7 +90,7 @@ void exceptionHandlerImpl(SyscallFrame* frame) {
         case I_Keyboard: {
             end(1);
             uint8_t ch = arch::inb(0x60);
-            keyboard::push(ch, frame);
+            keyboard::push(ch);
             break;
         }
 

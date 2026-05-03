@@ -2,7 +2,6 @@
 
 #include <sys/types.h>
 
-#include "../interrupt/forward.hpp"
 #include "../keyboard/forward.hpp"
 #include "forward.hpp"
 
@@ -16,6 +15,6 @@ extern Tty* __all_ttys[__tty_count];
 void load() noexcept;
 void startDeamons() noexcept;
 void switchTo(Tty* tty) noexcept;
-void handleInput(const keyboard::Message& msg, interrupt::SyscallFrame* frame) noexcept;
+void handleInput(const keyboard::Message& msg) noexcept;
 
 }  // namespace nyan::console

@@ -21,13 +21,13 @@ struct Tty : public ScreenBuffer {
 
     bool __pending_eof{};
 
-    void activate();
-    void deactivate();
+    void activate() noexcept;
+    void deactivate() noexcept;
 
-    void input(const keyboard::Message& msg, interrupt::SyscallFrame* frame);
+    void input(const keyboard::Message& msg) noexcept;
 
-    bool inputEmpty();
-    std::optional<arch::InterruptGuard> syncWaitInput();
+    bool inputEmpty() noexcept;
+    std::optional<arch::InterruptGuard> syncWaitInput() noexcept;
 };
 
 }  // namespace nyan::console

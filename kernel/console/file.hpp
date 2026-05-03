@@ -11,7 +11,7 @@ namespace nyan::console {
 struct TtyObj : public fs::FileObj {
     Tty* __tty;
 
-    TtyObj(Tty* tty) : __tty(tty) {}
+    TtyObj(Tty* tty) noexcept : __tty(tty) {}
 
     virtual ssize_t read(void* buf, size_t size) noexcept override;
     virtual ssize_t write(const void* buf, size_t size) noexcept override;
