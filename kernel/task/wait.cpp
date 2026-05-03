@@ -8,17 +8,17 @@ namespace nyan::task {
 
 WakeReason WaitList::wait(BlockReason reason) noexcept {
     arch::InterruptGuard guard;
-    list.push_back(currentTask);
-    currentTask->requestDetach = [this](TaskControlBlock* task) { list.erase({task}); };
+    __list.push_back(currentTask);
+    currentTask->__request_detach = [this](TaskControlBlock* task) { __list.erase({task}); };
     return block(reason);
 }
 
 bool WaitList::wakeOne(WakeReason reason) noexcept {
     arch::InterruptGuard guard;
-    if (!list.empty()) {
-        auto task = list.front();
-        list.pop_front();
-        task->requestDetach.reset();
+    if (!__list.empty()) {
+        auto task = __list.front();
+        __list.pop_front();
+        task->__request_detach.reset();
         unblock(task, reason);
         return true;
     }
@@ -27,10 +27,10 @@ bool WaitList::wakeOne(WakeReason reason) noexcept {
 
 void WaitList::wakeAll(WakeReason reason) noexcept {
     arch::InterruptGuard guard;
-    while (!list.empty()) {
-        auto task = list.front();
-        list.pop_front();
-        task->requestDetach.reset();
+    while (!__list.empty()) {
+        auto task = __list.front();
+        __list.pop_front();
+        task->__request_detach.reset();
         unblock(task, reason);
     }
 }

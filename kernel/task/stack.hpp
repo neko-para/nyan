@@ -2,6 +2,7 @@
 
 #include <string_view>
 
+#include "../allocator/mod.hpp"
 #include "../paging/translator.hpp"
 
 namespace nyan::task {

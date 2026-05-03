@@ -3,7 +3,7 @@
 #include <signal.h>
 
 #include "../keyboard/forward.hpp"
-#include "../task/task.hpp"
+#include "../task/pid.hpp"
 #include "../task/tcb.hpp"
 
 namespace nyan::console {

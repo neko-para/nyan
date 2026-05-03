@@ -9,7 +9,7 @@
 
 namespace nyan::task {
 
-TaskControlBlock* allTasks[MaxTaskCount];
+TaskControlBlock* allTasks[__max_task];
 
 static int idleTask(void*) {
     while (true) {
@@ -21,7 +21,7 @@ static int idleTask(void*) {
 
 pid_t allocPid(TaskControlBlock* task) {
     arch::InterruptGuard guard;
-    for (pid_t p = KP_FirstUser; p < MaxTaskCount; p++) {
+    for (pid_t p = KP_FirstUser; p < __max_task; p++) {
         if (!allTasks[p]) {
             allTasks[p] = task;
             task->pid = p;
@@ -32,7 +32,7 @@ pid_t allocPid(TaskControlBlock* task) {
 }
 
 void setupKnownTasks() {
-    std::fill_n(allTasks, MaxTaskCount, nullptr);
+    std::fill_n(allTasks, __max_task, nullptr);
 
     TaskControlBlock* initTask = new TaskControlBlock;
     initTask->cr3 = paging::kernelPageDirectory.cr3();
@@ -55,7 +55,7 @@ void setupKnownTasks() {
 }
 
 TaskControlBlock* findTask(pid_t pid) {
-    if (pid < 0 || pid >= MaxTaskCount) {
+    if (pid < 0 || pid >= __max_task) {
         return nullptr;
     }
     return allTasks[pid];

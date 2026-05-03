@@ -3,9 +3,9 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-namespace nyan::task {
+#include "forward.hpp"
 
-struct TaskControlBlock;
+namespace nyan::task {
 
 extern "C" void switchToTask(TaskControlBlock* nextTask);
 extern "C" [[noreturn]] void jumpRing3(uint32_t entry, uint32_t esp);

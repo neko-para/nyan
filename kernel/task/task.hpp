@@ -3,16 +3,10 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include "pid.hpp"
-
-namespace nyan::interrupt {
-struct SyscallFrame;
-}  // namespace nyan::interrupt
+#include "../interrupt/forward.hpp"
+#include "forward.hpp"
 
 namespace nyan::task {
-
-struct TaskControlBlock;
-enum class BlockReason : uint16_t;
 
 void load();
 

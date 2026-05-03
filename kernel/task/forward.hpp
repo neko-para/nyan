@@ -48,4 +48,6 @@ enum KnownPid : pid_t {
 // TODO: 这玩意是不是要动态?
 constexpr size_t __max_fd = 16;
 
+constexpr pid_t __max_task = 256;
+
 }  // namespace nyan::task

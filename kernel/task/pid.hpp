@@ -7,11 +7,7 @@
 
 namespace nyan::task {
 
-struct TaskControlBlock;
-
-constexpr int32_t MaxTaskCount = 256;
-
-extern TaskControlBlock* allTasks[MaxTaskCount];
+extern TaskControlBlock* allTasks[__max_task];
 
 pid_t allocPid(TaskControlBlock* task);
 void setupKnownTasks();

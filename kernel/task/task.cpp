@@ -1,7 +1,6 @@
 #include "task.hpp"
 
 #include <elf.h>
-#include <bit>
 #include <vector>
 
 #include "../allocator/mod.hpp"
@@ -12,12 +11,11 @@
 #include "../paging/directory.hpp"
 #include "../paging/translator.hpp"
 #include "../timer/load.hpp"
-#include "signal.hpp"
+#include "pid.hpp"
 #include "stack.hpp"
 #include "switch.hpp"
 #include "tcb.hpp"
 #include "trampoline.h"
-#include "wait.hpp"
 
 namespace nyan::task {
 
@@ -470,8 +468,8 @@ void unblock(TaskControlBlock* task, WakeReason reason) {
     task->state = State::S_Ready;
     task->blockReason = BlockReason::BR_Unknown;
     task->wakeReason = reason;
-    if (auto func = std::move(task->requestDetach)) {
-        task->requestDetach.reset();
+    if (auto func = std::move(task->__request_detach)) {
+        task->__request_detach.reset();
         func(task);
     }
 
@@ -490,7 +488,7 @@ WakeReason sleep(uint64_t ms, uint64_t* rest) {
     auto pos = std::find_if(sleepTasks.begin(), sleepTasks.end(),
                             [&](const auto& tcb) { return currTs <= tcb.sleepInfo.time; });
     sleepTasks.insert(pos, currentTask);
-    currentTask->requestDetach = +[](TaskControlBlock* task) { sleepTasks.erase({task}); };
+    currentTask->__request_detach = +[](TaskControlBlock* task) { sleepTasks.erase({task}); };
     auto reason = block(BlockReason::BR_Sleep);
     if (rest) {
         if (currTs <= timer::msSinceBoot) {
@@ -508,7 +506,7 @@ void checkSleep() {
         auto task = sleepTasks.front();
         if (task->sleepInfo.time < timer::msSinceBoot) {
             sleepTasks.pop_front();
-            task->requestDetach.reset();
+            task->__request_detach.reset();
             unblock(task, WakeReason::WR_Normal);
         } else {
             break;
