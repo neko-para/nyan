@@ -7,7 +7,7 @@
 
 namespace nyan::task {
 
-extern TaskControlBlock* allTasks[__max_task];
+extern TaskControlBlock* __all_tasks[__max_task];
 
 pid_t allocPid(TaskControlBlock* task);
 void setupKnownTasks();

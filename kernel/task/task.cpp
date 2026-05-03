@@ -378,8 +378,8 @@ pid_t addTask(TaskControlBlock* task) {
     currentTask->state = State::S_Exited;
     currentTask->exitInfo.stat = (code << 8) | sig;
     if (!currentTask->childTasks.empty()) {
-        allTasks[KP_Init]->childTasks.splice(allTasks[KP_Init]->childTasks.end(), currentTask->childTasks);
-        allTasks[KP_Init]->sendSignal(SIGCHLD);
+        __all_tasks[KP_Init]->childTasks.splice(__all_tasks[KP_Init]->childTasks.end(), currentTask->childTasks);
+        __all_tasks[KP_Init]->sendSignal(SIGCHLD);
     }
     if (auto parent = findTask(currentTask->parentPid)) {
         parent->sendSignal(SIGCHLD);
@@ -389,14 +389,14 @@ pid_t addTask(TaskControlBlock* task) {
         pendingTasks.pop_front();
         switchToTask(task);
     } else {
-        switchToTask(allTasks[KP_Idle]);
+        switchToTask(__all_tasks[KP_Idle]);
     }
     arch::kfatal("exited task rescheduled!");
 }
 
 bool freeTask(pid_t pid, int* stat) {
     arch::kprint("free task pid = {} current = {} {}\n", pid, currentTask->pid, currentTask->name);
-    auto task = allTasks[pid];
+    auto task = __all_tasks[pid];
     if (!task) {
         arch::kprint("Task {} not exists!\n", pid);
         return false;
@@ -424,7 +424,7 @@ bool freeTask(pid_t pid, int* stat) {
     }
 
     delete task;
-    allTasks[pid] = nullptr;
+    __all_tasks[pid] = nullptr;
 
     return true;
 }
@@ -444,7 +444,7 @@ void yield() {
         currentTask->state = State::S_Running;
         gdt::setTls(currentTask->tls);
     } else if (currentTask->state != State::S_Running) {
-        switchToTask(allTasks[KP_Idle]);
+        switchToTask(__all_tasks[KP_Idle]);
         currentTask->state = State::S_Running;
         gdt::setTls(currentTask->tls);
     }
