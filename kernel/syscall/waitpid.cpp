@@ -39,7 +39,9 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
 
             task::__scheduler->__current->waitTaskInfo = {pid};
             if (task::__scheduler->block(task::BlockReason::BR_WaitTask) == task::WakeReason::WR_Signal) {
-                return -SYS_EINTR;
+                if (task::__scheduler->isInterrupted()) {
+                    return -SYS_EINTR;
+                }
             }
         }
     } else if (pid == 0) {
@@ -60,7 +62,9 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
 
                 task::__scheduler->__current->waitTaskInfo = {pid};
                 if (task::__scheduler->block(task::BlockReason::BR_WaitTask) == task::WakeReason::WR_Signal) {
-                    return -SYS_EINTR;
+                    if (task::__scheduler->isInterrupted()) {
+                        return -SYS_EINTR;
+                    }
                 }
             } else {
                 task::__scheduler->freeTask(pid, stat_loc);

@@ -30,4 +30,19 @@ void TaskSignalInfo::prepareForFork(TaskSignalInfo& current) noexcept {
     }
 }
 
+bool TaskSignalInfo::isInterrupted(int sig) const noexcept {
+    if (!__signal_actions) {
+        return !isSignalDefaultIgnore(sig);
+    } else {
+        const auto& entry = __signal_actions->operator[](sig);
+        if (entry.__handler == SIG_IGN) {
+            return false;
+        } else if (entry.__handler == SIG_DFL) {
+            return !isSignalDefaultIgnore(sig);
+        } else {
+            return true;
+        }
+    }
+}
+
 }  // namespace nyan::task

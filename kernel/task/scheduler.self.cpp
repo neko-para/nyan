@@ -134,4 +134,16 @@ bool Scheduler::checkSignal(interrupt::SyscallFrame* frame) noexcept {
     return true;
 }
 
+bool Scheduler::isInterrupted() const noexcept {
+    SigSet sigs = __current->__signal.restSignals();
+    while (sigs) {
+        auto sig = std::countr_zero(sigs);
+        sigs ^= 1ull << sig;
+        if (__current->__signal.isInterrupted(sig)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 }  // namespace nyan::task

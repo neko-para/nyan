@@ -28,6 +28,8 @@ struct Scheduler {
     WakeReason sleep(uint64_t ms, uint64_t* rest) noexcept;
     bool checkSignal(interrupt::SyscallFrame* frame) noexcept;
 
+    bool isInterrupted() const noexcept;
+
     // other
     void wake(TaskControlBlock* task, WakeReason reason) noexcept;
     void checkSleep() noexcept;
