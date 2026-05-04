@@ -1,7 +1,7 @@
 #include <nyan/syscall.h>
 
 #include "../task/pid.hpp"
-#include "../task/tcb.hpp"
+#include "../task/scheduler.hpp"
 
 namespace nyan::syscall {
 
@@ -18,7 +18,7 @@ int kill(pid_t pid, int sig) {
             if (sig == 0) {
                 return 0;
             }
-            tcb->sendSignal(sig);
+            task::__scheduler->sendSignal(tcb, sig);
             return 0;
         }
     } else if (pid == 0) {

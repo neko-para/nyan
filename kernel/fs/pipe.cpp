@@ -81,7 +81,7 @@ ssize_t PipeObj::write(const void* buf, size_t sz) noexcept {
     }
 
     if (!__read_alive) {
-        task::__scheduler->__current->sendSignal(SIGPIPE);
+        task::__scheduler->raise(SIGPIPE);
         return -SYS_EPIPE;
     }
 

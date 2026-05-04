@@ -25,12 +25,12 @@ void exceptionHandlerImpl(SyscallFrame* frame) {
 
     switch (frame->isr_num) {
         case E_Breakpoint:
-            task::__scheduler->__current->sendSignal(SIGTRAP);
+            task::__scheduler->raise(SIGTRAP);
             break;
 
         case E_GeneralProtectionFault:
             if (gdt::isRing3(frame->cs)) {
-                task::__scheduler->__current->sendSignal(SIGSEGV);
+                task::__scheduler->raise(SIGSEGV);
                 break;
             }
 
@@ -74,7 +74,7 @@ void exceptionHandlerImpl(SyscallFrame* frame) {
                     }
                 }
 
-                task::__scheduler->__current->sendSignal(SIGSEGV);
+                task::__scheduler->raise(SIGSEGV);
                 break;
             }
 
@@ -103,7 +103,7 @@ void exceptionHandlerImpl(SyscallFrame* frame) {
     }
 
     if (gdt::isRing3(frame->cs)) {
-        task::__scheduler->__current->checkSignal(frame);
+        task::__scheduler->checkSignal(frame);
     }
 }
 

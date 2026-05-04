@@ -2,7 +2,7 @@
 
 #include "../arch/port.hpp"
 #include "../interrupt/load.hpp"
-#include "../task/task.hpp"
+#include "../task/scheduler.hpp"
 
 namespace nyan::timer {
 
@@ -22,7 +22,7 @@ void load(uint32_t hz) {
 void hit() {
     msSinceBoot += 1;
 
-    task::checkSleep();
+    task::__scheduler->checkSleep();
 }
 
 }  // namespace nyan::timer

@@ -1,11 +1,11 @@
 #include <nyan/syscall.h>
 
-#include "../task/task.hpp"
+#include "../task/scheduler.hpp"
 
 namespace nyan::syscall {
 
 void exit(int code) {
-    task::exitTask(code);
+    task::__scheduler->exit(code);
 }
 
 }  // namespace nyan::syscall

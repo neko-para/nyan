@@ -51,4 +51,6 @@ struct Stack {
     }
 };
 
+void loadArgv(Stack& stack, const std::vector<std::string>& argv, const std::vector<std::string>& envp) noexcept;
+
 }  // namespace nyan::task

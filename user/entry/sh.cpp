@@ -95,7 +95,7 @@ int main() {
             }
             tcsetpgrp(0, getpid());
         } else {
-            execve(argv[0], argv.data(), nullptr);
+            execve(argv[0], argv.data(), environ);
             std::cout << "launch failed" << std::endl;
         }
 

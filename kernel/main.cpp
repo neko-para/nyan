@@ -14,7 +14,7 @@
 #include "paging/address.hpp"
 #include "paging/kernel.hpp"
 #include "task/mod.hpp"
-#include "task/task.hpp"
+#include "task/scheduler.hpp"
 #include "timer/load.hpp"
 
 extern "C" void __libc_init_array();
@@ -65,12 +65,12 @@ extern "C" void kmain(boot::BootInfo* info) {
 
     console::startDeamons();
 
-    task::yield();
+    task::__scheduler->yield();
 
     for (;;) {
         auto ret = syscall::waitpid(-1, 0, 0);
         if (ret == -SYS_ECHILD) {
-            task::block(task::BlockReason::BR_WaitTask);
+            task::__scheduler->block(task::BlockReason::BR_WaitTask);
         }
     }
 }

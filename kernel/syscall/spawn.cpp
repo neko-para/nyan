@@ -12,10 +12,21 @@ pid_t spawn(const char* name, const char* const* argv, const char* const* envp) 
     for (size_t i = 0; i < data::programCount; i++) {
         const auto& prog = data::programs[i];
         if (std::string_view{prog.name} == name) {
-            auto task = task::createElfTask(prog.data, prog.size, argv, envp);
+            std::vector<std::string> args;
+            std::vector<std::string> envs;
+
+            for (auto ptr = argv; *ptr; ptr++) {
+                args.push_back(*ptr);
+            }
+
+            for (auto ptr = envp; *ptr; ptr++) {
+                envs.push_back(*ptr);
+            }
+
+            auto task = task::createElfTask(std::span{prog.data, prog.size}, args, envs);
             // TODO: close-on-exec
             task->__file = task::__scheduler->__current->__file;
-            auto pid = task::addTask(task);
+            auto pid = task::__scheduler->addTask(task);
             arch::kprint("spawn {} as {}\n", name, pid);
             return pid;
         }

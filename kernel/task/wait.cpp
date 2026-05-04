@@ -11,7 +11,7 @@ WakeReason WaitList::wait(BlockReason reason) noexcept {
     arch::InterruptGuard guard;
     __list.push_back(__scheduler->__current);
     __scheduler->__current->__request_detach = [this](TaskControlBlock* task) { __list.erase({task}); };
-    return block(reason);
+    return __scheduler->block(reason);
 }
 
 bool WaitList::wakeOne(WakeReason reason) noexcept {
@@ -20,7 +20,7 @@ bool WaitList::wakeOne(WakeReason reason) noexcept {
         auto task = __list.front();
         __list.pop_front();
         task->__request_detach.reset();
-        unblock(task, reason);
+        __scheduler->wake(task, reason);
         return true;
     }
     return false;
@@ -32,7 +32,7 @@ void WaitList::wakeAll(WakeReason reason) noexcept {
         auto task = __list.front();
         __list.pop_front();
         task->__request_detach.reset();
-        unblock(task, reason);
+        __scheduler->wake(task, reason);
     }
 }
 

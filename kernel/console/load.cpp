@@ -55,7 +55,7 @@ void startDeamons() noexcept {
     for (auto tty : __all_ttys) {
         auto tcb = task::createTask(consoleDeamon, tty);
         tcb->name = lib::format("tty_deamon_{}", id);
-        auto pid = task::addTask(tcb);
+        auto pid = task::__scheduler->addTask(tcb);
         arch::kprint("tty {} deamon started, pid {}\n", id++, pid);
     }
 }

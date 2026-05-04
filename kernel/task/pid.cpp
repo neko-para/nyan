@@ -15,7 +15,7 @@ TaskControlBlock* __all_tasks[__max_task];
 static int idleTask(void*) {
     while (true) {
         arch::hlt();
-        task::yield();
+        __scheduler->yield();
     }
     return 0;
 }

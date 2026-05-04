@@ -28,7 +28,7 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
             for (auto& tcb : task::__scheduler->__current->childTasks) {
                 if (tcb.ended()) {
                     auto findPid = tcb.pid;
-                    task::freeTask(findPid, stat_loc);
+                    task::__scheduler->freeTask(findPid, stat_loc);
                     return findPid;
                 }
             }
@@ -38,7 +38,7 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
             }
 
             task::__scheduler->__current->waitTaskInfo = {pid};
-            if (block(task::BlockReason::BR_WaitTask) == task::WakeReason::WR_Signal) {
+            if (task::__scheduler->block(task::BlockReason::BR_WaitTask) == task::WakeReason::WR_Signal) {
                 return -SYS_EINTR;
             }
         }
@@ -59,11 +59,11 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
                 }
 
                 task::__scheduler->__current->waitTaskInfo = {pid};
-                if (task::block(task::BlockReason::BR_WaitTask) == task::WakeReason::WR_Signal) {
+                if (task::__scheduler->block(task::BlockReason::BR_WaitTask) == task::WakeReason::WR_Signal) {
                     return -SYS_EINTR;
                 }
             } else {
-                task::freeTask(pid, stat_loc);
+                task::__scheduler->freeTask(pid, stat_loc);
                 return pid;
             }
         }

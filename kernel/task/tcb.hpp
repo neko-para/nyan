@@ -60,8 +60,8 @@ struct TaskControlBlock : public TaskControlBlockMetaInfo,
     std::vector<uint32_t> pages;
 
     lib::Ref<fs::DEntry> cwd;
-    // std::vector<std::string> argv;
-    // std::vector<std::string> env;
+    std::vector<std::string> argv;
+    std::vector<std::string> env;
 
     union {
         ExitInfo exitInfo;
@@ -72,10 +72,6 @@ struct TaskControlBlock : public TaskControlBlockMetaInfo,
 
     bool ended() const noexcept { return state == State::S_Exited; }
     void dump();
-
-    void sendSignal(int sig) noexcept;
-    // 几乎总是应该用 currentTask 来调用
-    bool checkSignal(interrupt::SyscallFrame* frame) noexcept;
 };
 
 }  // namespace nyan::task
