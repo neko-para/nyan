@@ -1,5 +1,6 @@
 #include "scheduler.hpp"
 
+#include "../arch/guard.hpp"
 #include "../timer/load.hpp"
 #include "tcb.hpp"
 

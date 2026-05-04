@@ -8,6 +8,7 @@ enum Type : uint8_t {
     T_Log,
     T_Syscall,
     T_Exception,
+    T_Fatal,
 };
 
 enum LogLevel : uint8_t {

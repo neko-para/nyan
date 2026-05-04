@@ -14,6 +14,7 @@ import {
     type SyscallContent,
     SyscallRole,
     isExceptionEntry,
+    isFatalEntry,
     isLogEntry,
     isSyscallEntry
 } from './types.ts'
@@ -79,7 +80,7 @@ const pendingSyscall: Map<
 > = new Map()
 
 async function handleEntry(entry: Entry) {
-    const prefix = chalk.dim(entryPrefix(entry.payload))
+    let prefix = chalk.dim(entryPrefix(entry.payload))
     if (isLogEntry(entry)) {
         const info = await queryAddr(binaryPath, entry.payload.eip)
         console.log(`${prefix} ${chalk.dim(info)} ${chalk.bold(entry.content.trim())}`)
@@ -116,6 +117,11 @@ async function handleEntry(entry: Entry) {
             }
         }
     } else if (isExceptionEntry(entry)) {
+        if (entry.content.eip >= 0xc0000000) {
+            const info = await queryAddr(binaryPath, entry.content.eip)
+            prefix = `${prefix} ${chalk.dim(info)}`
+        }
+
         // TODO: support track addr for user addr
         switch (entry.content.num) {
             case 13: {
@@ -140,7 +146,7 @@ async function handleEntry(entry: Entry) {
                     type += 'U'
                 }
                 console.log(
-                    `${prefix} ${chalk.bold('#PF')} ${type.trim()} addr=${formatValue(cr2, 'ptr')} eip=${formatValue(eip, 'ptr')}`
+                    `${prefix} ${chalk.bold('#PF')} <${type.trim()}> addr=${formatValue(cr2, 'ptr')} eip=${formatValue(eip, 'ptr')}`
                 )
                 break
             }
@@ -149,10 +155,21 @@ async function handleEntry(entry: Entry) {
                     `${prefix} ${chalk.bold(`#${entry.content.num}`)} eip=${formatValue(entry.content.eip, 'ptr')}`
                 )
         }
-
-        if (entry.content.eip >= 0xc0000000) {
-            console.log(await queryAddr(binaryPath, entry.content.eip))
+    } else if (isFatalEntry(entry)) {
+        for (const [_, syscall] of pendingSyscall) {
+            const def = syscallTable[syscall.id]
+            const duration = chalk.dim(`${entry.payload.ts - syscall.ts}ms`)
+            console.log(
+                `${prefix} ${def.name}(${buildCall(def.args, {
+                    ret: 0,
+                    id: syscall.id,
+                    args: syscall.args
+                })}) = ABORT ${duration}`
+            )
         }
+
+        const info = await queryAddr(binaryPath, entry.payload.eip)
+        console.log(`${prefix} ${chalk.dim(info)} ${chalk.red('FATAL')}`)
     }
 }
 

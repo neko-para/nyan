@@ -1,6 +1,7 @@
 #pragma once
 
-#include "guard.hpp"
+#include "../logger/print.hpp"
+#include "instr.hpp"
 #include "port.hpp"
 
 namespace nyan::arch {
@@ -9,7 +10,8 @@ inline void qemuQuit() {
     outw(0x604, 0x2000);
 }
 
-[[noreturn]] inline void kfatal(void* = nullptr) {
+[[noreturn]] inline void kfatal(void* eip = nullptr) {
+    logger::emitFatal(eip);
     cli();
     for (;;) {
         hlt();

@@ -1,5 +1,6 @@
 #include "print.hpp"
 
+#include "../arch/guard.hpp"
 #include "../task/scheduler.hpp"
 #include "../task/tcb.hpp"
 #include "../timer/load.hpp"
@@ -53,6 +54,20 @@ void emitException(void* eip, const ExceptionContent& content) {
     arch::InterruptGuard guard;
     arch::kwrite(&payload, sizeof(Payload));
     arch::kwrite(&content, sizeof(ExceptionContent));
+}
+
+void emitFatal(void* eip) {
+    Payload payload = {
+        static_cast<uint32_t>(timer::msSinceBoot),
+        reinterpret_cast<uint32_t>(eip),
+        task::__scheduler->__current ? task::__scheduler->__current->pid : 0,
+        0,
+        T_Fatal,
+        {},
+    };
+
+    arch::InterruptGuard guard;
+    arch::kwrite(&payload, sizeof(Payload));
 }
 
 }  // namespace nyan::logger

@@ -1,7 +1,8 @@
 export const Type = {
     T_Log: 0,
     T_Syscall: 1,
-    T_Exception: 2
+    T_Exception: 2,
+    T_Fatal: 3
 } as const
 export type Type = typeof Type
 export type TypeVal = Type[keyof Type]
@@ -39,6 +40,9 @@ export type Payload = {
       }
     | {
           type: Type['T_Exception']
+      }
+    | {
+          type: Type['T_Fatal']
       }
 )
 
@@ -82,4 +86,11 @@ export function isExceptionEntry(entry: Entry): entry is {
     content: ExceptionContent
 } {
     return entry.payload.type === Type.T_Exception
+}
+
+export function isFatalEntry(entry: Entry): entry is {
+    payload: Payload & { type: Type['T_Fatal'] }
+    content?: never
+} {
+    return entry.payload.type === Type.T_Fatal
 }

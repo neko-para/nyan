@@ -2,6 +2,7 @@
 
 #include <elf.h>
 
+#include "../arch/guard.hpp"
 #include "../elf/mod.hpp"
 #include "../gdt/load.hpp"
 #include "../paging/vma.hpp"

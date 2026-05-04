@@ -97,6 +97,19 @@ export function* parse(buffer: Buffer): Generator<Entry | null, void, Buffer | n
                 ptr += payload.len
                 break
             }
+            case Type.T_Fatal:
+                const payload: Payload = {
+                    ts: buffer.readUint32LE(ptr),
+                    eip: buffer.readUint32LE(ptr + 4),
+                    pid: buffer.readInt32LE(ptr + 8),
+                    len: buffer.readUint16LE(ptr + 12),
+                    type: Type.T_Fatal
+                }
+                ptr += 16
+                yield {
+                    payload
+                }
+                break
             default: {
                 console.log('unknown type', buffer.readUint8(ptr + 14))
                 const len = buffer.readUint16LE(ptr + 12)

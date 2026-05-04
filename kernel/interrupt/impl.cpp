@@ -2,6 +2,7 @@
 
 #include <nyan/syscall.h>
 
+#include "../arch/guard.hpp"
 #include "../arch/instr.hpp"
 #include "../arch/print.hpp"
 #include "../gdt/load.hpp"
