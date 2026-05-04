@@ -40,25 +40,6 @@ switchToTask:
     popfl
     ret
 
-.global jumpRing3
-.type jumpRing3, @function
-jumpRing3:
-    movw $((4 << 3) | 3), %ax
-    movw %ax, %ds
-    movw %ax, %es
-    movw %ax, %fs
-    movw %ax, %gs
-
-    movl 4(%esp), %edx # entry
-    movl 8(%esp), %ecx # esp
-
-    pushl $((4 << 3) | 3)
-    pushl %ecx
-    pushf
-    pushl $((3 << 3) | 3)
-    pushl %edx
-    iret
-
 .global syscallReturn
 .type syscallReturn, @function
 syscallReturn:

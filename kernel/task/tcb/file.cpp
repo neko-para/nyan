@@ -20,4 +20,8 @@ lib::Ref<fs::FdObj>* TaskFileInfo::getFileSlot(int& fd, int hint) noexcept {
     return nullptr;
 }
 
+void TaskFileInfo::prepareForExec() noexcept {
+    // TODO: close-on-exec
+}
+
 }  // namespace nyan::task

@@ -83,8 +83,6 @@ void Scheduler::execTask(std::span<uint8_t> file,
         __current->vmSpace.free(userPage);
         userPage.freePageTables();
         allocator::physicalFrameRelease(cr3);
-    } else {
-        arch::kprint("perform exec on system task!\n");
     }
 
     __current->userEsp = stack.userEsp().addr;
@@ -99,9 +97,8 @@ void Scheduler::execTask(std::span<uint8_t> file,
     // __current->groupPid
 
     __current->__signal.prepareForExec();
+    __current->__file.prepareForExec();
 
-    // fdTable close-on-exec
-    // tty
     __current->tls = {};
 
     __current->name = name;

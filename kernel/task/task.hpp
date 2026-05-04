@@ -11,10 +11,10 @@
 
 namespace nyan::task {
 
-TaskControlBlock* createTask(int (*func)(void* param), void* param = nullptr);
+TaskControlBlock* createTask(int (*func)(void* param), void* param = nullptr) noexcept;
 TaskControlBlock* createElfTask(std::span<uint8_t> file,
                                 std::vector<std::string> argv,
                                 std::vector<std::string> env) noexcept;
-pid_t forkTask(interrupt::SyscallFrame* frame);
+pid_t forkTask(interrupt::SyscallFrame* frame) noexcept;
 
 }  // namespace nyan::task

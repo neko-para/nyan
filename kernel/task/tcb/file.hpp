@@ -12,6 +12,8 @@ struct TaskFileInfo {
 
     lib::Ref<fs::FdObj>* getFile(int fd) noexcept;
     lib::Ref<fs::FdObj>* getFileSlot(int& fd, int hint = 3) noexcept;
+
+    void prepareForExec() noexcept;
 };
 
 }  // namespace nyan::task

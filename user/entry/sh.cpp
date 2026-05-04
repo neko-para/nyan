@@ -69,7 +69,7 @@ int main() {
             if (args.size() > 1) {
                 auto execArgs = std::vector<std::string>(args.begin() + 1, args.end());
                 auto argv = toCArgv(execArgs);
-                if (execve(argv[0], argv.data(), environ) < 0) {
+                if (execvpe(argv[0], argv.data(), environ) < 0) {
                     std::cout << "launch failed" << std::endl;
                     printPrompt();
                     continue;
@@ -95,7 +95,7 @@ int main() {
             }
             tcsetpgrp(0, getpid());
         } else {
-            execve(argv[0], argv.data(), environ);
+            execvpe(argv[0], argv.data(), environ);
             std::cout << "launch failed" << std::endl;
         }
 
