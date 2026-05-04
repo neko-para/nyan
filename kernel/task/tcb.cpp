@@ -4,7 +4,7 @@
 
 #include "../timer/load.hpp"
 #include "task.hpp"
-#include "trampoline.h"
+#include "trampoline.hpp"
 
 namespace nyan::task {
 

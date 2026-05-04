@@ -8,8 +8,6 @@
 
 namespace nyan::task {
 
-void load();
-
 TaskControlBlock* createTask(int (*func)(void* param), void* param = nullptr);
 TaskControlBlock* createElfTask(uint8_t* file, size_t size, const char* const* argv, const char* const* envp);
 void execTask(uint8_t* file,

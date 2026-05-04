@@ -6,6 +6,7 @@
 namespace nyan::task {
 
 struct TaskControlBlock;
+struct Scheduler;
 
 struct TaskControlBlockTag {
     using type = TaskControlBlock;
