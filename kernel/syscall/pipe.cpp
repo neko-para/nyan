@@ -2,6 +2,7 @@
 #include <nyan/syscall.h>
 
 #include "../fs/pipe.hpp"
+#include "../task/scheduler.hpp"
 #include "../task/tcb.hpp"
 
 namespace nyan::syscall {
@@ -13,12 +14,12 @@ int pipe(int* fds) {
 
     int readFd, writeFd;
 
-    auto readObjPtr = task::currentTask->__file.getFileSlot(readFd);
+    auto readObjPtr = task::__scheduler->__current->__file.getFileSlot(readFd);
     if (!readObjPtr) {
         return -SYS_EMFILE;
     }
 
-    auto writeObjPtr = task::currentTask->__file.getFileSlot(writeFd, readFd + 1);
+    auto writeObjPtr = task::__scheduler->__current->__file.getFileSlot(writeFd, readFd + 1);
     if (!writeObjPtr) {
         return -SYS_EMFILE;
     }

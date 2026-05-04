@@ -7,15 +7,15 @@ switchToTask:
     push %edi
     push %ebp
 
-    # edi = currentTask->userEsp
-    movl (currentTask), %edi
+    # edi = __scheduler.__current->userEsp
+    movl (scheduler), %edi
     # *edi = esp
     movl %esp, (%edi)
 
     # esi = nextTask
     movl 24(%esp), %esi
-    # currentTask = esi
-    movl %esi, (currentTask)
+    # __scheduler.__current = esi
+    movl %esi, (scheduler)
 
     # esp = esi->userEsp
     movl (%esi), %esp

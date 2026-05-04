@@ -1,6 +1,7 @@
 #include <nyan/syscall.h>
 #include <sys/mman.h>
 
+#include "../task/scheduler.hpp"
 #include "../task/tcb.hpp"
 
 namespace nyan::syscall {
@@ -18,18 +19,18 @@ void* mmap2(void* addr, size_t length, int prot, int flags, int, uint32_t) {
         if (begin.thisPage() != begin) {
             return reinterpret_cast<void*>(-SYS_EINVAL);
         }
-        auto pageDir = paging::UserDirectory::from(task::currentTask->cr3);
-        task::currentTask->vmSpace.erase(begin, length, pageDir);
-        auto place = task::currentTask->vmSpace.find_free(length, begin);
+        auto pageDir = paging::UserDirectory::from(task::__scheduler->__current->cr3);
+        task::__scheduler->__current->vmSpace.erase(begin, length, pageDir);
+        auto place = task::__scheduler->__current->vmSpace.find_free(length, begin);
         if (!place || *place != begin) {
             arch::kprint("mmap2 fixed failed, want {#10x}\n", begin.addr);
-            task::currentTask->vmSpace.dump();
+            task::__scheduler->__current->vmSpace.dump();
             return reinterpret_cast<void*>(-SYS_ENOMEM);
         }
         auto vma = paging::VMA{
             *place, *place + length, static_cast<uint32_t>(flags), static_cast<uint32_t>(prot), "mmap",
         };
-        if (!task::currentTask->vmSpace.insert(vma)) {
+        if (!task::__scheduler->__current->vmSpace.insert(vma)) {
             return reinterpret_cast<void*>(-SYS_ENOMEM);
         } else {
             vma.alloc(pageDir);
@@ -42,15 +43,15 @@ void* mmap2(void* addr, size_t length, int prot, int flags, int, uint32_t) {
         }
         length = (length + 0xFFF) & (~0xFFF);
         auto begin = paging::VirtualAddress{addr};
-        auto place = task::currentTask->vmSpace.find_free(length, begin);
+        auto place = task::__scheduler->__current->vmSpace.find_free(length, begin);
         if (!place) {
             return reinterpret_cast<void*>(-SYS_ENOMEM);
         }
-        auto pageDir = paging::UserDirectory::from(task::currentTask->cr3);
+        auto pageDir = paging::UserDirectory::from(task::__scheduler->__current->cr3);
         auto vma = paging::VMA{
             *place, *place + length, static_cast<uint32_t>(flags), static_cast<uint32_t>(prot), "mmap",
         };
-        if (!task::currentTask->vmSpace.insert(vma)) {
+        if (!task::__scheduler->__current->vmSpace.insert(vma)) {
             return reinterpret_cast<void*>(-SYS_ENOMEM);
         } else {
             vma.alloc(pageDir);

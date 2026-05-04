@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../arch/print.hpp"
 #include "../paging/range.hpp"
 #include "map.hpp"
 

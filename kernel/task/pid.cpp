@@ -4,6 +4,7 @@
 
 #include "../arch/guard.hpp"
 #include "../paging/directory.hpp"
+#include "scheduler.hpp"
 #include "task.hpp"
 #include "tcb.hpp"
 
@@ -42,7 +43,7 @@ void setupKnownTasks() {
     initTask->parentPid = KP_Invalid;
     initTask->groupPid = KP_Init;
     __all_tasks[KP_Init] = initTask;
-    currentTask = initTask;
+    __scheduler->__current = initTask;
 
     auto task = createTask(idleTask);
     task->parentPid = KP_Invalid;

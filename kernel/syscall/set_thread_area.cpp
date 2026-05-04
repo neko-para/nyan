@@ -2,6 +2,7 @@
 
 #include "../gdt/entry.hpp"
 #include "../gdt/load.hpp"
+#include "../task/scheduler.hpp"
 #include "../task/tcb.hpp"
 
 namespace nyan::syscall {
@@ -75,8 +76,8 @@ int set_thread_area(uint32_t user_desc[4]) {
     uint8_t access, flags;
     parseUserDescFlags(user_desc[3], access, flags);
 
-    task::currentTask->tls = gdt::makeSegment(user_desc[1], user_desc[2], access, flags);
-    gdt::setTls(task::currentTask->tls);
+    task::__scheduler->__current->tls = gdt::makeSegment(user_desc[1], user_desc[2], access, flags);
+    gdt::setTls(task::__scheduler->__current->tls);
     return 0;
 }
 

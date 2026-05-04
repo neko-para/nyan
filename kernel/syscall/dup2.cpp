@@ -1,11 +1,12 @@
 #include <nyan/syscall.h>
 
+#include "../task/scheduler.hpp"
 #include "../task/tcb.hpp"
 
 namespace nyan::syscall {
 
 int dup2(int fd, int newFd) {
-    auto fileObjPtr = task::currentTask->__file.getFile(fd);
+    auto fileObjPtr = task::__scheduler->__current->__file.getFile(fd);
     if (!fileObjPtr) {
         return -SYS_EBADF;
     }
@@ -13,7 +14,7 @@ int dup2(int fd, int newFd) {
         return fd;
     }
 
-    auto fileObjSlotPtr = task::currentTask->__file.getFile(newFd);
+    auto fileObjSlotPtr = task::__scheduler->__current->__file.getFile(newFd);
     if (!fileObjPtr) {
         return -SYS_EBADF;
     }

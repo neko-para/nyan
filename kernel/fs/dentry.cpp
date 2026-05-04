@@ -2,10 +2,10 @@
 
 #include <ranges>
 
+#include "../task/scheduler.hpp"
 #include "../task/tcb.hpp"
 #include "load.hpp"
 #include "mount.hpp"
-#include "super_block.hpp"
 #include "vnode.hpp"
 
 namespace nyan::fs {
@@ -60,7 +60,7 @@ lib::Ref<DEntry> resolve(std::string_view path) {
 
     auto current = lib::makeRef<DEntry>(nullptr, rootEntry()->__root_node, "");
     if (path[0] != '/') {
-        current = task::currentTask->cwd;
+        current = task::__scheduler->__current->cwd;
         if (!current) {
             return {};
         }

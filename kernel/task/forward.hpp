@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+#include "../lib/lazy.hpp"
+
 namespace nyan::task {
 
 struct TaskControlBlock;
@@ -50,5 +52,7 @@ enum KnownPid : pid_t {
 constexpr size_t __max_fd = 16;
 
 constexpr pid_t __max_task = 256;
+
+extern lib::Lazy<Scheduler> __scheduler asm("scheduler");
 
 }  // namespace nyan::task

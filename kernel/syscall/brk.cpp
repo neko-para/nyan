@@ -2,6 +2,7 @@
 
 #include "../paging/address.hpp"
 #include "../paging/directory.hpp"
+#include "../task/scheduler.hpp"
 #include "../task/tcb.hpp"
 
 namespace nyan::syscall {
@@ -9,25 +10,25 @@ namespace nyan::syscall {
 // TODO: 支持收缩
 void* brk(const void* addr) {
     auto vAddr = paging::VirtualAddress{addr};
-    if (!vAddr || vAddr <= task::currentTask->brkAddr) {
-        return task::currentTask->brkAddr.as<void>();
+    if (!vAddr || vAddr <= task::__scheduler->__current->brkAddr) {
+        return task::__scheduler->__current->brkAddr.as<void>();
     }
-    auto currentPage = (task::currentTask->brkAddr - 1).thisPage();
+    auto currentPage = (task::__scheduler->__current->brkAddr - 1).thisPage();
     auto wantPage = (vAddr - 1).thisPage();
 
     if (currentPage != wantPage) {
-        auto pageDir = paging::UserDirectory::from(task::currentTask->cr3);
+        auto pageDir = paging::UserDirectory::from(task::__scheduler->__current->cr3);
         while (currentPage != wantPage) {
             currentPage = currentPage.nextPage();
             pageDir.alloc(currentPage, true);
         }
     }
 
-    auto& vmSpace = task::currentTask->vmSpace;
+    auto& vmSpace = task::__scheduler->__current->vmSpace;
 
     if (auto vma = vmSpace.find_name("brk"); vma == vmSpace.__addrs.end()) {
         vmSpace.insert(paging::VMA{
-            task::currentTask->brkBase,
+            task::__scheduler->__current->brkBase,
             wantPage.nextPage(),
             MAP_PRIVATE | MAP_ANONYMOUS,
             PROT_READ | PROT_WRITE,
@@ -43,7 +44,7 @@ void* brk(const void* addr) {
         vma->__end = wantPage.nextPage();
     }
 
-    task::currentTask->brkAddr = vAddr;
+    task::__scheduler->__current->brkAddr = vAddr;
     return vAddr.as<void>();
 }
 

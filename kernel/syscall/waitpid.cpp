@@ -3,6 +3,7 @@
 #include <sys/wait.h>
 
 #include "../task/pid.hpp"
+#include "../task/scheduler.hpp"
 #include "../task/task.hpp"
 #include "../task/tcb.hpp"
 
@@ -21,10 +22,10 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
     } else if (pid == -1) {
         // wait any child
         while (true) {
-            if (task::currentTask->childTasks.empty()) {
+            if (task::__scheduler->__current->childTasks.empty()) {
                 return -SYS_ECHILD;
             }
-            for (auto& tcb : task::currentTask->childTasks) {
+            for (auto& tcb : task::__scheduler->__current->childTasks) {
                 if (tcb.ended()) {
                     auto findPid = tcb.pid;
                     task::freeTask(findPid, stat_loc);
@@ -36,9 +37,9 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
                 return 0;
             }
 
-            task::currentTask->waitTaskInfo = {pid};
+            task::__scheduler->__current->waitTaskInfo = {pid};
             if (block(task::BlockReason::BR_WaitTask) == task::WakeReason::WR_Signal) {
-                if (task::currentTask->peekSignal()) {
+                if (task::__scheduler->__current->peekSignal()) {
                     return -SYS_EINTR;
                 }
             }
@@ -50,7 +51,7 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
         // wait pid
         while (true) {
             auto tcb = task::findTask(pid);
-            if (!tcb || tcb->parentPid != task::currentTask->pid) {
+            if (!tcb || tcb->parentPid != task::__scheduler->__current->pid) {
                 return -SYS_ECHILD;
             }
 
@@ -59,9 +60,9 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options) {
                     return 0;
                 }
 
-                task::currentTask->waitTaskInfo = {pid};
+                task::__scheduler->__current->waitTaskInfo = {pid};
                 if (task::block(task::BlockReason::BR_WaitTask) == task::WakeReason::WR_Signal) {
-                    if (task::currentTask->peekSignal()) {
+                    if (task::__scheduler->__current->peekSignal()) {
                         return -SYS_EINTR;
                     }
                 }

@@ -79,6 +79,4 @@ struct TaskControlBlock : public TaskControlBlockMetaInfo,
     bool checkSignal(interrupt::SyscallFrame* frame) noexcept;
 };
 
-extern TaskControlBlock* currentTask asm("currentTask");
-
 }  // namespace nyan::task

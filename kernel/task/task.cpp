@@ -12,6 +12,7 @@
 #include "../paging/translator.hpp"
 #include "../timer/load.hpp"
 #include "pid.hpp"
+#include "scheduler.hpp"
 #include "stack.hpp"
 #include "switch.hpp"
 #include "tcb.hpp"
@@ -22,7 +23,7 @@ lib::List<TaskControlBlockTag, true> pendingTasks;
 lib::List<TaskControlBlockTag, true> sleepTasks;
 
 __attribute__((noinline)) void taskWrapper(int (*func)(void* param), void* param) {
-    currentTask->state = State::S_Running;
+    __scheduler->__current->state = State::S_Running;
     arch::sti();
 
     auto code = func(param);
@@ -53,8 +54,8 @@ TaskControlBlock* createTask(int (*func)(void* param), void* param) {
     tcb->state = State::S_Ready;
     tcb->pid = KP_Invalid;
 
-    tcb->parentPid = currentTask->pid;
-    tcb->groupPid = currentTask->groupPid;
+    tcb->parentPid = __scheduler->__current->pid;
+    tcb->groupPid = __scheduler->__current->groupPid;
     tcb->brkBase = 0x400000_va;
     tcb->brkAddr = 0x400000_va;
     tcb->stackRange = {0xC0000000_va - 0x800000, 0xC0000000_va};
@@ -63,7 +64,7 @@ TaskControlBlock* createTask(int (*func)(void* param), void* param) {
 
     tcb->cwd = fs::rootEntry()->__mount_point;
 
-    currentTask->childTasks.push_back(tcb);
+    __scheduler->__current->childTasks.push_back(tcb);
 
     return tcb;
 }
@@ -195,8 +196,8 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t size, const char* const* a
     tcb->state = State::S_Ready;
     tcb->pid = KP_Invalid;
 
-    tcb->parentPid = currentTask->pid;
-    tcb->groupPid = currentTask->groupPid;
+    tcb->parentPid = __scheduler->__current->pid;
+    tcb->groupPid = __scheduler->__current->groupPid;
 
     tcb->name = lib::format("elf_{}", argv[0] ? argv[0] : "unknown");
     tcb->brkBase = brkAddr;
@@ -206,7 +207,7 @@ TaskControlBlock* createElfTask(uint8_t* file, size_t size, const char* const* a
 
     tcb->cwd = fs::rootEntry()->__mount_point;
 
-    currentTask->childTasks.push_back(tcb);
+    __scheduler->__current->childTasks.push_back(tcb);
 
     return tcb;
 }
@@ -229,7 +230,7 @@ void execTask(uint8_t* file,
         "stack",
     });
 
-    auto tcb = currentTask;
+    auto tcb = __scheduler->__current;
 
     Stack stack(pageDir, 0xC0000000_va);
     loadArgv(stack, argv, envp);
@@ -297,9 +298,9 @@ static int forkEntry(void* param) {
 }
 
 pid_t forkTask(interrupt::SyscallFrame* frame) {
-    auto currPageDir = paging::UserDirectory::from(currentTask->cr3);
+    auto currPageDir = paging::UserDirectory::from(__scheduler->__current->cr3);
     auto newPageDir = paging::UserDirectory::forkCOW(currPageDir);
-    currentTask->cr3.setCr3();
+    __scheduler->__current->cr3.setCr3();
 
     Stack kernelStack;
     auto newFrame = kernelStack.pushAny(*frame);
@@ -313,25 +314,25 @@ pid_t forkTask(interrupt::SyscallFrame* frame) {
     tcb->state = State::S_Ready;
     tcb->pid = KP_Invalid;
 
-    tcb->vmSpace = currentTask->vmSpace;
+    tcb->vmSpace = __scheduler->__current->vmSpace;
 
-    tcb->parentPid = currentTask->pid;
-    tcb->groupPid = currentTask->groupPid;
+    tcb->parentPid = __scheduler->__current->pid;
+    tcb->groupPid = __scheduler->__current->groupPid;
 
-    tcb->__signal.prepareForFork(currentTask->__signal);
-    tcb->__file = currentTask->__file;
+    tcb->__signal.prepareForFork(__scheduler->__current->__signal);
+    tcb->__file = __scheduler->__current->__file;
 
-    tcb->tls = currentTask->tls;
+    tcb->tls = __scheduler->__current->tls;
 
-    tcb->name = currentTask->name;
-    tcb->brkBase = currentTask->brkBase;
-    tcb->brkAddr = currentTask->brkAddr;
-    tcb->stackRange = currentTask->stackRange;
+    tcb->name = __scheduler->__current->name;
+    tcb->brkBase = __scheduler->__current->brkBase;
+    tcb->brkAddr = __scheduler->__current->brkAddr;
+    tcb->stackRange = __scheduler->__current->stackRange;
     tcb->pages.push_back(kernelStack.userBase.addr);
 
-    tcb->cwd = currentTask->cwd;
+    tcb->cwd = __scheduler->__current->cwd;
 
-    currentTask->childTasks.push_back(tcb);
+    __scheduler->__current->childTasks.push_back(tcb);
 
     auto pid = addTask(tcb);
     if (pid == KP_Invalid) {
@@ -353,17 +354,18 @@ pid_t addTask(TaskControlBlock* task) {
 [[noreturn]] void exitTask(int code, int sig) {
     arch::cli();
 
-    if (currentTask->pid == KP_Init) {
+    if (__scheduler->__current->pid == KP_Init) {
         arch::kfatal("init task cannot exit!");
     }
 
-    currentTask->state = State::S_Exited;
-    currentTask->exitInfo.stat = (code << 8) | sig;
-    if (!currentTask->childTasks.empty()) {
-        __all_tasks[KP_Init]->childTasks.splice(__all_tasks[KP_Init]->childTasks.end(), currentTask->childTasks);
+    __scheduler->__current->state = State::S_Exited;
+    __scheduler->__current->exitInfo.stat = (code << 8) | sig;
+    if (!__scheduler->__current->childTasks.empty()) {
+        __all_tasks[KP_Init]->childTasks.splice(__all_tasks[KP_Init]->childTasks.end(),
+                                                __scheduler->__current->childTasks);
         __all_tasks[KP_Init]->sendSignal(SIGCHLD);
     }
-    if (auto parent = findTask(currentTask->parentPid)) {
+    if (auto parent = findTask(__scheduler->__current->parentPid)) {
         parent->sendSignal(SIGCHLD);
     }
     if (!pendingTasks.empty()) {
@@ -377,7 +379,8 @@ pid_t addTask(TaskControlBlock* task) {
 }
 
 bool freeTask(pid_t pid, int* stat) {
-    arch::kprint("free task pid = {} current = {} {}\n", pid, currentTask->pid, currentTask->name);
+    arch::kprint("free task pid = {} current = {} {}\n", pid, __scheduler->__current->pid,
+                 __scheduler->__current->name);
     auto task = __all_tasks[pid];
     if (!task) {
         arch::kprint("Task {} not exists!\n", pid);
@@ -416,30 +419,30 @@ void yield() {
     if (!pendingTasks.empty()) {
         auto next = pendingTasks.front();
         pendingTasks.pop_front();
-        if (currentTask->state == State::S_Running) {
-            currentTask->state = State::S_Ready;
-            if (currentTask->pid != KP_Idle) {
-                pendingTasks.push_back(currentTask);
+        if (__scheduler->__current->state == State::S_Running) {
+            __scheduler->__current->state = State::S_Ready;
+            if (__scheduler->__current->pid != KP_Idle) {
+                pendingTasks.push_back(__scheduler->__current);
             }
         }
         switchToTask(next);
-        currentTask->state = State::S_Running;
-        gdt::setTls(currentTask->tls);
-    } else if (currentTask->state != State::S_Running) {
+        __scheduler->__current->state = State::S_Running;
+        gdt::setTls(__scheduler->__current->tls);
+    } else if (__scheduler->__current->state != State::S_Running) {
         switchToTask(__all_tasks[KP_Idle]);
-        currentTask->state = State::S_Running;
-        gdt::setTls(currentTask->tls);
+        __scheduler->__current->state = State::S_Running;
+        gdt::setTls(__scheduler->__current->tls);
     }
 }
 
 WakeReason block(BlockReason reason) {
     arch::InterruptGuard guard;
-    currentTask->state = State::S_Blocked;
-    currentTask->blockReason = reason;
-    currentTask->wakeReason = WakeReason::WR_Normal;
+    __scheduler->__current->state = State::S_Blocked;
+    __scheduler->__current->blockReason = reason;
+    __scheduler->__current->wakeReason = WakeReason::WR_Normal;
     yield();
-    auto wr = currentTask->wakeReason;
-    currentTask->wakeReason = WakeReason::WR_Normal;
+    auto wr = __scheduler->__current->wakeReason;
+    __scheduler->__current->wakeReason = WakeReason::WR_Normal;
     return wr;
 }
 
@@ -465,12 +468,12 @@ WakeReason sleep(uint64_t ms, uint64_t* rest) {
     auto currTs = timer::msSinceBoot + ms;
 
     arch::InterruptGuard guard;
-    currentTask->sleepInfo.time = currTs;
+    __scheduler->__current->sleepInfo.time = currTs;
 
     auto pos = std::find_if(sleepTasks.begin(), sleepTasks.end(),
                             [&](const auto& tcb) { return currTs <= tcb.sleepInfo.time; });
-    sleepTasks.insert(pos, currentTask);
-    currentTask->__request_detach = +[](TaskControlBlock* task) { sleepTasks.erase({task}); };
+    sleepTasks.insert(pos, __scheduler->__current);
+    __scheduler->__current->__request_detach = +[](TaskControlBlock* task) { sleepTasks.erase({task}); };
     auto reason = block(BlockReason::BR_Sleep);
     if (rest) {
         if (currTs <= timer::msSinceBoot) {
@@ -494,7 +497,7 @@ void checkSleep() {
             break;
         }
     }
-    if ((timer::msSinceBoot % 10 == 0) && currentTask) {
+    if ((timer::msSinceBoot % 10 == 0) && __scheduler->__current) {
         yield();
     }
 }

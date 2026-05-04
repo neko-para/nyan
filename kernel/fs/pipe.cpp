@@ -5,7 +5,7 @@
 #include <signal.h>
 #include <string.h>
 
-#include "../task/task.hpp"
+#include "../task/scheduler.hpp"
 #include "../task/tcb.hpp"
 
 namespace nyan::fs {
@@ -81,7 +81,7 @@ ssize_t PipeObj::write(const void* buf, size_t sz) noexcept {
     }
 
     if (!__read_alive) {
-        task::currentTask->sendSignal(SIGPIPE);
+        task::__scheduler->__current->sendSignal(SIGPIPE);
         return -SYS_EPIPE;
     }
 

@@ -1,5 +1,6 @@
 #include <nyan/syscall.h>
 
+#include "../task/scheduler.hpp"
 #include "../task/tcb.hpp"
 
 namespace nyan::syscall {
@@ -11,7 +12,7 @@ ssize_t read(int fd, void* buf, size_t size) {
     if (size > INT_MAX) {
         return -SYS_EINVAL;
     }
-    auto fileObjPtr = task::currentTask->__file.getFile(fd);
+    auto fileObjPtr = task::__scheduler->__current->__file.getFile(fd);
     if (!fileObjPtr) {
         return -SYS_EBADF;
     }

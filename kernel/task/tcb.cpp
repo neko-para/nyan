@@ -3,12 +3,11 @@
 #include <sys/wait.h>
 
 #include "../timer/load.hpp"
+#include "scheduler.hpp"
 #include "task.hpp"
 #include "trampoline.hpp"
 
 namespace nyan::task {
-
-TaskControlBlock* currentTask asm("currentTask");
 
 void TaskControlBlock::dump() {
     switch (state) {
@@ -68,7 +67,7 @@ static void defaultSignalLogic(int sig) {
 }
 
 bool TaskControlBlock::checkSignal(interrupt::SyscallFrame* frame) noexcept {
-    if (this != currentTask) {
+    if (this != __scheduler->__current) {
         arch::kfatal("checkSignal should be called with currentTask");
     }
 

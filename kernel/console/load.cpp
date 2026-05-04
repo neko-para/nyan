@@ -3,6 +3,7 @@
 #include <sys/wait.h>
 
 #include "../arch/file.hpp"
+#include "../task/scheduler.hpp"
 #include "../task/task.hpp"
 #include "../task/tcb.hpp"
 #include "file.hpp"
@@ -17,13 +18,13 @@ Tty* __all_ttys[__tty_count];
 static int consoleDeamon(void* param) {
     Tty* tty = static_cast<Tty*>(param);
     auto id = std::find(std::begin(__all_ttys), std::end(__all_ttys), tty) - std::begin(__all_ttys);
-    arch::kprint("tty {} deamon entered, pid {}\n", id, task::currentTask->pid);
+    arch::kprint("tty {} deamon entered, pid {}\n", id, task::__scheduler->__current->pid);
 
     auto ttyObj = lib::makeRef<TtyObj>(tty);
     auto debugConObj = lib::makeRef<arch::DebugConObj>();
-    task::currentTask->__file.__fd_table[0] = lib::makeRef<fs::FdObj>(ttyObj, O_RDONLY);
-    task::currentTask->__file.__fd_table[1] = lib::makeRef<fs::FdObj>(ttyObj, O_WRONLY);
-    task::currentTask->__file.__fd_table[2] = lib::makeRef<fs::FdObj>(ttyObj, O_WRONLY);
+    task::__scheduler->__current->__file.__fd_table[0] = lib::makeRef<fs::FdObj>(ttyObj, O_RDONLY);
+    task::__scheduler->__current->__file.__fd_table[1] = lib::makeRef<fs::FdObj>(ttyObj, O_WRONLY);
+    task::__scheduler->__current->__file.__fd_table[2] = lib::makeRef<fs::FdObj>(ttyObj, O_WRONLY);
 
     while (true) {
         const char* argv[] = {"sh", 0};

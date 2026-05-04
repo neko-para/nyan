@@ -8,7 +8,7 @@
 #include "../keyboard/mod.hpp"
 #include "../lib/format.hpp"
 #include "../paging/directory.hpp"
-#include "../task/task.hpp"
+#include "../task/scheduler.hpp"
 #include "../task/tcb.hpp"
 #include "../timer/load.hpp"
 #include "load.hpp"
@@ -25,12 +25,12 @@ void exceptionHandlerImpl(SyscallFrame* frame) {
 
     switch (frame->isr_num) {
         case E_Breakpoint:
-            task::currentTask->sendSignal(SIGTRAP);
+            task::__scheduler->__current->sendSignal(SIGTRAP);
             break;
 
         case E_GeneralProtectionFault:
             if (gdt::isRing3(frame->cs)) {
-                task::currentTask->sendSignal(SIGSEGV);
+                task::__scheduler->__current->sendSignal(SIGSEGV);
                 break;
             }
 
@@ -39,7 +39,7 @@ void exceptionHandlerImpl(SyscallFrame* frame) {
 
         case E_PageFault: {
             paging::VirtualAddress targetAddr = paging::VirtualAddress{arch::cr2()};
-            auto vma = task::currentTask->vmSpace.__locate(targetAddr);
+            auto vma = task::__scheduler->__current->vmSpace.__locate(targetAddr);
 
             bool checkUserland = targetAddr.addr >= 0x00400000 && targetAddr.addr < 0xC0000000;
 
@@ -47,10 +47,10 @@ void exceptionHandlerImpl(SyscallFrame* frame) {
             bool checkCOW = checkUserland                                  //
                             && vma->contains(targetAddr)                   //
                             && ((frame->error_code & COWFlag) == COWFlag)  //
-                            && task::currentTask->cr3 != paging::kernelPageDirectory.cr3();
+                            && task::__scheduler->__current->cr3 != paging::kernelPageDirectory.cr3();
 
             if (checkCOW) {
-                auto pageDir = paging::UserDirectory::from(task::currentTask->cr3);
+                auto pageDir = paging::UserDirectory::from(task::__scheduler->__current->cr3);
                 if (pageDir.handleCOW(targetAddr)) {
                     return;
                 }
@@ -63,8 +63,8 @@ void exceptionHandlerImpl(SyscallFrame* frame) {
 
                 if (checkStack) {
                     // TODO: 之后可以引入基于ESP的检查
-                    if (targetAddr >= task::currentTask->stackRange.first) {
-                        auto pageDir = paging::UserDirectory::from(task::currentTask->cr3);
+                    if (targetAddr >= task::__scheduler->__current->stackRange.first) {
+                        auto pageDir = paging::UserDirectory::from(task::__scheduler->__current->cr3);
                         auto nextAddr = std::next(vma)->__begin;
                         while (nextAddr > targetAddr) {
                             nextAddr = nextAddr.prevPage();
@@ -74,7 +74,7 @@ void exceptionHandlerImpl(SyscallFrame* frame) {
                     }
                 }
 
-                task::currentTask->sendSignal(SIGSEGV);
+                task::__scheduler->__current->sendSignal(SIGSEGV);
                 break;
             }
 
@@ -103,7 +103,7 @@ void exceptionHandlerImpl(SyscallFrame* frame) {
     }
 
     if (gdt::isRing3(frame->cs)) {
-        task::currentTask->checkSignal(frame);
+        task::__scheduler->__current->checkSignal(frame);
     }
 }
 
@@ -329,8 +329,8 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             CALL(spawn);
             break;
         default:
-            arch::kprint("syscall eax={}(missing) from {} {}\n", frame->eax, task::currentTask->pid,
-                         task::currentTask->name);
+            arch::kprint("syscall eax={}(missing) from {} {}\n", frame->eax, task::__scheduler->__current->pid,
+                         task::__scheduler->__current->name);
             frame->eax = -SYS_ENOSYS;
     }
 

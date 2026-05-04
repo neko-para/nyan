@@ -1,8 +1,7 @@
 
 #include <nyan/syscall.h>
 
-#include "../allocator/mod.hpp"
-#include "../arch/guard.hpp"
+#include "../task/scheduler.hpp"
 #include "../task/tcb.hpp"
 
 namespace nyan::syscall {
@@ -32,14 +31,14 @@ int rt_sigaction(int sig, const struct sigaction* act, struct sigaction* oldact,
         }
     }
 
-    if (!task::currentTask->__signal.__signal_actions) {
+    if (!task::__scheduler->__current->__signal.__signal_actions) {
         if (!act && !oldact) {
             return 0;
         }
-        task::currentTask->__signal.ensureActions();
+        task::__scheduler->__current->__signal.ensureActions();
     }
 
-    auto& entry = task::currentTask->__signal.__signal_actions->operator[](sig);
+    auto& entry = task::__scheduler->__current->__signal.__signal_actions->operator[](sig);
 
     // 输出旧的 sigaction
     if (oldact) {

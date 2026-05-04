@@ -1,6 +1,7 @@
 #include <nyan/syscall.h>
 
 #include "../fs/dentry.hpp"
+#include "../task/scheduler.hpp"
 #include "../task/tcb.hpp"
 
 namespace nyan::syscall {
@@ -12,7 +13,7 @@ char* getcwd(char* buf, size_t size) {
     if (size == 0) {
         return reinterpret_cast<char*>(-SYS_EINVAL);
     }
-    auto cwd = task::currentTask->cwd->asPath();
+    auto cwd = task::__scheduler->__current->cwd->asPath();
     if (size < cwd.size() + 1) {
         return reinterpret_cast<char*>(-SYS_ERANGE);
     }

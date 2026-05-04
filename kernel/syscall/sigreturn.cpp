@@ -1,6 +1,7 @@
 #include <nyan/syscall.h>
 
 #include "../gdt/load.hpp"
+#include "../task/scheduler.hpp"
 #include "../task/signal.hpp"
 #include "../task/tcb.hpp"
 
@@ -11,7 +12,7 @@ void sigreturn(void* frame) {
 
     auto esp = sysFrame->user_esp;
     esp += 4;  // signum
-    task::currentTask->__signal.__signal_mask = *reinterpret_cast<task::SigSet*>(esp);
+    task::__scheduler->__current->__signal.__signal_mask = *reinterpret_cast<task::SigSet*>(esp);
     esp += sizeof(task::SigSet);  // sigmask
     auto userFrame = reinterpret_cast<interrupt::SyscallFrame*>(esp);
     *sysFrame = *userFrame;

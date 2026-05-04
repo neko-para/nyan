@@ -1,5 +1,6 @@
 #include "print.hpp"
 
+#include "../task/scheduler.hpp"
 #include "../task/tcb.hpp"
 #include "../timer/load.hpp"
 
@@ -9,7 +10,7 @@ void emitLog(void* eip, LogLevel level, std::string_view log) {
     Payload payload = {
         static_cast<uint32_t>(timer::msSinceBoot),
         reinterpret_cast<uint32_t>(eip),
-        task::currentTask ? task::currentTask->pid : 0,
+        task::__scheduler->__current ? task::__scheduler->__current->pid : 0,
         static_cast<uint16_t>(log.length()),
         T_Log,
         {
@@ -26,7 +27,7 @@ void emitSyscall(uint32_t eip, SyscallRole role, const SyscallContent& content) 
     Payload payload = {
         static_cast<uint32_t>(timer::msSinceBoot),
         eip,
-        task::currentTask ? task::currentTask->pid : 0,
+        task::__scheduler->__current ? task::__scheduler->__current->pid : 0,
         sizeof(SyscallContent),
         T_Syscall,
         {
@@ -43,7 +44,7 @@ void emitException(void* eip, const ExceptionContent& content) {
     Payload payload = {
         static_cast<uint32_t>(timer::msSinceBoot),
         reinterpret_cast<uint32_t>(eip),
-        task::currentTask ? task::currentTask->pid : 0,
+        task::__scheduler->__current ? task::__scheduler->__current->pid : 0,
         sizeof(ExceptionContent),
         T_Exception,
         {},

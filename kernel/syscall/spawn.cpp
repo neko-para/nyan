@@ -2,6 +2,7 @@
 
 #include "../arch/print.hpp"
 #include "../data/embed.hpp"
+#include "../task/scheduler.hpp"
 #include "../task/task.hpp"
 #include "../task/tcb.hpp"
 
@@ -13,7 +14,7 @@ pid_t spawn(const char* name, const char* const* argv, const char* const* envp) 
         if (std::string_view{prog.name} == name) {
             auto task = task::createElfTask(prog.data, prog.size, argv, envp);
             // TODO: close-on-exec
-            task->__file = task::currentTask->__file;
+            task->__file = task::__scheduler->__current->__file;
             auto pid = task::addTask(task);
             arch::kprint("spawn {} as {}\n", name, pid);
             return pid;

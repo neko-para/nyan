@@ -1,5 +1,7 @@
 #include "large_frame.hpp"
 
+#include "../arch/print.hpp"
+
 namespace nyan::allocator {
 
 std::optional<paging::VirtualAddress> LargeFrameManager::alloc(size_t page) noexcept {

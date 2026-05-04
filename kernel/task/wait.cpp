@@ -1,6 +1,7 @@
 #include "wait.hpp"
 
 #include "../arch/guard.hpp"
+#include "scheduler.hpp"
 #include "task.hpp"
 #include "tcb.hpp"
 
@@ -8,8 +9,8 @@ namespace nyan::task {
 
 WakeReason WaitList::wait(BlockReason reason) noexcept {
     arch::InterruptGuard guard;
-    __list.push_back(currentTask);
-    currentTask->__request_detach = [this](TaskControlBlock* task) { __list.erase({task}); };
+    __list.push_back(__scheduler->__current);
+    __scheduler->__current->__request_detach = [this](TaskControlBlock* task) { __list.erase({task}); };
     return block(reason);
 }
 

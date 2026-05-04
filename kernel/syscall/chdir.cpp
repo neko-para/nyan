@@ -1,8 +1,8 @@
 #include <nyan/syscall.h>
 
 #include "../fs/dentry.hpp"
-#include "../fs/mount.hpp"
 #include "../fs/vnode.hpp"
+#include "../task/scheduler.hpp"
 #include "../task/tcb.hpp"
 
 namespace nyan::syscall {
@@ -19,7 +19,7 @@ int chdir(const char* pathname) {
     if (dentry->__node->__type != fs::VNT_Directory) {
         return -SYS_ENOTDIR;
     }
-    task::currentTask->cwd = dentry;
+    task::__scheduler->__current->cwd = dentry;
     return 0;
 }
 

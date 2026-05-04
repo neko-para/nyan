@@ -9,7 +9,7 @@
 
 namespace nyan::task {
 
-Scheduler* __scheduler;
+lib::Lazy<Scheduler> __scheduler;
 
 static void loadTrampoline() noexcept {
     paging::kernelPageDirectory.set(paging::kernelPageDirectory.at(1023), 1023,
@@ -24,7 +24,7 @@ static void loadTrampoline() noexcept {
 }
 
 void load() noexcept {
-    __scheduler = new Scheduler;
+    __scheduler.construct();
 
     setupKnownTasks();
     loadTrampoline();
