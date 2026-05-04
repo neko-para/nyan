@@ -74,7 +74,6 @@ struct TaskControlBlock : public TaskControlBlockMetaInfo,
     void dump();
 
     void sendSignal(int sig) noexcept;
-    bool peekSignal() const noexcept { return __signal.peek(); }
     // 几乎总是应该用 currentTask 来调用
     bool checkSignal(interrupt::SyscallFrame* frame) noexcept;
 };

@@ -22,7 +22,6 @@ struct TaskSignalInfo {
     void ensureActions() noexcept;
     void prepareForExec() noexcept;
     void prepareForFork(TaskSignalInfo& current) noexcept;
-    bool peek() const noexcept;
 };
 
 inline bool isSignalDefaultIgnore(int sig) {
