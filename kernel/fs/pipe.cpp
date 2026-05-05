@@ -11,7 +11,7 @@
 namespace nyan::fs {
 
 PipeState::PipeState() {
-    __buffer = new char[4096];
+    __buffer = new char[__pipe_buffer_size];
 }
 
 PipeState::~PipeState() {
@@ -66,10 +66,10 @@ ssize_t PipeState::read(void* buf, size_t sz) noexcept {
     }
 
     size_t len = std::min(size(), sz);
-    auto left = __tail & 0xFFF;
+    auto left = __tail & __pipe_buffer_mask;
     auto right = left + len;
-    if (right > 0x1000) {
-        auto firstLen = 0x1000 - left;
+    if (right > __pipe_buffer_size) {
+        auto firstLen = __pipe_buffer_size - left;
         auto restLen = len - firstLen;
         memcpy(cur, &__buffer[left], firstLen);
         memcpy(cur + firstLen, &__buffer[0], restLen);
@@ -95,11 +95,11 @@ ssize_t PipeState::write(const void* buf, size_t sz) noexcept {
         return -SYS_EPIPE;
     }
 
-    size_t len = std::min(PipeBufferSize - size(), sz);
-    auto left = __head & 0xFFF;
+    size_t len = std::min(__pipe_buffer_size - size(), sz);
+    auto left = __head & __pipe_buffer_mask;
     auto right = left + len;
-    if (right > 0x1000) {
-        auto firstLen = 0x1000 - left;
+    if (right > __pipe_buffer_size) {
+        auto firstLen = __pipe_buffer_size - left;
         auto restLen = len - firstLen;
         memcpy(&__buffer[left], cur, firstLen);
         memcpy(&__buffer[0], cur + firstLen, restLen);

@@ -8,7 +8,8 @@
 
 namespace nyan::fs {
 
-constexpr size_t PipeBufferSize = 4096;
+constexpr size_t __pipe_buffer_size = 0x1000;
+constexpr size_t __pipe_buffer_mask = 0xFFF;
 
 struct PipeState : public lib::Shared {
     char* __buffer;
@@ -24,7 +25,7 @@ struct PipeState : public lib::Shared {
 
     size_t size() const noexcept { return __head - __tail; }
     bool empty() const noexcept { return __head == __tail; }
-    bool full() const noexcept { return size() == PipeBufferSize; }
+    bool full() const noexcept { return size() == __pipe_buffer_size; }
 
     std::optional<arch::InterruptGuard> syncWaitForRead() noexcept;
     std::optional<arch::InterruptGuard> syncWaitForWrite() noexcept;
