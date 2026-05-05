@@ -1,6 +1,10 @@
 export type ArgType = 'int' | 'uint' | 'pid' | 'fd' | 'ptr' | 'size' | 'str' | 'flags' | 'signo'
 
-export type ArgDecl = { name: string; type: ArgType }
+export type ArgDecl = {
+    name: string
+    type: ArgType
+    parse?: (val: number) => string
+}
 
 export type SyscallDef = {
     name: string
@@ -37,6 +41,85 @@ export const syscallTable: Record<number, SyscallDef> = {
             { name: 'fd', type: 'fd' },
             { name: 'buf', type: 'ptr' },
             { name: 'size', type: 'size' }
+        ]
+    },
+    5: {
+        name: 'open',
+        ret: 'int',
+        args: [
+            { name: 'path', type: 'str' },
+            {
+                name: 'flags',
+                type: 'flags',
+                parse: val => {
+                    const flags: string[] = []
+                    switch (val & 0o3) {
+                        case 0:
+                            flags.push('O_RDONLY')
+                            break
+                        case 1:
+                            flags.push('O_WRONLY')
+                            break
+                        case 2:
+                            flags.push('O_RDWR')
+                            break
+                    }
+                    if (val & 0o100) {
+                        flags.push('O_CREAT')
+                    }
+                    if (val & 0o200) {
+                        flags.push('O_EXCL')
+                    }
+                    if (val & 0o400) {
+                        flags.push('O_NOCTTY')
+                    }
+                    if (val & 0o1000) {
+                        flags.push('O_TRUNC')
+                    }
+                    if (val & 0o2000) {
+                        flags.push('O_APPEND')
+                    }
+                    if (val & 0o4000) {
+                        flags.push('O_NONBLOCK')
+                    }
+                    if (val & 0o10000) {
+                        if (val & 0o4000000) {
+                            flags.push('O_SYNC')
+                        } else {
+                            flags.push('O_DSYNC')
+                        }
+                    }
+                    if (val & 0o200000) {
+                        flags.push('O_DIRECTORY')
+                    }
+                    if (val & 0o400000) {
+                        flags.push('O_NOFOLLOW')
+                    }
+                    if (val & 0o2000000) {
+                        flags.push('O_CLOEXEC')
+                    }
+                    if (val & 0o20000) {
+                        flags.push('O_ASYNC')
+                    }
+                    if (val & 0o40000) {
+                        flags.push('O_DIRECT')
+                    }
+                    if (val & 0o100000) {
+                        flags.push('O_LARGEFILE')
+                    }
+                    if (val & 0o1000000) {
+                        flags.push('O_NOATIME')
+                    }
+                    if (val & 0o10000000) {
+                        flags.push('O_PATH')
+                    }
+                    if (val & 0o20200000) {
+                        flags.push('O_TMPFILE')
+                    }
+                    return flags.join(', ')
+                }
+            },
+            { name: 'mode', type: 'flags' }
         ]
     },
     6: {

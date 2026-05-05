@@ -7,6 +7,7 @@
 
 namespace nyan::arch {
 
+/*
 ssize_t DebugConObj::read(void* buf, size_t size) noexcept {
     std::ignore = buf;
     std::ignore = size;
@@ -23,5 +24,6 @@ int DebugConObj::ioctl(uint32_t req, uint32_t param) noexcept {
     std::ignore = param;
     return -SYS_ENOTTY;
 }
+*/
 
 }  // namespace nyan::arch

@@ -24,6 +24,9 @@ ssize_t read(int fd, void* buf, size_t size);
 // 4
 ssize_t write(int fd, const void* buf, size_t size);
 
+// 5
+int open(const char* pathname, int flags, mode_t mode);
+
 // 6
 int close(int fd);
 

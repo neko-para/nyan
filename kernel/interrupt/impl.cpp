@@ -241,6 +241,9 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
         case 4:
             CALL(write)
             break;
+        case 5:
+            CALL(open);
+            break;
         case 6:
             CALL(close);
             break;

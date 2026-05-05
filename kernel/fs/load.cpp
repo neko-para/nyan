@@ -31,6 +31,10 @@ static void loadInitFs() {
         auto name = lib::format("tty{}", i);
         dev->link(name, lib::makeRef<RamFSCharDevVNode>(console::__all_tty_devices[i], dev->__super_block, 0755));
     }
+
+    entry->__root_node->create("hello", 0755);
+    auto hello = entry->__root_node->lookup("hello");
+    hello->write("Hello world!", 12, 0);
 }
 
 void load() {

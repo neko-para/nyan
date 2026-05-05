@@ -37,7 +37,7 @@ lib::Ref<DEntry> DEntryCacheManager::lookup(lib::Ref<DEntry> parent, std::string
     if (auto it = __cache.find(cache_key); it != __cache.end()) {
         return it->second;
     } else {
-        auto target_vnode = parent->__mount ? parent->__mount->__root_node : parent->__node;
+        auto target_vnode = parent->effectiveVNode();
         auto next = target_vnode->lookup(name);
         if (!next) {
             return {};

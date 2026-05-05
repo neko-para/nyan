@@ -45,6 +45,7 @@ struct VNode : public lib::Shared {
     // General
     virtual int stat(struct stat* buf) noexcept = 0;
     virtual int ioctl(uint32_t req, uint32_t param) noexcept { return -SYS_ENOTTY; }
+    virtual lib::Ref<VNodeFileObj> open(lib::Ref<VNode> self, uint32_t mode) noexcept;
 };
 
 #pragma clang diagnostic pop

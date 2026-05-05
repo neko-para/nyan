@@ -10,6 +10,10 @@ struct MountEntry;
 struct DEntry;
 struct DEntryCacheManager;
 
+struct FileObj;
+struct VNodeFileObj;
+struct FdObj;
+
 struct RamFS;
 
 }  // namespace nyan::fs

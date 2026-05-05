@@ -7,6 +7,7 @@
 #include "../lib/list.hpp"
 #include "../lib/shared.hpp"
 #include "forward.hpp"
+#include "mount.hpp"
 
 namespace nyan::fs {
 
@@ -36,6 +37,7 @@ struct DEntry : public lib::Shared, public lib::ListNodes<DEntryLRUTag> {
             return __parent->asPath() + "/" + __name;
         }
     }
+    lib::Ref<VNode> effectiveVNode() const noexcept { return __mount ? __mount->__root_node : __node; }
 };
 
 struct DEntryCache {
