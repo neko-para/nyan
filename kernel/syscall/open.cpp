@@ -47,6 +47,9 @@ int open(const char* pathname, int flags, mode_t mode) {
     }
 
     *fdObjPtr = lib::makeRef<fs::FdObj>(file);
+    if (flags & O_CLOEXEC) {
+        (*fdObjPtr)->__close_on_exec = true;
+    }
     return fd;
 }
 

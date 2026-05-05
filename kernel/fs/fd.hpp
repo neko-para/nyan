@@ -9,6 +9,7 @@ namespace nyan::fs {
 
 struct FdObj : public lib::Shared {
     lib::Ref<FileObj> __file;
+    bool __close_on_exec{};
 
     FdObj(lib::Ref<FileObj> file) noexcept : __file(file) {}
     virtual ~FdObj();
