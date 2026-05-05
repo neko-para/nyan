@@ -24,9 +24,11 @@ int pipe(int* fds) {
         return -SYS_EMFILE;
     }
 
-    auto pipeObj = lib::makeRef<fs::PipeObj>();
-    *readObjPtr = lib::makeRef<fs::FdObj>(pipeObj, O_RDONLY);
-    *writeObjPtr = lib::makeRef<fs::FdObj>(pipeObj, O_WRONLY);
+    auto pipeState = lib::makeRef<fs::PipeState>();
+    auto pipeReadObj = lib::makeRef<fs::PipeObj>(pipeState, O_RDONLY);
+    auto pipeWriteObj = lib::makeRef<fs::PipeObj>(pipeState, O_WRONLY);
+    *readObjPtr = lib::makeRef<fs::FdObj>(pipeReadObj);
+    *writeObjPtr = lib::makeRef<fs::FdObj>(pipeWriteObj);
 
     fds[0] = readFd;
     fds[1] = writeFd;

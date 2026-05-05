@@ -151,6 +151,29 @@ int RamFSFileVNode::stat(struct stat* buf) noexcept {
     return 0;
 }
 
+ssize_t RamFSCharDevVNode::read(void* buf, size_t size, off_t) noexcept {
+    return __device->read(buf, size);
+}
+
+ssize_t RamFSCharDevVNode::write(const void* buf, size_t size, off_t) noexcept {
+    return __device->write(buf, size);
+}
+
+int RamFSCharDevVNode::stat(struct stat* buf) noexcept {
+    memset(buf, 0, sizeof(struct stat));
+    buf->st_dev = 1;
+    buf->st_mode = S_IFCHR | __mode;
+    buf->st_nlink = __ref_count;
+    buf->st_size = 0;
+    buf->st_blksize = 4096;
+    buf->st_ino = __inode;
+    return 0;
+}
+
+int RamFSCharDevVNode::ioctl(uint32_t req, uint32_t param) noexcept {
+    return __device->ioctl(req, param);
+}
+
 lib::Ref<MountEntry> RamFS::mount(Device*, const char*) noexcept {
     auto entry = lib::makeRef<MountEntry>();
     entry->__super_block = lib::makeRef<RamFSSuperBlock>();

@@ -1,17 +1,14 @@
 #pragma once
 
-#include <stdint.h>
-#include <sys/types.h>
-
-#include "../fs/file.hpp"
+#include "../fs/device.hpp"
 #include "forward.hpp"
 
 namespace nyan::console {
 
-struct TtyObj : public fs::FileObj {
+struct TtyDevice : public fs::CharDevice {
     Tty* __tty;
 
-    TtyObj(uint32_t mode, Tty* tty) noexcept : FileObj(mode), __tty(tty) {}
+    TtyDevice(Tty* tty) noexcept : __tty(tty) {}
 
     virtual ssize_t read(void* buf, size_t size) noexcept override;
     virtual ssize_t write(const void* buf, size_t size) noexcept override;

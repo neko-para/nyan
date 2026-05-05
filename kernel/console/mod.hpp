@@ -11,6 +11,7 @@ constexpr size_t __tty_count = 2;
 
 extern Tty* __active_tty;
 extern Tty* __all_ttys[__tty_count];
+extern TtyDevice* __all_tty_devices[__tty_count];
 
 void load() noexcept;
 void startDeamons() noexcept;

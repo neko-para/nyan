@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+#include "../device.hpp"
 #include "../filesystem.hpp"
 #include "../super_block.hpp"
 #include "../vnode.hpp"
@@ -56,6 +57,19 @@ struct RamFSFileVNode : public RamFSVNode {
     virtual int truncate(off_t length) noexcept override;
 
     virtual int stat(struct stat* buf) noexcept override;
+};
+
+struct RamFSCharDevVNode : public RamFSVNode {
+    CharDevice* __device;
+
+    RamFSCharDevVNode(CharDevice* device, lib::Ref<SuperBlock> super_block, uint32_t mode)
+        : RamFSVNode(VNT_CharDevice, super_block, mode), __device(device) {}
+
+    virtual ssize_t read(void* buf, size_t size, off_t offset) noexcept override;
+    virtual ssize_t write(const void* buf, size_t size, off_t offset) noexcept override;
+
+    virtual int stat(struct stat* buf) noexcept override;
+    virtual int ioctl(uint32_t req, uint32_t param) noexcept override;
 };
 
 struct RamFS : public FileSystem {

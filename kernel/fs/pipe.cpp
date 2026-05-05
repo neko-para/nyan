@@ -5,20 +5,20 @@
 #include <signal.h>
 #include <string.h>
 
+#include "../arch/print.hpp"
 #include "../task/scheduler.hpp"
-#include "../task/tcb.hpp"
 
 namespace nyan::fs {
 
-PipeObj::PipeObj() {
+PipeState::PipeState() {
     __buffer = new char[4096];
 }
 
-PipeObj::~PipeObj() {
+PipeState::~PipeState() {
     delete[] __buffer;
 }
 
-std::optional<arch::InterruptGuard> PipeObj::syncWaitForRead() noexcept {
+std::optional<arch::InterruptGuard> PipeState::syncWaitForRead() noexcept {
     while (true) {
         arch::InterruptGuard guard;
         if (!empty() || !__write_alive) {
@@ -30,7 +30,7 @@ std::optional<arch::InterruptGuard> PipeObj::syncWaitForRead() noexcept {
     }
 }
 
-std::optional<arch::InterruptGuard> PipeObj::syncWaitForWrite() noexcept {
+std::optional<arch::InterruptGuard> PipeState::syncWaitForWrite() noexcept {
     while (true) {
         arch::InterruptGuard guard;
         if (!full() || !__read_alive) {
@@ -42,7 +42,17 @@ std::optional<arch::InterruptGuard> PipeObj::syncWaitForWrite() noexcept {
     }
 }
 
-ssize_t PipeObj::read(void* buf, size_t sz) noexcept {
+void PipeState::onReadClosed() noexcept {
+    __read_alive = false;
+    __write_wait.wakeAll(task::WakeReason::WR_Normal);
+}
+
+void PipeState::onWriteClosed() noexcept {
+    __write_alive = false;
+    __read_wait.wakeAll(task::WakeReason::WR_Normal);
+}
+
+ssize_t PipeState::read(void* buf, size_t sz) noexcept {
     auto ptr = static_cast<uint8_t*>(buf);
     auto cur = ptr;
 
@@ -71,7 +81,7 @@ ssize_t PipeObj::read(void* buf, size_t sz) noexcept {
     return len;
 }
 
-ssize_t PipeObj::write(const void* buf, size_t sz) noexcept {
+ssize_t PipeState::write(const void* buf, size_t sz) noexcept {
     auto ptr = static_cast<const uint8_t*>(buf);
     auto cur = ptr;
 
@@ -101,21 +111,25 @@ ssize_t PipeObj::write(const void* buf, size_t sz) noexcept {
     return len;
 }
 
-int PipeObj::ioctl(uint32_t req, uint32_t param) noexcept {
-    std::ignore = req;
-    std::ignore = param;
+ssize_t PipeObj::read(void* buf, size_t size) noexcept {
+    return __state->read(buf, size);
+}
+
+ssize_t PipeObj::write(const void* buf, size_t size) noexcept {
+    return __state->write(buf, size);
+}
+
+int PipeObj::ioctl(uint32_t, uint32_t) noexcept {
     return -SYS_ENOTTY;
 }
 
-void PipeObj::onFdClose(uint32_t mode) noexcept {
-    switch (mode & O_ACCMODE) {
+void PipeObj::onFdClose() noexcept {
+    switch (__mode & O_ACCMODE) {
         case O_RDONLY:
-            __read_alive = false;
-            __write_wait.wakeAll(task::WakeReason::WR_Normal);
+            __state->onReadClosed();
             break;
         case O_WRONLY:
-            __write_alive = false;
-            __read_wait.wakeAll(task::WakeReason::WR_Normal);
+            __state->onWriteClosed();
             break;
         default:
             arch::kfatal("pipe shouldn't use O_RDWR");

@@ -9,9 +9,8 @@ namespace nyan::fs {
 
 struct FdObj : public lib::Shared {
     lib::Ref<FileObj> __file;
-    uint32_t __mode;
 
-    FdObj(lib::Ref<FileObj> file, uint32_t mode) : __file(file), __mode(mode) {}
+    FdObj(lib::Ref<FileObj> file) noexcept : __file(file) {}
     virtual ~FdObj();
 
     virtual ssize_t read(void* buf, size_t size) const noexcept;
