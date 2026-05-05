@@ -56,9 +56,15 @@ struct DEntryCacheManager {
     lib::Ref<DEntry> lookup(lib::Ref<DEntry> parent, std::string_view name) noexcept;
 };
 
+struct DEntryResolveResult {
+    lib::Ref<DEntry> __result;
+    lib::Ref<DEntry> __parent;
+    std::string __last_name;
+};
+
 extern DEntryCacheManager* dentryCacheManager;
 
 uint64_t allocDEntryId();
-lib::Ref<DEntry> resolve(std::string_view path);
+DEntryResolveResult resolve(std::string_view path);
 
 }  // namespace nyan::fs

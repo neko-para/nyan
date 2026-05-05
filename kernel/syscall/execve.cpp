@@ -12,7 +12,7 @@ namespace nyan::syscall {
 int execve(const char* pathname, char* const argv[], char* const envp[], interrupt::SyscallFrame* frame) {
     // TODO: resolve via PATH
 
-    auto dentry = fs::resolve(pathname);
+    auto [dentry, _1, _2] = fs::resolve(pathname);
     if (!dentry || !dentry->__node) {
         return -SYS_ENOENT;
     }

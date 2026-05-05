@@ -11,12 +11,33 @@
 namespace nyan::syscall {
 
 int open(const char* pathname, int flags, mode_t mode) {
-    auto entry = fs::resolve(pathname);
+    auto [entry, parent, name] = fs::resolve(pathname);
+    lib::Ref<fs::VNode> vnode;
     if (!entry) {
-        return -SYS_ENOENT;
+        if (((flags & O_CREAT) || (flags & O_EXCL)) && parent && !name.empty()) {
+            int ret = parent->effectiveVNode()->create(name, mode);
+            if (ret) {
+                return ret;
+            }
+            vnode = parent->effectiveVNode()->lookup(name);
+        } else {
+            return -SYS_ENOENT;
+        }
+    } else {
+        if (flags & O_EXCL) {
+            return -SYS_EEXIST;
+        }
+        vnode = entry->effectiveVNode();
     }
-
-    auto vnode = entry->effectiveVNode();
+    if ((flags & O_DIRECTORY) && vnode->__type != fs::VNT_Directory) {
+        return -SYS_ENOTDIR;
+    }
+    if ((flags & O_ACCMODE) != O_RDONLY && flags & O_TRUNC && vnode->__type == fs::VNT_Regular) {
+        int ret = vnode->truncate(0);
+        if (ret) {
+            return ret;
+        }
+    }
     auto file = vnode->open(vnode, flags & O_ACCMODE);
 
     int fd;

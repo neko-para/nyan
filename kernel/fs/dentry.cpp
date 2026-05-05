@@ -53,7 +53,7 @@ uint64_t allocDEntryId() {
     return ++__counter;
 }
 
-lib::Ref<DEntry> resolve(std::string_view path) {
+DEntryResolveResult resolve(std::string_view path) {
     if (path.empty()) {
         return {};
     }
@@ -66,8 +66,13 @@ lib::Ref<DEntry> resolve(std::string_view path) {
         }
     }
 
+    std::vector<std::string_view> portions;
     for (const auto& item : path | std::views::split('/')) {
-        std::string_view portion{item.begin(), item.end()};
+        portions.push_back({item.begin(), item.end()});
+    }
+
+    for (auto it = portions.begin(); it != portions.end(); it++) {
+        auto portion = *it;
         if (portion.empty()) {
             continue;
         } else if (portion == ".") {
@@ -79,12 +84,25 @@ lib::Ref<DEntry> resolve(std::string_view path) {
         } else {
             auto next = dentryCacheManager->lookup(current, portion);
             if (!next) {
-                return {};
+                bool isLast = std::next(it) == portions.end();
+                if (isLast) {
+                    return {
+                        nullptr,
+                        current,
+                        std::string{portion},
+                    };
+                } else {
+                    return {};
+                }
             }
             current = next;
         }
     }
-    return current;
+    return {
+        current,
+        current->__parent,
+        std::string{portions.back()},
+    };
 }
 
 }  // namespace nyan::fs

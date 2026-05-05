@@ -4,8 +4,15 @@
 #include <unistd.h>
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
-    auto str = (char*)malloc(16);
-    strcpy(str, "Hello!\n");
-    fputs(str, stdout);
-    return 0;
+    if (argc > 1) {
+        auto file = fopen(argv[1], "wb");
+        if (!file) {
+            return 1;
+        }
+        fputs(argv[1], file);
+        fflush(file);
+        return 0;
+    } else {
+        return 1;
+    }
 }

@@ -11,8 +11,7 @@ int chdir(const char* pathname) {
     if (!pathname) {
         return -SYS_EFAULT;
     }
-    // TODO: deal relative
-    auto dentry = fs::resolve(pathname);
+    auto [dentry, _1, _2] = fs::resolve(pathname);
     if (!dentry || !dentry->__node) {
         return -SYS_ENOENT;
     }
