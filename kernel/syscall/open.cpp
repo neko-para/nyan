@@ -41,7 +41,7 @@ int open(const char* pathname, int flags, mode_t mode) {
     auto file = vnode->open(vnode, flags & O_ACCMODE);
 
     int fd;
-    auto fdObjPtr = task::__scheduler->__current->__file.getFileSlot(fd);
+    auto fdObjPtr = task::__scheduler->__current->__file.findFileSlot(fd);
     if (!fdObjPtr) {
         return -SYS_EMFILE;
     }

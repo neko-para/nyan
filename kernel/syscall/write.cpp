@@ -12,11 +12,11 @@ ssize_t write(int fd, const void* buf, size_t size) {
     if (size > INT_MAX) {
         return -SYS_EINVAL;
     }
-    auto fileObjPtr = task::__scheduler->__current->__file.getFile(fd);
-    if (!fileObjPtr) {
+    auto fileObj = task::__scheduler->__current->__file.getFile(fd);
+    if (!fileObj) {
         return -SYS_EBADF;
     }
-    return (*fileObjPtr)->write(buf, size);
+    return fileObj->write(buf, size);
 }
 
 }  // namespace nyan::syscall

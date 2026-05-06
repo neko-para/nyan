@@ -14,12 +14,12 @@ int pipe(int* fds) {
 
     int readFd, writeFd;
 
-    auto readObjPtr = task::__scheduler->__current->__file.getFileSlot(readFd);
+    auto readObjPtr = task::__scheduler->__current->__file.findFileSlot(readFd);
     if (!readObjPtr) {
         return -SYS_EMFILE;
     }
 
-    auto writeObjPtr = task::__scheduler->__current->__file.getFileSlot(writeFd, readFd + 1);
+    auto writeObjPtr = task::__scheduler->__current->__file.findFileSlot(writeFd, readFd + 1);
     if (!writeObjPtr) {
         return -SYS_EMFILE;
     }

@@ -7,11 +7,11 @@
 namespace nyan::syscall {
 
 int ioctl(int fd, uint32_t request, uint32_t param) {
-    auto fileObjPtr = task::__scheduler->__current->__file.getFile(fd);
-    if (!fileObjPtr) {
+    auto fileObj = task::__scheduler->__current->__file.getFile(fd);
+    if (!fileObj) {
         return -SYS_EBADF;
     }
-    return (*fileObjPtr)->ioctl(request, param);
+    return fileObj->ioctl(request, param);
 }
 
 }  // namespace nyan::syscall
