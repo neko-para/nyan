@@ -12,8 +12,10 @@ concept range_entry_like = requires(Entry e, VirtualAddress addr) {
     { e.__begin } -> std::convertible_to<VirtualAddress>;
     { e.__end } -> std::convertible_to<VirtualAddress>;
     { e.contains(addr) } -> std::convertible_to<bool>;
+    { e.contains(addr, addr) } -> std::convertible_to<bool>;
     { e.bounds(e, e) } -> std::convertible_to<bool>;
     { e.bounds(e, addr) } -> std::convertible_to<bool>;
+    { e.besides(e) } -> std::convertible_to<bool>;
 } && std::is_constructible_v<Entry, VirtualAddress, VirtualAddress>;
 
 struct RangeEntryBase {
@@ -24,6 +26,7 @@ struct RangeEntryBase {
     RangeEntryBase(VirtualAddress begin, VirtualAddress end) : __begin(begin), __end(end) {}
 
     bool contains(VirtualAddress addr) const noexcept { return __begin <= addr && addr < __end; }
+    bool contains(VirtualAddress begin, VirtualAddress end) const noexcept { return __begin <= begin && end <= __end; }
     template <typename Entry>
     bool bounds(const Entry& right, const Entry& target) const noexcept {
         return __end <= target.__begin && target.__end <= right.__begin;
@@ -31,6 +34,10 @@ struct RangeEntryBase {
     template <typename Entry>
     bool bounds(const Entry& right, const VirtualAddress& addr) const noexcept {
         return __end <= addr && addr < right.__begin;
+    }
+    template <typename Entry>
+    bool besides(const Entry& right) const noexcept {
+        return __end == right.__begin;
     }
 };
 

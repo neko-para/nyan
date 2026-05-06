@@ -7,11 +7,16 @@
 #include "../fs/vnode_file.hpp"
 #include "../task/scheduler.hpp"
 #include "../task/tcb.hpp"
+#include "utils.hpp"
 
 namespace nyan::syscall {
 
 int open(const char* pathname, int flags, mode_t mode) {
-    auto [entry, parent, name] = fs::resolve(pathname);
+    auto path = utils::validateString(pathname);
+    if (!path) {
+        return -SYS_EFAULT;
+    }
+    auto [entry, parent, name] = fs::resolve(*path);
     lib::Ref<fs::VNode> vnode;
     if (!entry) {
         if ((flags & O_CREAT) && parent && !name.empty()) {

@@ -4,6 +4,7 @@
 #include "../gdt/load.hpp"
 #include "../task/scheduler.hpp"
 #include "../task/tcb.hpp"
+#include "utils.hpp"
 
 namespace nyan::syscall {
 
@@ -63,9 +64,10 @@ static void parseUserDescFlags(uint32_t udFlags, uint8_t& access, uint8_t& flags
 }
 
 int set_thread_area(uint32_t user_desc[4]) {
-    if (!user_desc) {
+    if (!utils::validateReadWriteAuto(user_desc, 4)) {
         return -SYS_EFAULT;
     }
+
     auto& entry = user_desc[0];
     if (entry == static_cast<uint32_t>(-1)) {
         entry = 6;

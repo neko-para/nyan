@@ -4,14 +4,18 @@
 
 #include "../task/pid.hpp"
 #include "../task/scheduler.hpp"
-#include "../task/task.hpp"
 #include "../task/tcb.hpp"
+#include "utils.hpp"
 
 namespace nyan::syscall {
 
 constexpr int KnownOptions = WNOHANG;
 
 pid_t waitpid(pid_t pid, int* stat_loc, int options) {
+    if (!utils::validateWriteAuto(stat_loc, 1, true)) {
+        return -SYS_EFAULT;
+    }
+
     if ((options & KnownOptions) != options) {
         return -SYS_EINVAL;
     }

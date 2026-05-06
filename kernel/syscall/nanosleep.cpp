@@ -1,11 +1,12 @@
 #include <nyan/syscall.h>
 
 #include "../task/scheduler.hpp"
+#include "utils.hpp"
 
 namespace nyan::syscall {
 
 int nanosleep(const timespec* rqtp, timespec* rmtp) {
-    if (!rqtp) {
+    if (!utils::validateReadAuto(rqtp) || !utils::validateWriteAuto(rmtp, 1, true)) {
         return -SYS_EFAULT;
     }
 

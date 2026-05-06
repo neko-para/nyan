@@ -6,11 +6,16 @@
 #include "../fs/dentry.hpp"
 #include "../fs/vnode.hpp"
 #include "../task/scheduler.hpp"
+#include "utils.hpp"
 
 namespace nyan::syscall {
 
 int execve(const char* pathname, char* const argv[], char* const envp[], interrupt::SyscallFrame* frame) {
-    // TODO: resolve via PATH
+    auto args = utils::validateStringArray(argv);
+    auto envs = utils::validateStringArray(envp);
+    if (!args || !envs) {
+        return -SYS_EFAULT;
+    }
 
     auto [dentry, _1, _2] = fs::resolve(pathname);
     if (!dentry || !dentry->__node) {
@@ -33,20 +38,9 @@ int execve(const char* pathname, char* const argv[], char* const envp[], interru
         return ret;
     }
 
-    std::vector<std::string> args;
-    std::vector<std::string> envs;
-
-    for (auto ptr = argv; *ptr; ptr++) {
-        args.push_back(*ptr);
-    }
-
-    for (auto ptr = envp; *ptr; ptr++) {
-        envs.push_back(*ptr);
-    }
-
     arch::kprint("exec {}\n", pathname);
-    task::__scheduler->execTask(std::span{file.get(), static_cast<size_t>(info.st_size)}, std::move(args),
-                                std::move(envs), frame);
+    task::__scheduler->execTask(std::span{file.get(), static_cast<size_t>(info.st_size)}, std::move(*args),
+                                std::move(*envs), frame);
     return 0;
 }
 

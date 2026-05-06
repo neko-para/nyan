@@ -34,6 +34,11 @@ struct BaseAddress {
     constexpr uint32_t pageOffset() const noexcept { return addr & 0xFFF; }
     constexpr uint16_t pageTableOffset() const noexcept { return (addr >> 12) & 0x3FF; }
 
+    template <typename T>
+    constexpr bool isAlignFor() const noexcept {
+        return (addr % alignof(T)) == 0;
+    }
+
     constexpr Addr operator+(int32_t offset) const noexcept { return Addr{static_cast<uint32_t>(addr + offset)}; }
     constexpr Addr operator-(int32_t offset) const noexcept { return Addr{static_cast<uint32_t>(addr - offset)}; }
     constexpr int64_t operator-(const Addr& a) const noexcept {

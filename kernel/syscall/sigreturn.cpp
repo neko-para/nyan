@@ -4,11 +4,15 @@
 #include "../task/scheduler.hpp"
 #include "../task/signal.hpp"
 #include "../task/tcb.hpp"
+#include "utils.hpp"
 
 namespace nyan::syscall {
 
 void sigreturn(void* frame) {
     interrupt::SyscallFrame* sysFrame = static_cast<interrupt::SyscallFrame*>(frame);
+    if (!utils::validateReadAuto(sysFrame)) {
+        task::__scheduler->exit(255, SIGSEGV);
+    }
 
     auto esp = sysFrame->user_esp;
     esp += 4;  // signum
@@ -16,6 +20,10 @@ void sigreturn(void* frame) {
     esp += sizeof(task::SigSet);  // sigmask
     auto userFrame = reinterpret_cast<interrupt::SyscallFrame*>(esp);
     *sysFrame = *userFrame;
+
+    if (sysFrame->eip >= 0xC0000000 || !utils::validateExec(sysFrame->eip)) {
+        task::__scheduler->exit(255, SIGSEGV);
+    }
 
     sysFrame->cs = gdt::userCs;
     sysFrame->user_ss = gdt::userDs;

@@ -1,10 +1,15 @@
 #include <nyan/syscall.h>
-
 #include <string.h>
+
+#include "utils.hpp"
 
 namespace nyan::syscall {
 
 sighandler_t signal(int sig, sighandler_t handler) {
+    if (!utils::validateExec(handler)) {
+        return reinterpret_cast<sighandler_t>(-SYS_EFAULT);
+    }
+
     struct sigaction act;
     struct sigaction oldact;
 

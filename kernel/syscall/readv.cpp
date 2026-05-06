@@ -1,11 +1,17 @@
 #include <nyan/syscall.h>
 
+#include "utils.hpp"
+
 namespace nyan::syscall {
 
-ssize_t readv(int fd, const struct iovec* iov, size_t iovcnt) {
-    if (!iov) {
+ssize_t readv(int fd, const iovec* iov, size_t iovcnt) {
+    if (!iovcnt || iovcnt > 16) {
+        return -SYS_EINVAL;
+    }
+    if (!utils::validateReadAuto(iov, iovcnt)) {
         return -SYS_EFAULT;
     }
+
     size_t result = 0;
     for (size_t i = 0; i < iovcnt; i++) {
         if (!iov[i].iov_len) {

@@ -3,12 +3,16 @@
 
 #include "../task/scheduler.hpp"
 #include "../task/tcb.hpp"
+#include "utils.hpp"
 
 namespace nyan::syscall {
 
 int rt_sigaction(int sig, const struct sigaction* act, struct sigaction* oldact, size_t sigsetsize) {
     if (sigsetsize != sizeof(sigset_t)) {
         return -SYS_EINVAL;
+    }
+    if (!utils::validateReadAuto(act, 1, true) || !utils::validateWriteAuto(oldact, 1, true)) {
+        return -SYS_EFAULT;
     }
 
     if (sig < 1 || sig >= NSIG || sig == SIGKILL || sig == SIGSTOP) {
@@ -28,6 +32,12 @@ int rt_sigaction(int sig, const struct sigaction* act, struct sigaction* oldact,
 
         if (act->sa_flags & SA_RESTORER) {
             return -SYS_EINVAL;
+        }
+
+        if (act->sa_handler != SIG_DFL && act->sa_handler != SIG_IGN) {
+            if (!utils::validateExec(act->sa_handler)) {
+                return -SYS_EFAULT;
+            }
         }
     }
 
