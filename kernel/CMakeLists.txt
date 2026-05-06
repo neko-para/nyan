@@ -63,7 +63,7 @@ set_target_properties(kernel PROPERTIES LINK_DEPENDS
 
 target_include_directories(
   kernel SYSTEM BEFORE
-  PRIVATE ${CMAKE_CURRENT_LIST_DIR}/include
+  PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../include
           ${CMAKE_CURRENT_LIST_DIR}/../sysroot/usr/include/c++/v1)
 target_link_directories(kernel PRIVATE
                         ${CMAKE_CURRENT_LIST_DIR}/../sysroot/usr/lib/generic)
