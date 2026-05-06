@@ -1,5 +1,6 @@
 #include "tty.hpp"
 
+#include <nyan/errno.h>
 #include <signal.h>
 
 #include "../keyboard/forward.hpp"
@@ -125,7 +126,7 @@ bool Tty::inputEmpty() noexcept {
     return __input_buffer.empty();
 }
 
-std::optional<arch::InterruptGuard> Tty::syncWaitInput() noexcept {
+Result<arch::InterruptGuard> Tty::syncWaitInput() noexcept {
     while (true) {
         arch::InterruptGuard guard;
         if (!__input_buffer.empty()) {
@@ -136,7 +137,7 @@ std::optional<arch::InterruptGuard> Tty::syncWaitInput() noexcept {
             return guard;
         }
         if (__wait_list.wait(task::BlockReason::BR_WaitInput) == task::WakeReason::WR_Signal) {
-            return std::nullopt;
+            return SYS_EINTR;
         }
     }
 }

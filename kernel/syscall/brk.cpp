@@ -38,7 +38,7 @@ void* brk(const void* addr) {
         auto next = std::next(vma);
         if (next != vmSpace.__addrs.end()) {
             if (wantPage.nextPage() > next->__begin) {
-                return reinterpret_cast<void*>(-SYS_ENOMEM);
+                return SYS_ENOMEM;
             }
         }
         vma->__end = wantPage.nextPage();

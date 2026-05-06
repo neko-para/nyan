@@ -7,7 +7,7 @@ namespace nyan::syscall {
 
 sighandler_t signal(int sig, sighandler_t handler) {
     if (!utils::validateExec(handler)) {
-        return reinterpret_cast<sighandler_t>(-SYS_EFAULT);
+        return SYS_EFAULT;
     }
 
     struct sigaction act;
@@ -19,7 +19,7 @@ sighandler_t signal(int sig, sighandler_t handler) {
     } else if (sig <= 64) {
         sigset.__bits[1] = 1u << (sig - 32);
     } else {
-        return reinterpret_cast<sighandler_t>(-SYS_EINVAL);
+        return SYS_EINVAL;
     }
 
     memset(&act, 0, sizeof(act));

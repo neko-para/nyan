@@ -13,9 +13,9 @@ struct TtyObj : public fs::FileObj {
 
     TtyObj(uint32_t mode, Tty* tty) noexcept : FileObj(mode), __tty(tty) {}
 
-    virtual ssize_t read(void* buf, size_t size) noexcept override;
-    virtual ssize_t write(const void* buf, size_t size) noexcept override;
-    virtual int ioctl(uint32_t req, uint32_t param) noexcept override;
+    virtual Result<ssize_t> read(void* buf, size_t size) noexcept override;
+    virtual Result<ssize_t> write(const void* buf, size_t size) noexcept override;
+    virtual Result<int> ioctl(uint32_t req, uint32_t param) noexcept override;
 };
 
 }  // namespace nyan::console

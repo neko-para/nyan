@@ -57,7 +57,7 @@ int RamFSDirectoryVNode::readdir(dirent* buf, size_t size, off_t* offset) noexce
 
 int RamFSDirectoryVNode::mkdir(std::string_view name, uint32_t mode) noexcept {
     if (lookup(name)) {
-        return -SYS_EEXIST;
+        return SYS_EEXIST;
     }
     __entries.push_back({
         name,
@@ -68,7 +68,7 @@ int RamFSDirectoryVNode::mkdir(std::string_view name, uint32_t mode) noexcept {
 
 int RamFSDirectoryVNode::create(std::string_view name, uint32_t mode) noexcept {
     if (lookup(name)) {
-        return -SYS_EEXIST;
+        return SYS_EEXIST;
     }
     __entries.push_back({
         name,
@@ -79,10 +79,10 @@ int RamFSDirectoryVNode::create(std::string_view name, uint32_t mode) noexcept {
 
 int RamFSDirectoryVNode::link(std::string_view name, lib::Ref<VNode> target) noexcept {
     if (target->__super_block->__fs != __super_block->__fs) {
-        return -SYS_EXDEV;
+        return SYS_EXDEV;
     }
     if (lookup(name)) {
-        return -SYS_EEXIST;
+        return SYS_EEXIST;
     }
     __entries.push_back({
         name,
@@ -96,7 +96,7 @@ int RamFSDirectoryVNode::unlink(std::string_view name) noexcept {
         __entries.erase(it);
         return 0;
     } else {
-        return -SYS_ENOENT;
+        return SYS_ENOENT;
     }
 }
 
@@ -113,7 +113,7 @@ int RamFSDirectoryVNode::stat(struct stat* buf) noexcept {
 
 ssize_t RamFSFileVNode::read(void* buf, size_t size, off_t offset) noexcept {
     if (offset < 0) {
-        return -SYS_EINVAL;
+        return SYS_EINVAL;
     }
     if (offset >= __data.size()) {
         return 0;

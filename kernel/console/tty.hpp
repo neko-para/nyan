@@ -1,11 +1,10 @@
 #pragma once
 
-#include <optional>
 #include <string>
 
 #include "../arch/guard.hpp"
-#include "../interrupt/forward.hpp"
 #include "../keyboard/forward.hpp"
+#include "../lib/result.hpp"
 #include "../task/wait.hpp"
 #include "buffer.hpp"
 
@@ -27,7 +26,7 @@ struct Tty : public ScreenBuffer {
     void input(const keyboard::Message& msg) noexcept;
 
     bool inputEmpty() noexcept;
-    std::optional<arch::InterruptGuard> syncWaitInput() noexcept;
+    Result<arch::InterruptGuard> syncWaitInput() noexcept;
 };
 
 }  // namespace nyan::console

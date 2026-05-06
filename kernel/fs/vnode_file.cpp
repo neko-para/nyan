@@ -2,25 +2,25 @@
 
 namespace nyan::fs {
 
-ssize_t VNodeFileObj::read(void* buf, size_t size) noexcept {
-    auto ret = __vnode->read(buf, size, __offset);
-    if (ret > 0) {
-        __offset += ret;
+Result<ssize_t> VNodeFileObj::read(void* buf, size_t size) noexcept {
+    auto ret = Result<ssize_t>::extract(__vnode->read(buf, size, __offset));
+    if (ret) {
+        __offset += *ret;
     }
     return ret;
 }
 
-ssize_t VNodeFileObj::write(const void* buf, size_t size) noexcept {
+Result<ssize_t> VNodeFileObj::write(const void* buf, size_t size) noexcept {
     // TODO: O_APPEND
-    auto ret = __vnode->write(buf, size, __offset);
-    if (ret > 0) {
-        __offset += ret;
+    auto ret = Result<ssize_t>::extract(__vnode->write(buf, size, __offset));
+    if (ret) {
+        __offset += *ret;
     }
     return ret;
 }
 
-int VNodeFileObj::ioctl(uint32_t req, uint32_t param) noexcept {
-    return __vnode->ioctl(req, param);
+Result<int> VNodeFileObj::ioctl(uint32_t req, uint32_t param) noexcept {
+    return Result<int>::extract(__vnode->ioctl(req, param));
 }
 
 }  // namespace nyan::fs

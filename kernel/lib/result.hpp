@@ -1,0 +1,92 @@
+#pragma once
+
+#include <concepts>
+#include <type_traits>
+
+namespace nyan {
+
+struct Errno {
+    int __errno;
+
+    constexpr explicit Errno(int error) noexcept : __errno(error) {}
+
+    template <typename T>
+        requires(sizeof(T) == 4)
+    constexpr operator T() const noexcept {
+        if constexpr (std::is_pointer_v<T>) {
+            return reinterpret_cast<T>(-__errno);
+        } else if constexpr (std::integral<T>) {
+            return static_cast<T>(-__errno);
+        } else {
+            static_assert(false, "T is not pointer nor integral");
+        }
+    }
+};
+
+template <typename T>
+struct [[nodiscard]] Result {
+    union {
+        T __value;
+    };
+    int __errno;
+
+    Result() noexcept : __errno(0) {}
+    Result(Errno err) noexcept : __errno(err.__errno) {}
+    template <typename... Args>
+        requires std::is_constructible_v<T, Args...>
+    Result(Args&&... args) noexcept : __value(std::forward<Args>(args)...), __errno(0) {}
+    ~Result() noexcept {
+        if (__errno) {
+            __value.~T();
+        }
+    }
+
+    bool has_value() const noexcept { return __errno == 0; }
+    operator bool() const noexcept { return has_value(); }
+
+    const T& operator*() const& noexcept { return __value; }
+    T& operator*() & noexcept { return __value; }
+    T&& operator*() && noexcept { return __value; }
+
+    const T& value() const& noexcept { return __value; }
+    T& value() & noexcept { return __value; }
+    T&& value() && noexcept { return __value; }
+
+    Errno error() const noexcept { return Errno{__errno}; }
+
+    static Result<T> extract(T value) noexcept
+        requires(sizeof(T) == 4)
+    {
+        if constexpr (std::is_pointer_v<T>) {
+            auto val = reinterpret_cast<int32_t>(value);
+            if (val < 0) {
+                return Errno{-val};
+            } else {
+                return value;
+            }
+        } else if constexpr (std::integral<T>) {
+            auto val = static_cast<int32_t>(value);
+            if (val < 0) {
+                return Errno{-val};
+            } else {
+                return value;
+            }
+        } else {
+            static_assert(false, "T is not pointer nor integral");
+        }
+    }
+
+    T merge() const noexcept
+        requires(sizeof(T) == 4)
+    {
+        if (__errno) {
+            return Errno{__errno};
+        } else {
+            return __value;
+        }
+    }
+
+    bool operator==(Errno error) const noexcept { return __errno == error.__errno; }
+};
+
+}  // namespace nyan

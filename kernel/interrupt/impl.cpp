@@ -335,7 +335,7 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
         default:
             arch::kprint("syscall eax={}(missing) from {} {}\n", frame->eax, task::__scheduler->__current->pid,
                          task::__scheduler->__current->name);
-            frame->eax = -SYS_ENOSYS;
+            frame->eax = SYS_ENOSYS;
     }
 
     content.ret = frame->eax;

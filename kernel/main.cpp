@@ -68,8 +68,8 @@ extern "C" void kmain(boot::BootInfo* info) {
     task::__scheduler->yield();
 
     for (;;) {
-        auto ret = syscall::waitpid(-1, 0, 0);
-        if (ret == -SYS_ECHILD) {
+        auto ret = Result<pid_t>::extract(syscall::waitpid(-1, 0, 0));
+        if (ret == SYS_ECHILD) {
             task::__scheduler->block(task::BlockReason::BR_WaitTask);
         }
     }

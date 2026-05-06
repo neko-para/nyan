@@ -9,34 +9,34 @@ namespace nyan::syscall {
 
 int rt_sigaction(int sig, const struct sigaction* act, struct sigaction* oldact, size_t sigsetsize) {
     if (sigsetsize != sizeof(sigset_t)) {
-        return -SYS_EINVAL;
+        return SYS_EINVAL;
     }
     if (!utils::validateReadAuto(act, 1, true) || !utils::validateWriteAuto(oldact, 1, true)) {
-        return -SYS_EFAULT;
+        return SYS_EFAULT;
     }
 
     if (sig < 1 || sig >= NSIG || sig == SIGKILL || sig == SIGSTOP) {
-        return -SYS_EINVAL;
+        return SYS_EINVAL;
     }
 
     // 64暂时也放不下
     if (sig == 64) {
-        return -SYS_EINVAL;
+        return SYS_EINVAL;
     }
 
     // 如果要设置新动作, 先检查不支持的特性
     if (act) {
         if (act->sa_flags & SA_SIGINFO) {
-            return -SYS_EINVAL;
+            return SYS_EINVAL;
         }
 
         if (act->sa_flags & SA_RESTORER) {
-            return -SYS_EINVAL;
+            return SYS_EINVAL;
         }
 
         if (act->sa_handler != SIG_DFL && act->sa_handler != SIG_IGN) {
             if (!utils::validateExec(act->sa_handler)) {
-                return -SYS_EFAULT;
+                return SYS_EFAULT;
             }
         }
     }

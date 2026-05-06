@@ -10,19 +10,19 @@ namespace nyan::syscall {
 
 int pipe(int* fds) {
     if (!utils::validateWriteAuto(fds, 2)) {
-        return -SYS_EFAULT;
+        return SYS_EFAULT;
     }
 
     int readFd, writeFd;
 
     auto readObjPtr = task::__scheduler->__current->__file.findFileSlot(readFd);
     if (!readObjPtr) {
-        return -SYS_EMFILE;
+        return SYS_EMFILE;
     }
 
     auto writeObjPtr = task::__scheduler->__current->__file.findFileSlot(writeFd, readFd + 1);
     if (!writeObjPtr) {
-        return -SYS_EMFILE;
+        return SYS_EMFILE;
     }
 
     auto pipeState = lib::makeRef<fs::PipeState>();

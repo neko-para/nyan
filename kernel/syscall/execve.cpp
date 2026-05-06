@@ -14,22 +14,22 @@ int execve(const char* pathname, char* const argv[], char* const envp[], interru
     auto args = utils::validateStringArray(argv);
     auto envs = utils::validateStringArray(envp);
     if (!args || !envs) {
-        return -SYS_EFAULT;
+        return SYS_EFAULT;
     }
 
     auto [dentry, _1, _2] = fs::resolve(pathname);
     if (!dentry || !dentry->__node) {
-        return -SYS_ENOENT;
+        return SYS_ENOENT;
     }
 
     struct stat info;
     if (dentry->__node->stat(&info)) {
-        return -SYS_EACCES;
+        return SYS_EACCES;
     }
 
     // TODO check permission
     if (!(info.st_mode & S_IFREG)) {
-        return -SYS_EACCES;
+        return SYS_EACCES;
     }
 
     std::unique_ptr<uint8_t[]> file(new uint8_t[info.st_size]);

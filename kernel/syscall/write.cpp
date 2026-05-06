@@ -8,16 +8,16 @@ namespace nyan::syscall {
 
 ssize_t write(int fd, const void* buf, size_t size) {
     if (size > INT_MAX) {
-        return -SYS_EINVAL;
+        return SYS_EINVAL;
     }
     if (!utils::validateRead(buf, size)) {
-        return -SYS_EFAULT;
+        return SYS_EFAULT;
     }
     auto fileObj = task::__scheduler->__current->__file.getFile(fd);
     if (!fileObj) {
-        return -SYS_EBADF;
+        return SYS_EBADF;
     }
-    return fileObj->write(buf, size);
+    return fileObj->write(buf, size).merge();
 }
 
 }  // namespace nyan::syscall

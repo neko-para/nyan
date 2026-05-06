@@ -6,10 +6,10 @@ namespace nyan::syscall {
 
 ssize_t writev(int fd, const struct iovec* iov, size_t iovcnt) {
     if (!iovcnt || iovcnt > 16) {
-        return -SYS_EINVAL;
+        return SYS_EINVAL;
     }
     if (!utils::validateReadAuto(iov, iovcnt)) {
-        return -SYS_EFAULT;
+        return SYS_EFAULT;
     }
 
     size_t result = 0;

@@ -9,10 +9,10 @@ namespace nyan::syscall {
 
 int rt_sigprocmask(int how, const sigset_t* set, sigset_t* oldset, size_t sigsetsize) {
     if (sigsetsize != sizeof(sigset_t)) {
-        return -SYS_EINVAL;
+        return SYS_EINVAL;
     }
     if (!utils::validateReadAuto(set, 1, true) || !utils::validateWriteAuto(oldset, 1, true)) {
-        return -SYS_EFAULT;
+        return SYS_EFAULT;
     }
 
     if (oldset) {
@@ -36,7 +36,7 @@ int rt_sigprocmask(int how, const sigset_t* set, sigset_t* oldset, size_t sigset
                 static_cast<uint64_t>(set->__bits[0]) | (static_cast<uint64_t>(set->__bits[1]) << 32);
             return 0;
         default:
-            return -SYS_EINVAL;
+            return SYS_EINVAL;
     }
 }
 

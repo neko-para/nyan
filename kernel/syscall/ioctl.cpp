@@ -9,9 +9,9 @@ namespace nyan::syscall {
 int ioctl(int fd, uint32_t request, uint32_t param) {
     auto fileObj = task::__scheduler->__current->__file.getFile(fd);
     if (!fileObj) {
-        return -SYS_EBADF;
+        return SYS_EBADF;
     }
-    return fileObj->ioctl(request, param);
+    return fileObj->ioctl(request, param).merge();
 }
 
 }  // namespace nyan::syscall

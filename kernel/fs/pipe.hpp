@@ -1,7 +1,5 @@
 #pragma once
 
-#include <optional>
-
 #include "../arch/guard.hpp"
 #include "../task/wait.hpp"
 #include "file.hpp"
@@ -27,14 +25,14 @@ struct PipeState : public lib::Shared {
     bool empty() const noexcept { return __head == __tail; }
     bool full() const noexcept { return size() == __pipe_buffer_size; }
 
-    std::optional<arch::InterruptGuard> syncWaitForRead() noexcept;
-    std::optional<arch::InterruptGuard> syncWaitForWrite() noexcept;
+    Result<arch::InterruptGuard> syncWaitForRead() noexcept;
+    Result<arch::InterruptGuard> syncWaitForWrite() noexcept;
 
     void onReadClosed() noexcept;
     void onWriteClosed() noexcept;
 
-    ssize_t read(void* buf, size_t size) noexcept;
-    ssize_t write(const void* buf, size_t size) noexcept;
+    Result<ssize_t> read(void* buf, size_t size) noexcept;
+    Result<ssize_t> write(const void* buf, size_t size) noexcept;
 };
 
 struct PipeObj : public FileObj {
@@ -42,9 +40,9 @@ struct PipeObj : public FileObj {
 
     PipeObj(lib::Ref<PipeState> state, uint32_t mode) noexcept : FileObj(mode), __state(state) {}
 
-    virtual ssize_t read(void* buf, size_t size) noexcept override;
-    virtual ssize_t write(const void* buf, size_t size) noexcept override;
-    virtual int ioctl(uint32_t req, uint32_t param) noexcept override;
+    virtual Result<ssize_t> read(void* buf, size_t size) noexcept override;
+    virtual Result<ssize_t> write(const void* buf, size_t size) noexcept override;
+    virtual Result<int> ioctl(uint32_t req, uint32_t param) noexcept override;
 
     virtual void onFdClose() noexcept override;
 };

@@ -65,14 +65,14 @@ static void parseUserDescFlags(uint32_t udFlags, uint8_t& access, uint8_t& flags
 
 int set_thread_area(uint32_t user_desc[4]) {
     if (!utils::validateReadWriteAuto(user_desc, 4)) {
-        return -SYS_EFAULT;
+        return SYS_EFAULT;
     }
 
     auto& entry = user_desc[0];
     if (entry == static_cast<uint32_t>(-1)) {
         entry = 6;
     } else if (entry != 6) {
-        return -SYS_EINVAL;
+        return SYS_EINVAL;
     }
 
     uint8_t access, flags;

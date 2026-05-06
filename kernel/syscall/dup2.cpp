@@ -8,7 +8,7 @@ namespace nyan::syscall {
 int dup2(int fd, int newFd) {
     auto fileObj = task::__scheduler->__current->__file.getFile(fd);
     if (!fileObj) {
-        return -SYS_EBADF;
+        return SYS_EBADF;
     }
     if (fd == newFd) {
         return fd;
@@ -16,7 +16,7 @@ int dup2(int fd, int newFd) {
 
     auto fileObjSlotPtr = task::__scheduler->__current->__file.findFileSlot(newFd);
     if (!fileObjSlotPtr) {
-        return -SYS_EBADF;
+        return SYS_EBADF;
     }
     *fileObjSlotPtr = fileObj;
     return newFd;

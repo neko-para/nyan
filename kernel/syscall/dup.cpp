@@ -8,7 +8,7 @@ namespace nyan::syscall {
 int dup(int fd) {
     auto fileObj = task::__scheduler->__current->__file.getFile(fd);
     if (!fileObj) {
-        return -SYS_EBADF;
+        return SYS_EBADF;
     }
 
     int newFd;
@@ -17,7 +17,7 @@ int dup(int fd) {
         return newFd;
     }
 
-    return -SYS_EMFILE;
+    return SYS_EMFILE;
 }
 
 }  // namespace nyan::syscall
