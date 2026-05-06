@@ -58,7 +58,7 @@ DEntryResolveResult resolve(std::string_view path) {
         return {};
     }
 
-    auto current = lib::makeRef<DEntry>(nullptr, rootEntry()->__root_node, "");
+    auto current = rootEntry()->__mount_point;
     if (path[0] != '/') {
         current = task::__scheduler->__current->cwd;
         if (!current) {

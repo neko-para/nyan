@@ -36,7 +36,7 @@ int TtyDevice::ioctl(uint32_t req, uint32_t param) noexcept {
                 return -SYS_EINVAL;
             }
             // TODO: check same session
-            __tty->__foreground_pid = param;
+            __tty->__foreground_pid = pid;
             return 0;
         }
         case TIOCGWINSZ:

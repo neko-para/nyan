@@ -84,7 +84,7 @@ WakeReason Scheduler::sleep(uint64_t ms, uint64_t* rest) noexcept {
         if (currTs <= timer::msSinceBoot) {
             *rest = 0;
         } else {
-            *rest = timer::msSinceBoot - currTs;
+            *rest = currTs - timer::msSinceBoot;
         }
     }
     return reason;

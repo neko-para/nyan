@@ -112,6 +112,9 @@ int RamFSDirectoryVNode::stat(struct stat* buf) noexcept {
 }
 
 ssize_t RamFSFileVNode::read(void* buf, size_t size, off_t offset) noexcept {
+    if (offset < 0) {
+        return -SYS_EINVAL;
+    }
     if (offset >= __data.size()) {
         return 0;
     }
@@ -121,12 +124,11 @@ ssize_t RamFSFileVNode::read(void* buf, size_t size, off_t offset) noexcept {
 }
 
 ssize_t RamFSFileVNode::write(const void* buf, size_t size, off_t offset) noexcept {
-    if (offset >= __data.size()) {
-        __data.resize(offset, 0);
-        __data.reserve(offset + size);
+    auto newSize = size + offset;
+    if (__data.size() <= newSize) {
+        __data.resize(newSize, 0);
     }
-    __data.insert(__data.begin() + offset, reinterpret_cast<const uint8_t*>(buf),
-                  reinterpret_cast<const uint8_t*>(buf) + size);
+    memcpy(__data.data() + offset, buf, size);
     return size;
 }
 

@@ -14,7 +14,7 @@ int open(const char* pathname, int flags, mode_t mode) {
     auto [entry, parent, name] = fs::resolve(pathname);
     lib::Ref<fs::VNode> vnode;
     if (!entry) {
-        if (((flags & O_CREAT) || (flags & O_EXCL)) && parent && !name.empty()) {
+        if ((flags & O_CREAT) && parent && !name.empty()) {
             int ret = parent->effectiveVNode()->create(name, mode);
             if (ret) {
                 return ret;
@@ -24,7 +24,7 @@ int open(const char* pathname, int flags, mode_t mode) {
             return -SYS_ENOENT;
         }
     } else {
-        if (flags & O_EXCL) {
+        if ((flags & (O_CREAT | O_EXCL)) == (O_CREAT | O_EXCL)) {
             return -SYS_EEXIST;
         }
         vnode = entry->effectiveVNode();

@@ -51,7 +51,6 @@ struct DEntryCacheManager {
     // 想办法换成hash
     std::map<DEntryCache, lib::Ref<DEntry>> __cache;
     lib::List<DEntryLRUTag, true> __unused_list;
-    lib::Ref<DEntry> __root;
 
     lib::Ref<DEntry> lookup(lib::Ref<DEntry> parent, std::string_view name) noexcept;
 };

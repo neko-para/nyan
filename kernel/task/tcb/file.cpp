@@ -22,7 +22,7 @@ lib::Ref<fs::FdObj>* TaskFileInfo::getFileSlot(int& fd, int hint) noexcept {
 
 void TaskFileInfo::prepareForExec() noexcept {
     for (auto& fd : __fd_table) {
-        if (fd->__close_on_exec) {
+        if (fd && fd->__close_on_exec) {
             fd = {};
         }
     }

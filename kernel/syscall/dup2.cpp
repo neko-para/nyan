@@ -15,7 +15,7 @@ int dup2(int fd, int newFd) {
     }
 
     auto fileObjSlotPtr = task::__scheduler->__current->__file.getFile(newFd);
-    if (!fileObjPtr) {
+    if (!fileObjSlotPtr) {
         return -SYS_EBADF;
     }
     *fileObjSlotPtr = *fileObjPtr;
