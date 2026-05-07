@@ -16,6 +16,10 @@ std::vector<RamFSDirectoryVNode::Entry>::iterator RamFSDirectoryVNode::__find(st
     return std::find_if(__entries.begin(), __entries.end(), [&](const Entry& entry) { return entry.__name == name; });
 }
 
+bool RamFSDirectoryVNode::__exists(std::string_view name) noexcept {
+    return __find(name) != __entries.end();
+}
+
 Result<lib::Ref<VNode>> RamFSDirectoryVNode::lookup(std::string_view name) noexcept {
     if (auto it = __find(name); it != __entries.end()) {
         return it->__vnode;
@@ -56,7 +60,7 @@ Result<int> RamFSDirectoryVNode::readdir(dirent* buf, size_t size, off_t* offset
 }
 
 Result<> RamFSDirectoryVNode::mkdir(std::string_view name, uint32_t mode) noexcept {
-    if (lookup(name)) {
+    if (__exists(name)) {
         return SYS_EEXIST;
     }
     __entries.push_back({
@@ -67,7 +71,7 @@ Result<> RamFSDirectoryVNode::mkdir(std::string_view name, uint32_t mode) noexce
 }
 
 Result<> RamFSDirectoryVNode::create(std::string_view name, uint32_t mode) noexcept {
-    if (lookup(name)) {
+    if (__exists(name)) {
         return SYS_EEXIST;
     }
     __entries.push_back({
@@ -81,7 +85,7 @@ Result<> RamFSDirectoryVNode::link(std::string_view name, lib::Ref<VNode> target
     if (target->__super_block->__fs != __super_block->__fs) {
         return SYS_EXDEV;
     }
-    if (lookup(name)) {
+    if (__exists(name)) {
         return SYS_EEXIST;
     }
     __entries.push_back({

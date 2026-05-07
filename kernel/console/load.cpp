@@ -21,11 +21,10 @@ static int consoleDeamon(void* param) {
     auto id = std::find(std::begin(__all_ttys), std::end(__all_ttys), tty) - std::begin(__all_ttys);
     arch::kprint("tty {} deamon entered, pid {}\n", id, task::__scheduler->__current->pid);
 
-    auto ttyReadObj = lib::makeRef<TtyObj>(O_RDONLY, tty);
-    auto ttyWriteObj = lib::makeRef<TtyObj>(O_WRONLY, tty);
-    task::__scheduler->__current->__file.__fd_table[0] = lib::makeRef<fs::FdObj>(ttyReadObj);
-    task::__scheduler->__current->__file.__fd_table[1] = lib::makeRef<fs::FdObj>(ttyWriteObj);
-    task::__scheduler->__current->__file.__fd_table[2] = lib::makeRef<fs::FdObj>(ttyWriteObj);
+    auto path = lib::format("/dev/tty{}", id);
+    syscall::open(path.c_str(), O_RDONLY, 0);
+    syscall::open(path.c_str(), O_WRONLY, 0);
+    syscall::open(path.c_str(), O_WRONLY, 0);
 
     while (true) {
         const char* argv[] = {"sh", 0};

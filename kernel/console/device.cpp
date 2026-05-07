@@ -10,10 +10,8 @@
 namespace nyan::console {
 
 Result<ssize_t> TtyDevice::read(void* buf, size_t size) noexcept {
-    auto guard = __tty->syncWaitInput();
-    if (!guard) {
-        return guard;
-    }
+    auto guard = __try(__tty->syncWaitInput());
+
     auto result = std::min(__tty->__input_buffer.size(), size);
     std::copy_n(__tty->__input_buffer.data(), result, static_cast<uint8_t*>(buf));
     __tty->__input_buffer.erase(0, result);

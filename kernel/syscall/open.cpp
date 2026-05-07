@@ -24,11 +24,7 @@ int open(const char* pathname, int flags, mode_t mode) {
             if (ret) {
                 return ret;
             }
-            auto vn = parent->effectiveVNode()->lookup(name);
-            if (!vn) {
-                return vn.error();
-            }
-            vnode = *vn;
+            vnode = __try(parent->effectiveVNode()->lookup(name));
         } else {
             return SYS_ENOENT;
         }
@@ -53,10 +49,7 @@ int open(const char* pathname, int flags, mode_t mode) {
     }
 
     int fd;
-    auto fdObjPtr = task::__scheduler->__current->__file.findFileSlot(fd);
-    if (!fdObjPtr) {
-        return SYS_EMFILE;
-    }
+    auto fdObjPtr = __try(task::__scheduler->__current->__file.findFileSlot(fd));
 
     *fdObjPtr = lib::makeRef<fs::FdObj>(*file);
     if (flags & O_CLOEXEC) {

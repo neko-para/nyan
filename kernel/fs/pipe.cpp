@@ -56,10 +56,7 @@ Result<ssize_t> PipeState::read(void* buf, size_t sz) noexcept {
     auto ptr = static_cast<uint8_t*>(buf);
     auto cur = ptr;
 
-    auto guard = syncWaitForRead();
-    if (!guard) {
-        return guard;
-    }
+    auto guard = __try(syncWaitForRead());
 
     if (empty() && !__write_alive) {
         return 0;
@@ -85,10 +82,7 @@ Result<ssize_t> PipeState::write(const void* buf, size_t sz) noexcept {
     auto ptr = static_cast<const uint8_t*>(buf);
     auto cur = ptr;
 
-    auto guard = syncWaitForWrite();
-    if (!guard) {
-        return guard;
-    }
+    auto guard = __try(syncWaitForWrite());
 
     if (!__read_alive) {
         task::__scheduler->raise(SIGPIPE);

@@ -104,6 +104,9 @@ struct [[nodiscard]] Result<> {
     bool has_value() const noexcept { return __errno == 0; }
     operator bool() const noexcept { return has_value(); }
 
+    auto operator*() const noexcept { return nullptr; }
+    auto value() const noexcept { return nullptr; }
+
     Errno error() const noexcept { return Errno{__errno}; }
 
     static Result<> extract(int value) noexcept {
@@ -120,3 +123,12 @@ struct [[nodiscard]] Result<> {
 };
 
 }  // namespace nyan
+
+#define __try(expr)                  \
+    ({                               \
+        auto __result = (expr);      \
+        if (!__result) {             \
+            return __result.error(); \
+        }                            \
+        std::move(*__result);        \
+    })

@@ -27,6 +27,9 @@ bool validateExec(void* ptr) noexcept {
 }
 
 std::optional<std::string> validateString(const char* str) noexcept {
+    if (current()->vmSpace.empty()) {
+        return str;
+    }
     auto result = current()->vmSpace.validateReadonlyRange<const char>(paging::VirtualAddress{str});
     if (!result) {
         return std::nullopt;

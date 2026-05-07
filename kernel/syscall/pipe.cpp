@@ -15,15 +15,8 @@ int pipe(int* fds) {
 
     int readFd, writeFd;
 
-    auto readObjPtr = task::__scheduler->__current->__file.findFileSlot(readFd);
-    if (!readObjPtr) {
-        return SYS_EMFILE;
-    }
-
-    auto writeObjPtr = task::__scheduler->__current->__file.findFileSlot(writeFd, readFd + 1);
-    if (!writeObjPtr) {
-        return SYS_EMFILE;
-    }
+    auto readObjPtr = __try(task::__scheduler->__current->__file.findFileSlot(readFd));
+    auto writeObjPtr = __try(task::__scheduler->__current->__file.findFileSlot(writeFd, readFd + 1));
 
     auto pipeState = lib::makeRef<fs::PipeState>();
     auto pipeReadObj = lib::makeRef<fs::PipeObj>(pipeState, O_RDONLY);

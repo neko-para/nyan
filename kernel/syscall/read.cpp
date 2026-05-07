@@ -13,11 +13,8 @@ ssize_t read(int fd, void* buf, size_t size) {
     if (!utils::validateWrite(buf, size)) {
         return SYS_EFAULT;
     }
-    auto fileObj = task::__scheduler->__current->__file.getFile(fd);
-    if (!fileObj) {
-        return SYS_EBADF;
-    }
-    return fileObj->read(buf, size).merge();
+
+    return __try(task::__scheduler->__current->__file.getFile(fd))->read(buf, size).merge();
 }
 
 }  // namespace nyan::syscall

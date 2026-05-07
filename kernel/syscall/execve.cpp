@@ -23,9 +23,8 @@ int execve(const char* pathname, char* const argv[], char* const envp[], interru
     }
 
     struct stat info;
-    if (dentry->__node->stat(&info)) {
-        return SYS_EACCES;
-    }
+    __try
+        (dentry->__node->stat(&info));
 
     // TODO check permission
     if (!(info.st_mode & S_IFREG)) {
@@ -33,10 +32,8 @@ int execve(const char* pathname, char* const argv[], char* const envp[], interru
     }
 
     std::unique_ptr<uint8_t[]> file(new uint8_t[info.st_size]);
-    auto ret = dentry->__node->read(file.get(), info.st_size, 0);
-    if (!ret) {
-        return ret.error();
-    }
+    __try
+        (dentry->__node->read(file.get(), info.st_size, 0));
 
     arch::kprint("exec {}\n", pathname);
     task::__scheduler->execTask(std::span{file.get(), static_cast<size_t>(info.st_size)}, std::move(*args),

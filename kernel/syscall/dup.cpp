@@ -6,18 +6,13 @@
 namespace nyan::syscall {
 
 int dup(int fd) {
-    auto fileObj = task::__scheduler->__current->__file.getFile(fd);
-    if (!fileObj) {
-        return SYS_EBADF;
-    }
+    auto fileObj = __try(task::__scheduler->__current->__file.getFile(fd));
 
     int newFd;
-    if (auto fileObjSlotPtr = task::__scheduler->__current->__file.findFileSlot(newFd)) {
-        *fileObjSlotPtr = fileObj;
-        return newFd;
-    }
+    auto fileObjSlotPtr = __try(task::__scheduler->__current->__file.findFileSlot(newFd));
 
-    return SYS_EMFILE;
+    *fileObjSlotPtr = fileObj;
+    return newFd;
 }
 
 }  // namespace nyan::syscall

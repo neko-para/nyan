@@ -36,6 +36,7 @@ struct RamFSDirectoryVNode : public RamFSVNode {
         : RamFSVNode(VNT_Directory, super_block, mode) {}
 
     std::vector<Entry>::iterator __find(std::string_view name) noexcept;
+    bool __exists(std::string_view name) noexcept;
 
     virtual Result<lib::Ref<VNode>> lookup(std::string_view name) noexcept override;
     virtual Result<int> readdir(dirent* buf, size_t size, off_t* offset) noexcept override;

@@ -38,11 +38,8 @@ Result<lib::Ref<DEntry>> DEntryCacheManager::lookup(lib::Ref<DEntry> parent, std
         return it->second;
     } else {
         auto target_vnode = parent->effectiveVNode();
-        auto next = target_vnode->lookup(name);
-        if (!next) {
-            return next.error();
-        }
-        auto dentry = lib::makeRef<DEntry>(parent, *next, std::string{name});
+        auto next = __try(target_vnode->lookup(name));
+        auto dentry = lib::makeRef<DEntry>(parent, next, std::string{name});
         dentry->__id = allocDEntryId();
         __cache.emplace(std::move(cache_key), dentry);
         return dentry;

@@ -1,23 +1,28 @@
 #include "file.hpp"
 
+#include <nyan/errno.h>
+
 namespace nyan::task {
 
-lib::Ref<fs::FdObj> TaskFileInfo::getFile(int fd) noexcept {
-    if (auto slot = getFileSlot(fd)) {
-        return *slot;
-    } else {
-        return {};
+Result<lib::Ref<fs::FdObj>> TaskFileInfo::getFile(int fd) noexcept {
+    auto slot = getFileSlot(fd);
+    if (!slot) {
+        return slot.error();
     }
+    if (!*slot) {
+        return SYS_EBADF;
+    }
+    return **slot;
 }
 
-lib::Ref<fs::FdObj>* TaskFileInfo::getFileSlot(int fd) noexcept {
+Result<lib::Ref<fs::FdObj>*> TaskFileInfo::getFileSlot(int fd) noexcept {
     if (fd < 0 || static_cast<size_t>(fd) >= __max_fd) {
-        return nullptr;
+        return SYS_EBADF;
     }
     return &__fd_table[fd];
 }
 
-lib::Ref<fs::FdObj>* TaskFileInfo::findFileSlot(int& fd, int hint) noexcept {
+Result<lib::Ref<fs::FdObj>*> TaskFileInfo::findFileSlot(int& fd, int hint) noexcept {
     for (size_t i = hint; i < __max_fd; i++) {
         if (__fd_table[i]) {
             continue;
@@ -25,7 +30,7 @@ lib::Ref<fs::FdObj>* TaskFileInfo::findFileSlot(int& fd, int hint) noexcept {
         fd = i;
         return &__fd_table[i];
     }
-    return nullptr;
+    return SYS_EMFILE;
 }
 
 void TaskFileInfo::prepareForExec() noexcept {
