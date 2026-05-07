@@ -2,11 +2,11 @@
 #include <nyan/syscall.h>
 #include <sys/wait.h>
 
+#include "../fs/mod.hpp"
 #include "../task/scheduler.hpp"
 #include "../task/task.hpp"
 #include "../task/tcb.hpp"
 #include "device.hpp"
-#include "file.hpp"
 #include "mod.hpp"
 #include "tty.hpp"
 
@@ -22,9 +22,12 @@ static int consoleDeamon(void* param) {
     arch::kprint("tty {} deamon entered, pid {}\n", id, task::__scheduler->__current->pid);
 
     auto path = lib::format("/dev/tty{}", id);
-    syscall::open(path.c_str(), O_RDONLY, 0);
-    syscall::open(path.c_str(), O_WRONLY, 0);
-    syscall::open(path.c_str(), O_WRONLY, 0);
+    auto readFile = *fs::open(path, O_RDONLY);
+    auto writeFile = *fs::open(path, O_WRONLY);
+
+    task::__scheduler->__current->__file.__fd_table[0] = lib::makeRef<fs::FdObj>(readFile);
+    task::__scheduler->__current->__file.__fd_table[1] = lib::makeRef<fs::FdObj>(writeFile);
+    task::__scheduler->__current->__file.__fd_table[2] = lib::makeRef<fs::FdObj>(writeFile);
 
     while (true) {
         const char* argv[] = {"sh", 0};

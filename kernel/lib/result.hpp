@@ -40,7 +40,7 @@ struct [[nodiscard]] Result<T> {
         requires std::is_constructible_v<T, Args...>
     Result(Args&&... args) noexcept : __value(std::forward<Args>(args)...), __errno(0) {}
     ~Result() noexcept {
-        if (__errno) {
+        if (!__errno) {
             __value.~T();
         }
     }
