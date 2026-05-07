@@ -5,6 +5,7 @@
 #include <string>
 
 #include "../lib/list.hpp"
+#include "../lib/result.hpp"
 #include "../lib/shared.hpp"
 #include "forward.hpp"
 #include "mount.hpp"
@@ -52,7 +53,7 @@ struct DEntryCacheManager {
     std::map<DEntryCache, lib::Ref<DEntry>> __cache;
     lib::List<DEntryLRUTag, true> __unused_list;
 
-    lib::Ref<DEntry> lookup(lib::Ref<DEntry> parent, std::string_view name) noexcept;
+    Result<lib::Ref<DEntry>> lookup(lib::Ref<DEntry> parent, std::string_view name) noexcept;
 };
 
 struct DEntryResolveResult {

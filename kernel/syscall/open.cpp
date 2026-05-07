@@ -24,7 +24,11 @@ int open(const char* pathname, int flags, mode_t mode) {
             if (ret) {
                 return ret;
             }
-            vnode = parent->effectiveVNode()->lookup(name);
+            auto vn = parent->effectiveVNode()->lookup(name);
+            if (!vn) {
+                return vn.error();
+            }
+            vnode = *vn;
         } else {
             return SYS_ENOENT;
         }
@@ -44,6 +48,9 @@ int open(const char* pathname, int flags, mode_t mode) {
         }
     }
     auto file = vnode->open(vnode, flags & O_ACCMODE);
+    if (!file) {
+        return file.error();
+    }
 
     int fd;
     auto fdObjPtr = task::__scheduler->__current->__file.findFileSlot(fd);
@@ -51,7 +58,7 @@ int open(const char* pathname, int flags, mode_t mode) {
         return SYS_EMFILE;
     }
 
-    *fdObjPtr = lib::makeRef<fs::FdObj>(file);
+    *fdObjPtr = lib::makeRef<fs::FdObj>(*file);
     if (flags & O_CLOEXEC) {
         (*fdObjPtr)->__close_on_exec = true;
     }

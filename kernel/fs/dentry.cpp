@@ -32,7 +32,7 @@ void DEntry::onRefDec() noexcept {
     }
 }
 
-lib::Ref<DEntry> DEntryCacheManager::lookup(lib::Ref<DEntry> parent, std::string_view name) noexcept {
+Result<lib::Ref<DEntry>> DEntryCacheManager::lookup(lib::Ref<DEntry> parent, std::string_view name) noexcept {
     DEntryCache cache_key = {parent->__id, std::string{name}};
     if (auto it = __cache.find(cache_key); it != __cache.end()) {
         return it->second;
@@ -40,9 +40,9 @@ lib::Ref<DEntry> DEntryCacheManager::lookup(lib::Ref<DEntry> parent, std::string
         auto target_vnode = parent->effectiveVNode();
         auto next = target_vnode->lookup(name);
         if (!next) {
-            return {};
+            return next.error();
         }
-        auto dentry = lib::makeRef<DEntry>(parent, next, std::string{name});
+        auto dentry = lib::makeRef<DEntry>(parent, *next, std::string{name});
         dentry->__id = allocDEntryId();
         __cache.emplace(std::move(cache_key), dentry);
         return dentry;
@@ -95,7 +95,7 @@ DEntryResolveResult resolve(std::string_view path) {
                     return {};
                 }
             }
-            current = next;
+            current = *next;
         }
     }
     return {

@@ -4,7 +4,7 @@
 
 namespace nyan::fs {
 
-lib::Ref<VNodeFileObj> VNode::open(lib::Ref<VNode> self, uint32_t mode) noexcept {
+Result<lib::Ref<VNodeFileObj>> VNode::open(lib::Ref<VNode> self, uint32_t mode) noexcept {
     return lib::makeRef<VNodeFileObj>(self, mode);
 }
 

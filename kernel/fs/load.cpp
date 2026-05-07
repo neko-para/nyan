@@ -16,25 +16,26 @@ RamFS* ramFS;
 static void loadInitFs() {
     auto entry = rootEntry();
 
-    entry->__root_node->mkdir("bin", 0755);
-    auto bin = entry->__root_node->lookup("bin");
+    std::ignore = entry->__root_node->mkdir("bin", 0755);
+    auto bin = *entry->__root_node->lookup("bin");
     for (size_t i = 0; i < data::programCount; i++) {
         const auto& prog = data::programs[i];
-        bin->create(prog.name, 0755);
-        auto file = bin->lookup(prog.name);
-        file->write(prog.data, prog.size, 0);
+        std::ignore = bin->create(prog.name, 0755);
+        auto file = *bin->lookup(prog.name);
+        std::ignore = file->write(prog.data, prog.size, 0);
     }
 
-    entry->__root_node->mkdir("dev", 0755);
-    auto dev = entry->__root_node->lookup("dev");
+    std::ignore = entry->__root_node->mkdir("dev", 0755);
+    auto dev = *entry->__root_node->lookup("dev");
     for (size_t i = 0; i < console::__tty_count; i++) {
         auto name = lib::format("tty{}", i);
-        dev->link(name, lib::makeRef<RamFSCharDevVNode>(console::__all_tty_devices[i], dev->__super_block, 0755));
+        std::ignore =
+            dev->link(name, lib::makeRef<RamFSCharDevVNode>(console::__all_tty_devices[i], dev->__super_block, 0755));
     }
 
-    entry->__root_node->create("hello", 0755);
-    auto hello = entry->__root_node->lookup("hello");
-    hello->write("Hello world!", 12, 0);
+    std::ignore = entry->__root_node->create("hello", 0755);
+    auto hello = *entry->__root_node->lookup("hello");
+    std::ignore = hello->write("Hello world!", 12, 0);
 }
 
 void load() {

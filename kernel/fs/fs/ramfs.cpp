@@ -16,15 +16,15 @@ std::vector<RamFSDirectoryVNode::Entry>::iterator RamFSDirectoryVNode::__find(st
     return std::find_if(__entries.begin(), __entries.end(), [&](const Entry& entry) { return entry.__name == name; });
 }
 
-lib::Ref<VNode> RamFSDirectoryVNode::lookup(std::string_view name) noexcept {
+Result<lib::Ref<VNode>> RamFSDirectoryVNode::lookup(std::string_view name) noexcept {
     if (auto it = __find(name); it != __entries.end()) {
         return it->__vnode;
     } else {
-        return {};
+        return SYS_ENOENT;
     }
 }
 
-int RamFSDirectoryVNode::readdir(dirent* buf, size_t size, off_t* offset) noexcept {
+Result<int> RamFSDirectoryVNode::readdir(dirent* buf, size_t size, off_t* offset) noexcept {
     auto* ptr = reinterpret_cast<uint8_t*>(buf);
     size_t written = 0;
     off_t idx = *offset;
@@ -55,7 +55,7 @@ int RamFSDirectoryVNode::readdir(dirent* buf, size_t size, off_t* offset) noexce
     return written;
 }
 
-int RamFSDirectoryVNode::mkdir(std::string_view name, uint32_t mode) noexcept {
+Result<> RamFSDirectoryVNode::mkdir(std::string_view name, uint32_t mode) noexcept {
     if (lookup(name)) {
         return SYS_EEXIST;
     }
@@ -63,10 +63,10 @@ int RamFSDirectoryVNode::mkdir(std::string_view name, uint32_t mode) noexcept {
         name,
         lib::makeRef<RamFSDirectoryVNode>(__super_block, mode),
     });
-    return 0;
+    return {};
 }
 
-int RamFSDirectoryVNode::create(std::string_view name, uint32_t mode) noexcept {
+Result<> RamFSDirectoryVNode::create(std::string_view name, uint32_t mode) noexcept {
     if (lookup(name)) {
         return SYS_EEXIST;
     }
@@ -74,10 +74,10 @@ int RamFSDirectoryVNode::create(std::string_view name, uint32_t mode) noexcept {
         name,
         lib::makeRef<RamFSFileVNode>(__super_block, mode),
     });
-    return 0;
+    return {};
 }
 
-int RamFSDirectoryVNode::link(std::string_view name, lib::Ref<VNode> target) noexcept {
+Result<> RamFSDirectoryVNode::link(std::string_view name, lib::Ref<VNode> target) noexcept {
     if (target->__super_block->__fs != __super_block->__fs) {
         return SYS_EXDEV;
     }
@@ -88,19 +88,19 @@ int RamFSDirectoryVNode::link(std::string_view name, lib::Ref<VNode> target) noe
         name,
         target,
     });
-    return 0;
+    return {};
 }
 
-int RamFSDirectoryVNode::unlink(std::string_view name) noexcept {
+Result<> RamFSDirectoryVNode::unlink(std::string_view name) noexcept {
     if (auto it = __find(name); it != __entries.end()) {
         __entries.erase(it);
-        return 0;
+        return {};
     } else {
         return SYS_ENOENT;
     }
 }
 
-int RamFSDirectoryVNode::stat(struct stat* buf) noexcept {
+Result<> RamFSDirectoryVNode::stat(struct stat* buf) noexcept {
     memset(buf, 0, sizeof(struct stat));
     buf->st_dev = 1;
     buf->st_mode = S_IFDIR | __mode;
@@ -108,10 +108,10 @@ int RamFSDirectoryVNode::stat(struct stat* buf) noexcept {
     buf->st_size = 0;
     buf->st_blksize = 4096;
     buf->st_ino = __inode;
-    return 0;
+    return {};
 }
 
-ssize_t RamFSFileVNode::read(void* buf, size_t size, off_t offset) noexcept {
+Result<ssize_t> RamFSFileVNode::read(void* buf, size_t size, off_t offset) noexcept {
     if (offset < 0) {
         return SYS_EINVAL;
     }
@@ -123,7 +123,7 @@ ssize_t RamFSFileVNode::read(void* buf, size_t size, off_t offset) noexcept {
     return eff_size;
 }
 
-ssize_t RamFSFileVNode::write(const void* buf, size_t size, off_t offset) noexcept {
+Result<ssize_t> RamFSFileVNode::write(const void* buf, size_t size, off_t offset) noexcept {
     auto newSize = size + offset;
     if (__data.size() <= newSize) {
         __data.resize(newSize, 0);
@@ -132,17 +132,17 @@ ssize_t RamFSFileVNode::write(const void* buf, size_t size, off_t offset) noexce
     return size;
 }
 
-int RamFSFileVNode::truncate(off_t length) noexcept {
+Result<> RamFSFileVNode::truncate(off_t length) noexcept {
     if (length < 0) {
         length = 0;
     }
     if (__data.size() > length) {
         __data.resize(length);
     }
-    return 0;
+    return {};
 }
 
-int RamFSFileVNode::stat(struct stat* buf) noexcept {
+Result<> RamFSFileVNode::stat(struct stat* buf) noexcept {
     memset(buf, 0, sizeof(struct stat));
     buf->st_dev = 1;
     buf->st_mode = S_IFREG | __mode;
@@ -150,18 +150,18 @@ int RamFSFileVNode::stat(struct stat* buf) noexcept {
     buf->st_size = __data.size();
     buf->st_blksize = 4096;
     buf->st_ino = __inode;
-    return 0;
+    return {};
 }
 
-ssize_t RamFSCharDevVNode::read(void* buf, size_t size, off_t) noexcept {
+Result<ssize_t> RamFSCharDevVNode::read(void* buf, size_t size, off_t) noexcept {
     return __device->read(buf, size);
 }
 
-ssize_t RamFSCharDevVNode::write(const void* buf, size_t size, off_t) noexcept {
+Result<ssize_t> RamFSCharDevVNode::write(const void* buf, size_t size, off_t) noexcept {
     return __device->write(buf, size);
 }
 
-int RamFSCharDevVNode::stat(struct stat* buf) noexcept {
+Result<> RamFSCharDevVNode::stat(struct stat* buf) noexcept {
     memset(buf, 0, sizeof(struct stat));
     buf->st_dev = 1;
     buf->st_mode = S_IFCHR | __mode;
@@ -169,10 +169,10 @@ int RamFSCharDevVNode::stat(struct stat* buf) noexcept {
     buf->st_size = 0;
     buf->st_blksize = 4096;
     buf->st_ino = __inode;
-    return 0;
+    return {};
 }
 
-int RamFSCharDevVNode::ioctl(uint32_t req, uint32_t param) noexcept {
+Result<> RamFSCharDevVNode::ioctl(uint32_t req, uint32_t param) noexcept {
     return __device->ioctl(req, param);
 }
 

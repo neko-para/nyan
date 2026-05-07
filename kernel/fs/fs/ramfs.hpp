@@ -37,14 +37,14 @@ struct RamFSDirectoryVNode : public RamFSVNode {
 
     std::vector<Entry>::iterator __find(std::string_view name) noexcept;
 
-    virtual lib::Ref<VNode> lookup(std::string_view name) noexcept override;
-    virtual int readdir(dirent* buf, size_t size, off_t* offset) noexcept override;
-    virtual int mkdir(std::string_view name, uint32_t mode) noexcept override;
-    virtual int create(std::string_view name, uint32_t mode) noexcept override;
-    virtual int link(std::string_view name, lib::Ref<VNode> target) noexcept override;
-    virtual int unlink(std::string_view name) noexcept override;
+    virtual Result<lib::Ref<VNode>> lookup(std::string_view name) noexcept override;
+    virtual Result<int> readdir(dirent* buf, size_t size, off_t* offset) noexcept override;
+    virtual Result<> mkdir(std::string_view name, uint32_t mode) noexcept override;
+    virtual Result<> create(std::string_view name, uint32_t mode) noexcept override;
+    virtual Result<> link(std::string_view name, lib::Ref<VNode> target) noexcept override;
+    virtual Result<> unlink(std::string_view name) noexcept override;
 
-    virtual int stat(struct stat* buf) noexcept override;
+    virtual Result<> stat(struct stat* buf) noexcept override;
 };
 
 struct RamFSFileVNode : public RamFSVNode {
@@ -52,11 +52,11 @@ struct RamFSFileVNode : public RamFSVNode {
 
     RamFSFileVNode(lib::Ref<SuperBlock> super_block, uint32_t mode) : RamFSVNode(VNT_Regular, super_block, mode) {}
 
-    virtual ssize_t read(void* buf, size_t size, off_t offset) noexcept override;
-    virtual ssize_t write(const void* buf, size_t size, off_t offset) noexcept override;
-    virtual int truncate(off_t length) noexcept override;
+    virtual Result<ssize_t> read(void* buf, size_t size, off_t offset) noexcept override;
+    virtual Result<ssize_t> write(const void* buf, size_t size, off_t offset) noexcept override;
+    virtual Result<> truncate(off_t length) noexcept override;
 
-    virtual int stat(struct stat* buf) noexcept override;
+    virtual Result<> stat(struct stat* buf) noexcept override;
 };
 
 struct RamFSCharDevVNode : public RamFSVNode {
@@ -65,11 +65,11 @@ struct RamFSCharDevVNode : public RamFSVNode {
     RamFSCharDevVNode(CharDevice* device, lib::Ref<SuperBlock> super_block, uint32_t mode)
         : RamFSVNode(VNT_CharDevice, super_block, mode), __device(device) {}
 
-    virtual ssize_t read(void* buf, size_t size, off_t offset) noexcept override;
-    virtual ssize_t write(const void* buf, size_t size, off_t offset) noexcept override;
+    virtual Result<ssize_t> read(void* buf, size_t size, off_t offset) noexcept override;
+    virtual Result<ssize_t> write(const void* buf, size_t size, off_t offset) noexcept override;
 
-    virtual int stat(struct stat* buf) noexcept override;
-    virtual int ioctl(uint32_t req, uint32_t param) noexcept override;
+    virtual Result<> stat(struct stat* buf) noexcept override;
+    virtual Result<> ioctl(uint32_t req, uint32_t param) noexcept override;
 };
 
 struct RamFS : public FileSystem {

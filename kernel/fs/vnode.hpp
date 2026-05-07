@@ -30,22 +30,22 @@ struct VNode : public lib::Shared {
     uint64_t __inode;
 
     // Regular
-    virtual ssize_t read(void* buf, size_t size, off_t offset) noexcept { return SYS_EISDIR; }
-    virtual ssize_t write(const void* buf, size_t size, off_t offset) noexcept { return SYS_EISDIR; }
-    virtual int truncate(off_t length) noexcept { return SYS_EISDIR; }
+    virtual Result<ssize_t> read(void* buf, size_t size, off_t offset) noexcept { return SYS_EISDIR; }
+    virtual Result<ssize_t> write(const void* buf, size_t size, off_t offset) noexcept { return SYS_EISDIR; }
+    virtual Result<> truncate(off_t length) noexcept { return SYS_EISDIR; }
 
     // Directory
-    virtual lib::Ref<VNode> lookup(std::string_view name) noexcept { return {}; }
-    virtual int readdir(dirent* buf, size_t size, off_t* offset) noexcept { return SYS_ENOTDIR; }
-    virtual int mkdir(std::string_view name, uint32_t mode) noexcept { return SYS_ENOTDIR; }
-    virtual int create(std::string_view name, uint32_t mode) noexcept { return SYS_ENOTDIR; }
-    virtual int link(std::string_view name, lib::Ref<VNode> target) noexcept { return SYS_ENOTDIR; }
-    virtual int unlink(std::string_view name) noexcept { return SYS_ENOTDIR; }
+    virtual Result<lib::Ref<VNode>> lookup(std::string_view name) noexcept { return {}; }
+    virtual Result<int> readdir(dirent* buf, size_t size, off_t* offset) noexcept { return SYS_ENOTDIR; }
+    virtual Result<> mkdir(std::string_view name, uint32_t mode) noexcept { return SYS_ENOTDIR; }
+    virtual Result<> create(std::string_view name, uint32_t mode) noexcept { return SYS_ENOTDIR; }
+    virtual Result<> link(std::string_view name, lib::Ref<VNode> target) noexcept { return SYS_ENOTDIR; }
+    virtual Result<> unlink(std::string_view name) noexcept { return SYS_ENOTDIR; }
 
     // General
-    virtual int stat(struct stat* buf) noexcept = 0;
-    virtual int ioctl(uint32_t req, uint32_t param) noexcept { return SYS_ENOTTY; }
-    virtual lib::Ref<VNodeFileObj> open(lib::Ref<VNode> self, uint32_t mode) noexcept;
+    virtual Result<> stat(struct stat* buf) noexcept = 0;
+    virtual Result<> ioctl(uint32_t req, uint32_t param) noexcept { return SYS_ENOTTY; }
+    virtual Result<lib::Ref<VNodeFileObj>> open(lib::Ref<VNode> self, uint32_t mode) noexcept;
 };
 
 #pragma clang diagnostic pop

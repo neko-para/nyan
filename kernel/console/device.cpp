@@ -9,7 +9,7 @@
 
 namespace nyan::console {
 
-ssize_t TtyDevice::read(void* buf, size_t size) noexcept {
+Result<ssize_t> TtyDevice::read(void* buf, size_t size) noexcept {
     auto guard = __tty->syncWaitInput();
     if (!guard) {
         return guard;
@@ -20,12 +20,12 @@ ssize_t TtyDevice::read(void* buf, size_t size) noexcept {
     return result;
 }
 
-ssize_t TtyDevice::write(const void* buf, size_t size) noexcept {
+Result<ssize_t> TtyDevice::write(const void* buf, size_t size) noexcept {
     __tty->puts(static_cast<const char*>(buf), size);
     return size;
 }
 
-int TtyDevice::ioctl(uint32_t req, uint32_t param) noexcept {
+Result<> TtyDevice::ioctl(uint32_t req, uint32_t param) noexcept {
     switch (req) {
         case TIOCSPGRP: {
             if (!param) {
@@ -37,7 +37,7 @@ int TtyDevice::ioctl(uint32_t req, uint32_t param) noexcept {
             }
             // TODO: check same session
             __tty->__foreground_pid = pid;
-            return 0;
+            return {};
         }
         case TIOCGWINSZ:
             winsize* ptr = reinterpret_cast<winsize*>(param);
@@ -48,7 +48,7 @@ int TtyDevice::ioctl(uint32_t req, uint32_t param) noexcept {
             ptr->ws_col = __width;
             ptr->ws_xpixel = 0;
             ptr->ws_ypixel = 0;
-            return 0;
+            return {};
     }
     return SYS_ENOTTY;
 }

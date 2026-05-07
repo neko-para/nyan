@@ -34,8 +34,8 @@ int execve(const char* pathname, char* const argv[], char* const envp[], interru
 
     std::unique_ptr<uint8_t[]> file(new uint8_t[info.st_size]);
     auto ret = dentry->__node->read(file.get(), info.st_size, 0);
-    if (ret < 0) {
-        return ret;
+    if (!ret) {
+        return ret.error();
     }
 
     arch::kprint("exec {}\n", pathname);
