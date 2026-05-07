@@ -3,8 +3,7 @@
 
 #include "../fs/fd.hpp"
 #include "../fs/mod.hpp"
-#include "../task/scheduler.hpp"
-#include "../task/tcb.hpp"
+#include "../task/mod.hpp"
 #include "utils.hpp"
 
 namespace nyan::syscall {
@@ -17,12 +16,9 @@ int open(const char* pathname, int flags, mode_t mode) {
 
     auto file = __try(fs::open(*path, flags, mode));
 
-    int fd;
-    auto fdObjPtr = __try(task::__scheduler->__current->__file.findFileSlot(fd));
-
-    *fdObjPtr = lib::makeRef<fs::FdObj>(file);
+    auto [fd, fdObj] = __try(task::installFile(file));
     if (flags & O_CLOEXEC) {
-        (*fdObjPtr)->__close_on_exec = true;
+        fdObj->__close_on_exec = true;
     }
     return fd;
 }

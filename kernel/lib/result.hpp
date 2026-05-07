@@ -46,7 +46,7 @@ struct [[nodiscard]] Result<T> {
     }
 
     bool has_value() const noexcept { return __errno == 0; }
-    operator bool() const noexcept { return has_value(); }
+    explicit operator bool() const noexcept { return has_value(); }
 
     const T& operator*() const& noexcept { return __value; }
     T& operator*() & noexcept { return __value; }
@@ -121,6 +121,20 @@ struct [[nodiscard]] Result<> {
 
     bool operator==(Errno error) const noexcept { return __errno == error.__errno; }
 };
+
+struct __Ignore {};
+inline __Ignore __ignore;
+
+struct __Unwrap {};
+inline __Unwrap __unwrap;
+
+template <typename T>
+inline T operator|(Result<T>&& result, __Unwrap) noexcept {
+    return std::move(*result);
+}
+
+template <typename... T>
+inline void operator|(Result<T...>&&, __Ignore) noexcept {}
 
 }  // namespace nyan
 

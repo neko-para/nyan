@@ -1,16 +1,12 @@
 #include <nyan/syscall.h>
 
-#include "../task/scheduler.hpp"
-#include "../task/tcb.hpp"
+#include "../task/mod.hpp"
 
 namespace nyan::syscall {
 
 int close(int fd) {
-    auto fileObjPtr = __try(task::__scheduler->__current->__file.getFileSlot(fd));
-    if (!*fileObjPtr) {
-        return SYS_EBADF;
-    }
-    *fileObjPtr = {};
+    __try
+        (task::closeFd(fd));
     return 0;
 }
 

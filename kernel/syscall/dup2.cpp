@@ -1,18 +1,16 @@
 #include <nyan/syscall.h>
 
-#include "../task/scheduler.hpp"
-#include "../task/tcb.hpp"
+#include "../task/mod.hpp"
 
 namespace nyan::syscall {
 
 int dup2(int fd, int newFd) {
-    auto fileObj = __try(task::__scheduler->__current->__file.getFile(fd));
+    auto oldFdObj = __try(task::getFd(fd));
     if (fd == newFd) {
         return fd;
     }
-
-    auto fileObjSlotPtr = __try(task::__scheduler->__current->__file.findFileSlot(newFd));
-    *fileObjSlotPtr = fileObj;
+    __try
+        (task::installFdTo(oldFdObj, newFd));
     return newFd;
 }
 

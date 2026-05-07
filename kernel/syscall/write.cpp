@@ -1,7 +1,7 @@
 #include <nyan/syscall.h>
 
-#include "../task/scheduler.hpp"
-#include "../task/tcb.hpp"
+#include "../fs/fd.hpp"
+#include "../task/mod.hpp"
 #include "utils.hpp"
 
 namespace nyan::syscall {
@@ -14,7 +14,7 @@ ssize_t write(int fd, const void* buf, size_t size) {
         return SYS_EFAULT;
     }
 
-    return __try(task::__scheduler->__current->__file.getFile(fd))->write(buf, size).merge();
+    return __try(task::getFd(fd))->write(buf, size).merge();
 }
 
 }  // namespace nyan::syscall

@@ -3,6 +3,7 @@
 #include <sys/wait.h>
 
 #include "../fs/mod.hpp"
+#include "../task/mod.hpp"
 #include "../task/scheduler.hpp"
 #include "../task/task.hpp"
 #include "../task/tcb.hpp"
@@ -22,12 +23,12 @@ static int consoleDeamon(void* param) {
     arch::kprint("tty {} deamon entered, pid {}\n", id, task::__scheduler->__current->pid);
 
     auto path = lib::format("/dev/tty{}", id);
-    auto readFile = *fs::open(path, O_RDONLY);
-    auto writeFile = *fs::open(path, O_WRONLY);
+    auto readFile = fs::open(path, O_RDONLY) | __unwrap;
+    auto writeFile = fs::open(path, O_WRONLY) | __unwrap;
 
-    task::__scheduler->__current->__file.__fd_table[0] = lib::makeRef<fs::FdObj>(readFile);
-    task::__scheduler->__current->__file.__fd_table[1] = lib::makeRef<fs::FdObj>(writeFile);
-    task::__scheduler->__current->__file.__fd_table[2] = lib::makeRef<fs::FdObj>(writeFile);
+    task::installFileTo(readFile, 0) | __ignore;
+    task::installFileTo(writeFile, 1) | __ignore;
+    task::installFileTo(writeFile, 2) | __ignore;
 
     while (true) {
         const char* argv[] = {"sh", 0};
