@@ -1,11 +1,10 @@
-#include "load.hpp"
-
 #include "../console/device.hpp"
 #include "../console/mod.hpp"
 #include "../data/embed.hpp"
 #include "../lib/format.hpp"
 #include "dentry.hpp"
 #include "fs/ramfs.hpp"
+#include "mod.hpp"
 #include "mount.hpp"
 
 namespace nyan::fs {

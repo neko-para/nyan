@@ -1,6 +1,7 @@
 #include <nyan/syscall.h>
 
 #include "../fs/dentry.hpp"
+#include "../task/mod.hpp"
 #include "utils.hpp"
 
 namespace nyan::syscall {
@@ -12,7 +13,7 @@ char* getcwd(char* buf, size_t size) {
     if (!utils::validateWrite(buf, size)) {
         return SYS_EFAULT;
     }
-    auto cwd = utils::getCwd()->asPath();
+    auto cwd = task::getCwd()->asPath();
     if (size < cwd.size() + 1) {
         return SYS_ERANGE;
     }

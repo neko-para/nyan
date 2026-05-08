@@ -6,7 +6,7 @@
 #include "arch/sse.hpp"
 #include "boot/multiboot.hpp"
 #include "console/mod.hpp"
-#include "fs/load.hpp"
+#include "fs/mod.hpp"
 #include "gdt/load.hpp"
 #include "interrupt/load.hpp"
 #include "keyboard/mod.hpp"

@@ -29,6 +29,13 @@ struct VNode : public lib::Shared {
     uint32_t __mode;
     uint64_t __inode;
 
+    bool isRegular() const noexcept { return __type == VNT_Regular; }
+    bool isDirectory() const noexcept { return __type == VNT_Directory; }
+    bool isCharDevice() const noexcept { return __type == VNT_CharDevice; }
+    bool isBlockDevice() const noexcept { return __type == VNT_BlockDevice; }
+    bool isPipe() const noexcept { return __type == VNT_Pipe; }
+    bool isSymlink() const noexcept { return __type == VNT_Symlink; }
+
     // Regular
     virtual Result<ssize_t> read(void* buf, size_t size, off_t offset) noexcept { return SYS_EISDIR; }
     virtual Result<ssize_t> write(const void* buf, size_t size, off_t offset) noexcept { return SYS_EISDIR; }

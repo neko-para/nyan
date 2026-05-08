@@ -34,7 +34,7 @@ struct [[nodiscard]] Result<T> {
     };
     int __errno;
 
-    Result() noexcept : __errno(0) {}
+    Result() noexcept : __value(), __errno(0) {}
     Result(Errno err) noexcept : __errno(err.__errno) {}
     template <typename... Args>
         requires std::is_constructible_v<T, Args...>

@@ -1,11 +1,5 @@
 #include "dentry.hpp"
 
-#include <ranges>
-
-#include "../task/scheduler.hpp"
-#include "../task/tcb.hpp"
-#include "load.hpp"
-#include "mount.hpp"
 #include "vnode.hpp"
 
 namespace nyan::fs {
@@ -48,58 +42,6 @@ Result<lib::Ref<DEntry>> DEntryCacheManager::lookup(lib::Ref<DEntry> parent, std
 
 uint64_t allocDEntryId() {
     return ++__counter;
-}
-
-DEntryResolveResult resolve(std::string_view path) {
-    if (path.empty()) {
-        return {};
-    }
-
-    auto current = rootEntry()->__mount_point;
-    if (path[0] != '/') {
-        current = task::__scheduler->__current->cwd;
-        if (!current) {
-            return {};
-        }
-    }
-
-    std::vector<std::string_view> portions;
-    for (const auto& item : path | std::views::split('/')) {
-        portions.push_back({item.begin(), item.end()});
-    }
-
-    for (auto it = portions.begin(); it != portions.end(); it++) {
-        auto portion = *it;
-        if (portion.empty()) {
-            continue;
-        } else if (portion == ".") {
-            continue;
-        } else if (portion == "..") {
-            if (current->__parent) {
-                current = current->__parent;
-            }
-        } else {
-            auto next = dentryCacheManager->lookup(current, portion);
-            if (!next) {
-                bool isLast = std::next(it) == portions.end();
-                if (isLast) {
-                    return {
-                        nullptr,
-                        current,
-                        std::string{portion},
-                    };
-                } else {
-                    return {};
-                }
-            }
-            current = *next;
-        }
-    }
-    return {
-        current,
-        current->__parent,
-        std::string{portions.back()},
-    };
 }
 
 }  // namespace nyan::fs

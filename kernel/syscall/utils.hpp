@@ -43,7 +43,4 @@ inline bool validateExec(T ptr) noexcept {
     return validateExec(reinterpret_cast<void*>(ptr));
 }
 
-lib::Ref<fs::DEntry> getCwd() noexcept;
-void setCwd(lib::Ref<fs::DEntry> dir) noexcept;
-
 }  // namespace nyan::syscall::utils

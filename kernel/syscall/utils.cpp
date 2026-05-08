@@ -50,12 +50,4 @@ std::optional<std::vector<std::string>> validateStringArray(const char* const* s
     return result;
 }
 
-lib::Ref<fs::DEntry> getCwd() noexcept {
-    return current()->cwd;
-}
-
-void setCwd(lib::Ref<fs::DEntry> dir) noexcept {
-    current()->cwd = dir;
-}
-
 }  // namespace nyan::syscall::utils

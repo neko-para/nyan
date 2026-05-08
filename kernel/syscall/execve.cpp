@@ -2,6 +2,7 @@
 
 #include "../arch/print.hpp"
 #include "../fs/dentry.hpp"
+#include "../fs/mod.hpp"
 #include "../fs/vnode.hpp"
 #include "../task/scheduler.hpp"
 #include "utils.hpp"
@@ -16,14 +17,12 @@ int execve(const char* pathname, char* const argv[], char* const envp[], interru
         return SYS_EFAULT;
     }
 
-    auto [dentry, _1, _2] = fs::resolve(*path);
-    if (!dentry || !dentry->__node) {
-        return SYS_ENOENT;
-    }
+    auto dentry = __try(fs::resolve(*path));
+    auto vnode = dentry->effectiveVNode();
 
     struct stat info;
     __try
-        (dentry->__node->stat(&info));
+        (vnode->stat(&info));
 
     // TODO check permission
     if (!(info.st_mode & S_IFREG)) {
@@ -32,7 +31,7 @@ int execve(const char* pathname, char* const argv[], char* const envp[], interru
 
     std::unique_ptr<uint8_t[]> file(new uint8_t[info.st_size]);
     __try
-        (dentry->__node->read(file.get(), info.st_size, 0));
+        (vnode->read(file.get(), info.st_size, 0));
 
     arch::kprint("exec {}\n", *path);
     task::__scheduler->execTask(std::span{file.get(), static_cast<size_t>(info.st_size)}, std::move(*args),

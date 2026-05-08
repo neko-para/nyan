@@ -18,4 +18,7 @@ Result<lib::Ref<fs::FdObj>> installFileTo(lib::Ref<fs::FileObj> file, int fd) no
 Result<int> installFd(lib::Ref<fs::FdObj> fdobj) noexcept;
 Result<> installFdTo(lib::Ref<fs::FdObj> fdobj, int fd) noexcept;
 
+lib::Ref<fs::DEntry> getCwd() noexcept;
+Result<> setCwd(lib::Ref<fs::DEntry> dentry) noexcept;
+
 }  // namespace nyan::task
