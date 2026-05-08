@@ -272,6 +272,24 @@ export const syscallTable: Record<number, SyscallDef> = {
             { name: 'pgoffset', type: 'uint' }
         ]
     },
+    220: {
+        name: 'getdents64',
+        ret: 'int',
+        args: [
+            { name: 'fd', type: 'fd' },
+            { name: 'dirents', type: 'ptr' },
+            { name: 'count', type: 'size' }
+        ]
+    },
+    221: {
+        name: 'fcntl64',
+        ret: 'int',
+        args: [
+            { name: 'fd', type: 'fd' },
+            { name: 'request', type: 'uint' },
+            { name: 'param', type: 'uint' }
+        ]
+    },
     224: { name: 'gettid', ret: 'pid', args: [] },
     238: {
         name: 'tkill',

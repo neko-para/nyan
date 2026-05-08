@@ -31,7 +31,7 @@ Result<lib::Ref<FileObj>> open(std::string_view path, uint32_t flags, uint32_t m
         }
         vnode = entry->effectiveVNode();
     }
-    if ((flags & O_DIRECTORY) && vnode->isDirectory()) {
+    if ((flags & O_DIRECTORY) && !vnode->isDirectory()) {
         return SYS_ENOTDIR;
     }
     if ((flags & O_ACCMODE) != O_RDONLY && flags & O_TRUNC && vnode->isRegular()) {

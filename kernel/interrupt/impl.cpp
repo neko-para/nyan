@@ -314,6 +314,12 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
         case 192:
             CALL(mmap2);
             break;
+        case 220:
+            CALL(getdents64);
+            break;
+        case 221:
+            CALL(fcntl64);
+            break;
         case 224:
             CALL(gettid);
             break;

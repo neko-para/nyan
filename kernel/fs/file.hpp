@@ -5,6 +5,7 @@
 
 #include "../lib/result.hpp"
 #include "../lib/shared.hpp"
+#include "forward.hpp"
 
 namespace nyan::fs {
 
@@ -14,6 +15,8 @@ struct FileObj : public lib::Shared {
 
     FileObj() = default;
     FileObj(uint32_t mode) : __mode(mode) {}
+
+    virtual lib::Ref<VNode> getVNode() noexcept { return {}; }
 
     virtual Result<ssize_t> read(void* buf, size_t size) noexcept = 0;
     virtual Result<ssize_t> write(const void* buf, size_t size) noexcept = 0;

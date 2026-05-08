@@ -1,5 +1,6 @@
 #pragma once
 
+#include <dirent.h>
 #include <nyan/errno.h>
 #include <signal.h>
 #include <stdint.h>
@@ -95,6 +96,12 @@ char* getcwd(char* buf, size_t size);
 
 // 192
 void* mmap2(void* addr, size_t length, int prot, int flags, int fd, uint32_t pgoffset);
+
+// 220
+int getdents64(int fd, struct dirent* dirents, unsigned count);
+
+// 221
+int fcntl64(int fd, uint32_t request, uint32_t param);
 
 // 224
 pid_t gettid();

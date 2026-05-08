@@ -11,7 +11,7 @@
 namespace nyan::task {
 
 Result<> closeFd(int fd) noexcept {
-    auto fdObjPtr = __try(__scheduler->__current->__file.findFileSlot(fd));
+    auto fdObjPtr = __try(__scheduler->__current->__file.getFileSlot(fd));
     if (!*fdObjPtr) {
         return SYS_EBADF;
     }
