@@ -25,6 +25,7 @@ void Scheduler::exit(int code, int sig) noexcept {
         sendSignal(__all_tasks[KP_Init], SIGCHLD);
     }
     if (auto parent = findTask(__current->parentPid)) {
+        parent->__wait_childs.wakeAll(WakeReason::WR_Normal);
         sendSignal(parent, SIGCHLD);
     }
     if (!__pending.empty()) {

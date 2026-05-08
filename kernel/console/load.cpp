@@ -38,8 +38,7 @@ static int consoleDeamon(void* param) {
 
         arch::kprint("tty {} shell started, pid {}\n", id, pid);
 
-        int stat = 0;
-        syscall::waitpid(pid, &stat, 0);
+        auto [_, stat] = task::waitpid(pid, 0) | __unwrap;
         tty->print("\ntty {} shell exited, stat {} exit code {} signal {}\n", id, stat, WEXITSTATUS(stat),
                    WTERMSIG(stat));
     }

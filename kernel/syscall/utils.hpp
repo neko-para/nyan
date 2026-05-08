@@ -4,9 +4,6 @@
 #include <string>
 #include <vector>
 
-#include "../fs/forward.hpp"
-#include "../lib/shared.hpp"
-
 namespace nyan::syscall::utils {
 
 bool validateRead(const void* ptr, size_t size) noexcept;

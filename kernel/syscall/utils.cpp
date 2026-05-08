@@ -10,20 +10,19 @@ static auto current() {
 }
 
 bool validateRead(const void* ptr, size_t size) noexcept {
-    return current()->vmSpace.empty() || current()->vmSpace.validate(paging::VirtualAddress{ptr}, size, PROT_READ);
+    return current()->vmSpace.validate(paging::VirtualAddress{ptr}, size, PROT_READ);
 }
 
 bool validateWrite(void* ptr, size_t size) noexcept {
-    return current()->vmSpace.empty() || current()->vmSpace.validate(paging::VirtualAddress{ptr}, size, PROT_WRITE);
+    return current()->vmSpace.validate(paging::VirtualAddress{ptr}, size, PROT_WRITE);
 }
 
 bool validateReadWrite(void* ptr, size_t size) noexcept {
-    return current()->vmSpace.empty() ||
-           current()->vmSpace.validate(paging::VirtualAddress{ptr}, size, PROT_READ | PROT_WRITE);
+    return current()->vmSpace.validate(paging::VirtualAddress{ptr}, size, PROT_READ | PROT_WRITE);
 }
 
 bool validateExec(void* ptr) noexcept {
-    return current()->vmSpace.empty() || current()->vmSpace.validate(paging::VirtualAddress{ptr}, 1, PROT_EXEC);
+    return current()->vmSpace.validate(paging::VirtualAddress{ptr}, 1, PROT_EXEC);
 }
 
 std::optional<std::string> validateString(const char* str) noexcept {

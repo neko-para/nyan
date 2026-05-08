@@ -4,6 +4,7 @@
 
 #include "../fs/vnode.hpp"
 #include "forward.hpp"
+#include "pid.hpp"
 #include "scheduler.hpp"
 #include "tcb.hpp"
 
@@ -62,6 +63,65 @@ Result<> setCwd(lib::Ref<fs::DEntry> dentry) noexcept {
     }
     __scheduler->__current->cwd = dentry;
     return {};
+}
+
+Result<std::tuple<pid_t, int>> waitpid(pid_t pid, int options) {
+    if ((options & WNOHANG) != options) {
+        return SYS_EINVAL;
+    }
+
+    int stat;
+    if (pid < -1) {
+        // wait group
+        return SYS_ENOSYS;
+    } else if (pid == -1) {
+        // wait any child
+        while (true) {
+            if (__scheduler->__current->childTasks.empty()) {
+                return SYS_ECHILD;
+            }
+            for (auto& tcb : __scheduler->__current->childTasks) {
+                if (tcb.ended()) {
+                    __scheduler->freeTask(tcb.pid, &stat);
+                    return {tcb.pid, stat};
+                }
+            }
+
+            if (options & WNOHANG) {
+                return {0, 0};
+            }
+
+            __scheduler->__current->waitTaskInfo = {pid};
+            if (__scheduler->__current->__wait_childs.wait(BlockReason::BR_WaitTask) == WakeReason::WR_Signal) {
+                return SYS_EINTR;
+            }
+        }
+    } else if (pid == 0) {
+        // wait any child in same group
+        return SYS_ENOSYS;
+    } else {
+        // wait pid
+        while (true) {
+            auto tcb = findTask(pid);
+            if (!tcb || tcb->parentPid != __scheduler->__current->pid) {
+                return SYS_ECHILD;
+            }
+
+            if (!tcb->ended()) {
+                if (options & WNOHANG) {
+                    return {0, 0};
+                }
+
+                __scheduler->__current->waitTaskInfo = {pid};
+                if (__scheduler->__current->__wait_childs.wait(BlockReason::BR_WaitTask) == WakeReason::WR_Signal) {
+                    return SYS_EINTR;
+                }
+            } else {
+                __scheduler->freeTask(pid, &stat);
+                return {pid, stat};
+            }
+        }
+    }
 }
 
 }  // namespace nyan::task

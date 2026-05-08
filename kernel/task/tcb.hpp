@@ -15,6 +15,7 @@
 #include "forward.hpp"
 #include "tcb/file.hpp"
 #include "tcb/signal.hpp"
+#include "wait.hpp"
 
 namespace nyan::task {
 
@@ -68,6 +69,7 @@ struct TaskControlBlock : public TaskControlBlockMetaInfo,
         BlockSleepInfo sleepInfo;
         BlockWaitTaskInfo waitTaskInfo;
     };
+    WaitList __wait_childs;
     lib::function<void(TaskControlBlock*)> __request_detach;
 
     bool ended() const noexcept { return state == State::S_Exited; }

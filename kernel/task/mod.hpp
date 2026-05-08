@@ -1,5 +1,6 @@
 #pragma once
 
+#include <sys/types.h>
 #include <tuple>
 
 #include "../fs/forward.hpp"
@@ -20,5 +21,7 @@ Result<> installFdTo(lib::Ref<fs::FdObj> fdobj, int fd) noexcept;
 
 lib::Ref<fs::DEntry> getCwd() noexcept;
 Result<> setCwd(lib::Ref<fs::DEntry> dentry) noexcept;
+
+Result<std::tuple<pid_t, int>> waitpid(pid_t pid, int options);
 
 }  // namespace nyan::task
