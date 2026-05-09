@@ -17,19 +17,27 @@ std::vector<Command> parseCommand(const std::string& expr) {
         std::string_view subExpr{__sub.begin(), __sub.end()};
         Command cmd;
 
-        if (auto pos = subExpr.find("2>"); pos != std::string_view::npos) {
+        if (auto app_pos = subExpr.rfind("2>>"); app_pos != std::string_view::npos) {
+            cmd.__stderr = trim(subExpr.substr(app_pos + 3));
+            cmd.__stderr_append = true;
+            subExpr = subExpr.substr(0, app_pos);
+        } else if (auto pos = subExpr.rfind("2>"); pos != std::string_view::npos) {
             cmd.__stderr = trim(subExpr.substr(pos + 2));
-            subExpr = subExpr.substr(0, pos - 1);
+            subExpr = subExpr.substr(0, pos);
         }
 
-        if (auto pos = subExpr.find(">"); pos != std::string_view::npos) {
+        if (auto app_pos = subExpr.rfind(">>"); app_pos != std::string_view::npos) {
+            cmd.__stdout = trim(subExpr.substr(app_pos + 2));
+            cmd.__stdout_append = true;
+            subExpr = subExpr.substr(0, app_pos);
+        } else if (auto pos = subExpr.rfind(">"); pos != std::string_view::npos) {
             cmd.__stdout = trim(subExpr.substr(pos + 1));
             subExpr = subExpr.substr(0, pos - 1);
         }
 
-        if (auto pos = subExpr.find("<"); pos != std::string_view::npos) {
+        if (auto pos = subExpr.rfind("<"); pos != std::string_view::npos) {
             cmd.__stdin = trim(subExpr.substr(pos + 1));
-            subExpr = subExpr.substr(0, pos - 1);
+            subExpr = subExpr.substr(0, pos);
         }
 
         for (auto __item : subExpr | std::views::split(' ')) {

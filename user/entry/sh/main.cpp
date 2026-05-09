@@ -111,12 +111,15 @@ int main() {
                         close(fd);
                     }
                     if (cmd.__stdout && !cmd.__stdout->empty()) {
-                        int fd = open(cmd.__stdout->c_str(), O_WRONLY | O_CREAT);
+                        if (cmd.__stdout_append) {
+                            puts("stdout append!");
+                        }
+                        int fd = open(cmd.__stdout->c_str(), O_WRONLY | O_CREAT | (cmd.__stdout_append ? O_APPEND : 0));
                         dup2(fd, 1);
                         close(fd);
                     }
                     if (cmd.__stderr && !cmd.__stderr->empty()) {
-                        int fd = open(cmd.__stderr->c_str(), O_WRONLY | O_CREAT);
+                        int fd = open(cmd.__stderr->c_str(), O_WRONLY | O_CREAT | (cmd.__stderr_append ? O_APPEND : 0));
                         dup2(fd, 2);
                         close(fd);
                     }

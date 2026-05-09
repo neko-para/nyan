@@ -1,5 +1,7 @@
 #include "vnode_file.hpp"
 
+#include <fcntl.h>
+
 namespace nyan::fs {
 
 Result<ssize_t> VNodeFileObj::read(void* buf, size_t size) noexcept {
@@ -9,7 +11,12 @@ Result<ssize_t> VNodeFileObj::read(void* buf, size_t size) noexcept {
 }
 
 Result<ssize_t> VNodeFileObj::write(const void* buf, size_t size) noexcept {
-    // TODO: O_APPEND
+    if (__mode & O_APPEND) {
+        struct stat info;
+        __try
+            (__vnode->stat(&info));
+        __offset = info.st_size;
+    }
     auto ret = __try(__vnode->write(buf, size, __offset));
     __offset += ret;
     return ret;

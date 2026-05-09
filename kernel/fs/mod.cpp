@@ -38,8 +38,7 @@ Result<lib::Ref<FileObj>> open(std::string_view path, uint32_t flags, uint32_t m
         __try
             (vnode->truncate(0));
     }
-    // TODO: result support cast
-    return __try(vnode->open(vnode, flags & O_ACCMODE));
+    return __try(vnode->open(vnode, flags & (O_ACCMODE | O_APPEND)));
 }
 
 template <bool CreateMode>
