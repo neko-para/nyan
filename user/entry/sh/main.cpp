@@ -134,6 +134,12 @@ int main() {
                     pids.push_back(pid);
                 }
             }
+
+            for (size_t i = 0; i + 1 < cmds.size(); i++) {
+                close(pipes[i][0]);
+                close(pipes[i][1]);
+            }
+
             for (auto pid : pids) {
                 int stat;
                 if (pid == waitpid(pid, &stat, 0)) {

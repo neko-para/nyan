@@ -46,6 +46,8 @@ void Scheduler::sendSignal(TaskControlBlock* task, int sig) noexcept {
     if (task->ended()) {
         arch::kprint("signal {} ignored for pid {} as it is ended\n", sig, task->pid);
         return;
+    } else {
+        arch::kprint("send signal {} to pid {}\n", sig, task->pid);
     }
     task->__signal.__pending_signals |= 1ull << sig;
     if (task->__signal.isMasked(sig)) {
