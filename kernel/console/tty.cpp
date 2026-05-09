@@ -4,8 +4,7 @@
 #include <signal.h>
 
 #include "../keyboard/forward.hpp"
-#include "../task/pid.hpp"
-#include "../task/scheduler.hpp"
+#include "../task/mod.hpp"
 
 namespace nyan::console {
 
@@ -28,9 +27,7 @@ void Tty::input(const keyboard::Message& msg) noexcept {
             puts("^C\n", 3);
         }
         __line_buffer.clear();
-        if (auto task = task::findTask(__foreground_pid)) {
-            task::__scheduler->sendSignal(task, SIGINT);
-        }
+        task::kill(-__foreground_pgid, SIGINT) | __ignore;
         return;
     }
 

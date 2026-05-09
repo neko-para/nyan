@@ -3,6 +3,7 @@
 #include <nyan/errno.h>
 #include <sys/ioctl.h>
 
+#include "../arch/print.hpp"
 #include "../task/pid.hpp"
 #include "buffer.hpp"
 #include "tty.hpp"
@@ -29,12 +30,11 @@ Result<> TtyDevice::ioctl(uint32_t req, uint32_t param) noexcept {
             if (!param) {
                 return SYS_EFAULT;
             }
-            auto pid = *reinterpret_cast<pid_t*>(param);
-            if (pid && !task::findTask(pid)) {
-                return SYS_EINVAL;
-            }
-            // TODO: check same session
-            __tty->__foreground_pid = pid;
+            auto pgid = *reinterpret_cast<pid_t*>(param);
+            __try
+                (task::findTaskGroup(pgid));
+            __tty->__foreground_pgid = pgid;
+            arch::kprint("tty switch foregroup to {}", pgid);
             return {};
         }
         case TIOCGWINSZ:

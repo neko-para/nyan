@@ -1,5 +1,6 @@
 #include "pid.hpp"
 
+#include <nyan/errno.h>
 #include <algorithm>
 
 #include "../arch/guard.hpp"
@@ -55,11 +56,36 @@ void setupKnownTasks() {
     initTask->childTasks.erase({task});
 }
 
-TaskControlBlock* findTask(pid_t pid) {
+TaskControlBlock* findTask(pid_t pid) noexcept {
     if (pid < 0 || pid >= __max_task) {
         return nullptr;
     }
     return __all_tasks[pid];
+}
+
+Result<TaskControlBlock*> findTaskNew(pid_t pid) noexcept {
+    if (pid < 0 || pid >= __max_task) {
+        return SYS_EINVAL;
+    }
+    auto tcb = __all_tasks[pid];
+    if (!tcb) {
+        return SYS_ESRCH;
+    }
+    return tcb;
+}
+
+Result<std::vector<TaskControlBlock*>> findTaskGroup(pid_t pgid) noexcept {
+    std::vector<TaskControlBlock*> result;
+    for (size_t pid = KP_FirstUser; pid < __max_task; pid++) {
+        auto tcb = __all_tasks[pid];
+        if (tcb && tcb->groupPid == pgid) {
+            result.push_back(tcb);
+        }
+    }
+    if (result.empty()) {
+        return SYS_ESRCH;
+    }
+    return result;
 }
 
 }  // namespace nyan::task

@@ -14,7 +14,7 @@ struct VNodeFileObj : public FileObj {
 
     virtual Result<ssize_t> read(void* buf, size_t size) noexcept override;
     virtual Result<ssize_t> write(const void* buf, size_t size) noexcept override;
-    virtual Result<int> ioctl(uint32_t req, uint32_t param) noexcept override;
+    virtual Result<> ioctl(uint32_t req, uint32_t param) noexcept override;
 };
 
 }  // namespace nyan::fs

@@ -28,6 +28,7 @@ export type Payload = {
     ts: number
     eip: number
     pid: number
+    pgid: number
     len: number
 } & (
     | {

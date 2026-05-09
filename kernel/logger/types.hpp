@@ -28,6 +28,7 @@ struct Payload {
     uint32_t ts;
     uint32_t eip;
     int32_t pid;
+    int32_t pgid;
     uint16_t len;
     Type type;
     union {

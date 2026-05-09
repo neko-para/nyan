@@ -65,7 +65,7 @@ Result<> setCwd(lib::Ref<fs::DEntry> dentry) noexcept {
     return {};
 }
 
-Result<std::tuple<pid_t, int>> waitpid(pid_t pid, int options) {
+Result<std::tuple<pid_t, int>> waitpid(pid_t pid, int options) noexcept {
     if ((options & WNOHANG) != options) {
         return SYS_EINVAL;
     }
@@ -121,6 +121,41 @@ Result<std::tuple<pid_t, int>> waitpid(pid_t pid, int options) {
                 return {pid, stat};
             }
         }
+    }
+}
+
+Result<> kill(pid_t pid, int sig) noexcept {
+    if (sig < 0 || sig >= NSIG) {
+        return SYS_EINVAL;
+    }
+
+    if (pid > 0) {
+        auto tcb = __try(task::findTaskNew(pid));
+        if (sig == 0) {
+            return {};
+        }
+        __scheduler->sendSignal(tcb, sig);
+        return {};
+    } else if (pid == 0) {
+        auto tcbs = __try(task::findTaskGroup(__scheduler->__current->groupPid));
+        if (sig == 0) {
+            return {};
+        }
+        for (auto tcb : tcbs) {
+            __scheduler->sendSignal(tcb, sig);
+        }
+        return {};
+    } else if (pid == -1) {
+        return SYS_ENOSYS;
+    } else {
+        auto tcbs = __try(task::findTaskGroup(-pid));
+        if (sig == 0) {
+            return {};
+        }
+        for (auto tcb : tcbs) {
+            __scheduler->sendSignal(tcb, sig);
+        }
+        return {};
     }
 }
 

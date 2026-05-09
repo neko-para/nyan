@@ -28,7 +28,7 @@ function entryPrefix(payload: Payload) {
     const min = Math.floor(payload.ts / 60000) % 60
     const sec = Math.floor(payload.ts / 1000) % 60
     const msec = payload.ts % 1000
-    return `[${pad(hour, 2)}:${pad(min, 2)}:${pad(sec, 2)}.${pad(msec, 3)} ${pad(payload.pid, 3, ' ')}]`
+    return `[${pad(hour, 2)}:${pad(min, 2)}:${pad(sec, 2)}.${pad(msec, 3)} ${pad(payload.pid, 3, ' ')}:${pad(payload.pgid, 3, ' ')}]`
 }
 
 function formatValue(val: number, type: ArgType) {

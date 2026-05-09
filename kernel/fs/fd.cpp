@@ -25,7 +25,7 @@ Result<ssize_t> FdObj::write(const void* buf, size_t size) const noexcept {
     return __file->write(buf, size);
 }
 
-Result<int> FdObj::ioctl(uint32_t req, uint32_t param) const noexcept {
+Result<> FdObj::ioctl(uint32_t req, uint32_t param) const noexcept {
     return __file->ioctl(req, param);
 }
 

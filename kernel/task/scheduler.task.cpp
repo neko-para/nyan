@@ -23,7 +23,8 @@ pid_t Scheduler::addTask(TaskControlBlock* task) noexcept {
 }
 
 bool Scheduler::freeTask(pid_t pid, int* stat) noexcept {
-    arch::kprint("free task pid = {} current = {} {}\n", pid, __current->pid, __current->name);
+    arch::kprint("free task pid = {} pgid = {} current = {} {}\n", pid, __current->pid, __current->groupPid,
+                 __current->name);
     auto task = __all_tasks[pid];
     if (!task) {
         arch::kprint("Task {} not exists!\n", pid);

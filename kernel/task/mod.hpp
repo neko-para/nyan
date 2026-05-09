@@ -22,6 +22,8 @@ Result<> installFdTo(lib::Ref<fs::FdObj> fdobj, int fd) noexcept;
 lib::Ref<fs::DEntry> getCwd() noexcept;
 Result<> setCwd(lib::Ref<fs::DEntry> dentry) noexcept;
 
-Result<std::tuple<pid_t, int>> waitpid(pid_t pid, int options);
+Result<std::tuple<pid_t, int>> waitpid(pid_t pid, int options) noexcept;
+
+Result<> kill(pid_t pid, int sig) noexcept;
 
 }  // namespace nyan::task

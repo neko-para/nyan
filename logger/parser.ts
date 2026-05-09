@@ -24,19 +24,20 @@ export function* parse(buffer: Buffer): Generator<Entry | null, void, Buffer | n
     }
 
     for (;;) {
-        if (!(yield* waitForData(16))) return
+        if (!(yield* waitForData(20))) return
 
-        switch (buffer.readUint8(ptr + 14) as TypeVal) {
+        switch (buffer.readUint8(ptr + 18) as TypeVal) {
             case Type.T_Log: {
                 const payload: Payload = {
                     ts: buffer.readUint32LE(ptr),
                     eip: buffer.readUint32LE(ptr + 4),
                     pid: buffer.readInt32LE(ptr + 8),
-                    len: buffer.readUint16LE(ptr + 12),
+                    pgid: buffer.readInt32LE(ptr + 12),
+                    len: buffer.readUint16LE(ptr + 16),
                     type: Type.T_Log,
-                    logLevel: buffer.readUint8(ptr + 15) as LogLevelVal
+                    logLevel: buffer.readUint8(ptr + 19) as LogLevelVal
                 }
-                ptr += 16
+                ptr += 20
                 if (!(yield* waitForData(payload.len))) return
                 yield {
                     payload,
@@ -50,11 +51,12 @@ export function* parse(buffer: Buffer): Generator<Entry | null, void, Buffer | n
                     ts: buffer.readUint32LE(ptr),
                     eip: buffer.readUint32LE(ptr + 4),
                     pid: buffer.readInt32LE(ptr + 8),
-                    len: buffer.readUint16LE(ptr + 12),
+                    pgid: buffer.readUint16LE(ptr + 12),
+                    len: buffer.readUint16LE(ptr + 16),
                     type: Type.T_Syscall,
-                    syscallRole: buffer.readUint8(ptr + 15) as SyscallRoleVal
+                    syscallRole: buffer.readUint8(ptr + 19) as SyscallRoleVal
                 }
-                ptr += 16
+                ptr += 20
                 if (!(yield* waitForData(payload.len))) return
                 yield {
                     payload,
@@ -79,10 +81,11 @@ export function* parse(buffer: Buffer): Generator<Entry | null, void, Buffer | n
                     ts: buffer.readUint32LE(ptr),
                     eip: buffer.readUint32LE(ptr + 4),
                     pid: buffer.readInt32LE(ptr + 8),
-                    len: buffer.readUint16LE(ptr + 12),
+                    pgid: buffer.readInt32LE(ptr + 12),
+                    len: buffer.readUint16LE(ptr + 16),
                     type: Type.T_Exception
                 }
-                ptr += 16
+                ptr += 20
                 if (!(yield* waitForData(payload.len))) return
                 yield {
                     payload,
@@ -102,18 +105,19 @@ export function* parse(buffer: Buffer): Generator<Entry | null, void, Buffer | n
                     ts: buffer.readUint32LE(ptr),
                     eip: buffer.readUint32LE(ptr + 4),
                     pid: buffer.readInt32LE(ptr + 8),
-                    len: buffer.readUint16LE(ptr + 12),
+                    pgid: buffer.readInt32LE(ptr + 12),
+                    len: buffer.readUint16LE(ptr + 16),
                     type: Type.T_Fatal
                 }
-                ptr += 16
+                ptr += 20
                 yield {
                     payload
                 }
                 break
             default: {
-                console.log('unknown type', buffer.readUint8(ptr + 14))
+                console.log('unknown type', buffer.readUint8(ptr + 18))
                 const len = buffer.readUint16LE(ptr + 12)
-                ptr += 16
+                ptr += 20
                 if (!(yield* waitForData(len))) return
                 ptr += len
                 break

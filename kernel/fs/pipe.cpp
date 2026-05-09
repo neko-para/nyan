@@ -113,7 +113,7 @@ Result<ssize_t> PipeObj::write(const void* buf, size_t size) noexcept {
     return __state->write(buf, size);
 }
 
-Result<int> PipeObj::ioctl(uint32_t, uint32_t) noexcept {
+Result<> PipeObj::ioctl(uint32_t, uint32_t) noexcept {
     return SYS_ENOTTY;
 }
 

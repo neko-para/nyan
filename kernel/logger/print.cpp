@@ -12,6 +12,7 @@ void emitLog(void* eip, LogLevel level, std::string_view log) {
         static_cast<uint32_t>(timer::msSinceBoot),
         reinterpret_cast<uint32_t>(eip),
         task::__scheduler->__current ? task::__scheduler->__current->pid : 0,
+        task::__scheduler->__current ? task::__scheduler->__current->groupPid : 0,
         static_cast<uint16_t>(log.length()),
         T_Log,
         {
@@ -29,6 +30,7 @@ void emitSyscall(uint32_t eip, SyscallRole role, const SyscallContent& content) 
         static_cast<uint32_t>(timer::msSinceBoot),
         eip,
         task::__scheduler->__current ? task::__scheduler->__current->pid : 0,
+        task::__scheduler->__current ? task::__scheduler->__current->groupPid : 0,
         sizeof(SyscallContent),
         T_Syscall,
         {
@@ -46,6 +48,7 @@ void emitException(void* eip, const ExceptionContent& content) {
         static_cast<uint32_t>(timer::msSinceBoot),
         reinterpret_cast<uint32_t>(eip),
         task::__scheduler->__current ? task::__scheduler->__current->pid : 0,
+        task::__scheduler->__current ? task::__scheduler->__current->groupPid : 0,
         sizeof(ExceptionContent),
         T_Exception,
         {},
@@ -61,6 +64,7 @@ void emitFatal(void* eip) {
         static_cast<uint32_t>(timer::msSinceBoot),
         reinterpret_cast<uint32_t>(eip),
         task::__scheduler->__current ? task::__scheduler->__current->pid : 0,
+        task::__scheduler->__current ? task::__scheduler->__current->groupPid : 0,
         0,
         T_Fatal,
         {},

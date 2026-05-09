@@ -78,6 +78,8 @@ void doBuiltin(const std::vector<std::string>& args) {
 }
 
 int main() {
+    setpgid(0, getpid());
+
     printPrompt();
     std::string line;
     while (std::getline(std::cin, line)) {
@@ -95,10 +97,16 @@ int main() {
                 pipe(pipes[i].data());
             }
 
+            pid_t pgid = -1;
             for (size_t i = 0; i < cmds.size(); i++) {
                 auto& cmd = cmds[i];
                 pid_t pid = fork();
                 if (pid == 0) {
+                    if (pgid == -1) {
+                        setpgid(0, getpid());
+                    } else {
+                        setpgid(0, pgid);
+                    }
                     if (i > 0) {
                         dup2(pipes[i - 1][0], 0);
                     }
@@ -137,7 +145,11 @@ int main() {
                     }
                 } else {
                     if (i == 0) {
-                        tcsetpgrp(0, pid);
+                        pgid = pid;
+                    }
+                    setpgid(pid, pgid);
+                    if (i == 0) {
+                        tcsetpgrp(0, pgid);
                     }
                     pids.push_back(pid);
                 }

@@ -11,7 +11,7 @@
 namespace nyan::console {
 
 struct Tty : public ScreenBuffer {
-    pid_t __foreground_pid{task::KP_Invalid};
+    pid_t __foreground_pgid{task::KP_Invalid};
 
     std::string __line_buffer;
 

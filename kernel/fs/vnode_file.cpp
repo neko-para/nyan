@@ -22,7 +22,7 @@ Result<ssize_t> VNodeFileObj::write(const void* buf, size_t size) noexcept {
     return ret;
 }
 
-Result<int> VNodeFileObj::ioctl(uint32_t req, uint32_t param) noexcept {
+Result<> VNodeFileObj::ioctl(uint32_t req, uint32_t param) noexcept {
     return __vnode->ioctl(req, param);
 }
 
