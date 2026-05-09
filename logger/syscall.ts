@@ -181,6 +181,8 @@ export const syscallTable: Record<number, SyscallDef> = {
 
                 parse: val => {
                     switch (val) {
+                        case 0x540f:
+                            return 'TIOCGPGRP'
                         case 0x5410:
                             return 'TIOCSPGRP'
                         case 0x5413:

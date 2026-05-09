@@ -26,6 +26,14 @@ Result<ssize_t> TtyDevice::write(const void* buf, size_t size) noexcept {
 
 Result<> TtyDevice::ioctl(uint32_t req, uint32_t param) noexcept {
     switch (req) {
+        case TIOCGPGRP: {
+            if (!param) {
+                return SYS_EFAULT;
+            }
+            auto& pgid = *reinterpret_cast<pid_t*>(param);
+            pgid = __tty->__foreground_pgid;
+            return {};
+        }
         case TIOCSPGRP: {
             if (!param) {
                 return SYS_EFAULT;
@@ -37,7 +45,7 @@ Result<> TtyDevice::ioctl(uint32_t req, uint32_t param) noexcept {
             arch::kprint("tty switch foregroup to {}", pgid);
             return {};
         }
-        case TIOCGWINSZ:
+        case TIOCGWINSZ: {
             winsize* ptr = reinterpret_cast<winsize*>(param);
             if (!ptr) {
                 return SYS_EFAULT;
@@ -47,6 +55,7 @@ Result<> TtyDevice::ioctl(uint32_t req, uint32_t param) noexcept {
             ptr->ws_xpixel = 0;
             ptr->ws_ypixel = 0;
             return {};
+        }
     }
     return SYS_ENOTTY;
 }
