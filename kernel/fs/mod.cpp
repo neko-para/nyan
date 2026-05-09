@@ -4,6 +4,7 @@
 #include <nyan/errno.h>
 #include <ranges>
 
+#include "../arch/guard.hpp"
 #include "../task/mod.hpp"
 #include "dentry.hpp"
 #include "mount.hpp"
@@ -13,6 +14,8 @@
 namespace nyan::fs {
 
 Result<lib::Ref<FileObj>> open(std::string_view path, uint32_t flags, uint32_t mode) {
+    arch::InterruptGuard guard;
+
     lib::Ref<DEntry> parent;
     std::string name;
     auto entry = __try(resolveParent(path, &parent, &name));
@@ -43,6 +46,8 @@ Result<lib::Ref<FileObj>> open(std::string_view path, uint32_t flags, uint32_t m
 
 template <bool CreateMode>
 static Result<lib::Ref<DEntry>> __resolveImpl(std::string_view path, lib::Ref<DEntry>* parent, std::string* lastName) {
+    arch::InterruptGuard guard;
+
     if (path.empty()) {
         return SYS_ENOENT;
     }
