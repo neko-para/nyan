@@ -65,7 +65,7 @@ function formatReturn(val: number, type: ArgType) {
 function buildCall(args: ArgDecl[], content: SyscallContent) {
     const result: string[] = []
     args.forEach((decl, idx) => {
-        let seg = `${decl.name}=${formatValue(content.args[idx], decl.type)}`
+        let seg = chalk.dim(`${decl.name}=`) + `${formatValue(content.args[idx], decl.type)}`
         if (decl.parse) {
             seg += `(${decl.parse(content.args[idx])})`
         }

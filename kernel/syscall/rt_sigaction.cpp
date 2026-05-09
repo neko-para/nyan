@@ -8,7 +8,7 @@
 namespace nyan::syscall {
 
 int rt_sigaction(int sig, const struct sigaction* act, struct sigaction* oldact, size_t sigsetsize) {
-    if (sigsetsize != sizeof(sigset_t)) {
+    if (sigsetsize != 8) {
         return SYS_EINVAL;
     }
     if (!utils::validateReadAuto(act, 1, true) || !utils::validateWriteAuto(oldact, 1, true)) {

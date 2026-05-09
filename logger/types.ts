@@ -24,28 +24,31 @@ export const SyscallRole = {
 export type SyscallRole = typeof SyscallRole
 export type SyscallRoleVal = SyscallRole[keyof SyscallRole]
 
-export type Payload = {
+export type PayloadBase = {
     ts: number
     eip: number
     pid: number
     pgid: number
     len: number
-} & (
-    | {
-          type: Type['T_Log']
-          logLevel: LogLevelVal
-      }
-    | {
-          type: Type['T_Syscall']
-          syscallRole: SyscallRoleVal
-      }
-    | {
-          type: Type['T_Exception']
-      }
-    | {
-          type: Type['T_Fatal']
-      }
-)
+}
+
+export type Payload = PayloadBase &
+    (
+        | {
+              type: Type['T_Log']
+              logLevel: LogLevelVal
+          }
+        | {
+              type: Type['T_Syscall']
+              syscallRole: SyscallRoleVal
+          }
+        | {
+              type: Type['T_Exception']
+          }
+        | {
+              type: Type['T_Fatal']
+          }
+    )
 
 export type SyscallArgs = [number, number, number, number, number, number]
 

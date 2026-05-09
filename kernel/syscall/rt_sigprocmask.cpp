@@ -8,7 +8,7 @@
 namespace nyan::syscall {
 
 int rt_sigprocmask(int how, const sigset_t* set, sigset_t* oldset, size_t sigsetsize) {
-    if (sigsetsize != sizeof(sigset_t)) {
+    if (sigsetsize != 8) {
         return SYS_EINVAL;
     }
     if (!utils::validateReadAuto(set, 1, true) || !utils::validateWriteAuto(oldset, 1, true)) {

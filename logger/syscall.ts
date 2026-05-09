@@ -175,7 +175,20 @@ export const syscallTable: Record<number, SyscallDef> = {
         ret: 'int',
         args: [
             { name: 'fd', type: 'fd' },
-            { name: 'request', type: 'uint' },
+            {
+                name: 'request',
+                type: 'uint',
+
+                parse: val => {
+                    switch (val) {
+                        case 0x5410:
+                            return 'TIOCSPGRP'
+                        case 0x5413:
+                            return 'TIOCGWINSZ'
+                    }
+                    return ''
+                }
+            },
             { name: 'param', type: 'uint' }
         ]
     },
@@ -301,7 +314,19 @@ export const syscallTable: Record<number, SyscallDef> = {
         ret: 'int',
         args: [
             { name: 'fd', type: 'fd' },
-            { name: 'request', type: 'uint' },
+            {
+                name: 'request',
+                type: 'uint',
+                parse: val => {
+                    switch (val) {
+                        case 1:
+                            return 'F_GETFD'
+                        case 2:
+                            return 'F_SETFD'
+                    }
+                    return ''
+                }
+            },
             { name: 'param', type: 'uint' }
         ]
     },

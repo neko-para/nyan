@@ -1,7 +1,7 @@
 import {
     type Entry,
     type LogLevelVal,
-    type Payload,
+    type PayloadBase,
     type SyscallRoleVal,
     Type,
     type TypeVal
@@ -24,104 +24,83 @@ export function* parse(buffer: Buffer): Generator<Entry | null, void, Buffer | n
     }
 
     for (;;) {
-        if (!(yield* waitForData(20))) return
+        if (!(yield* waitForData(20))) {
+            return
+        }
 
-        switch (buffer.readUint8(ptr + 18) as TypeVal) {
-            case Type.T_Log: {
-                const payload: Payload = {
-                    ts: buffer.readUint32LE(ptr),
-                    eip: buffer.readUint32LE(ptr + 4),
-                    pid: buffer.readInt32LE(ptr + 8),
-                    pgid: buffer.readInt32LE(ptr + 12),
-                    len: buffer.readUint16LE(ptr + 16),
-                    type: Type.T_Log,
-                    logLevel: buffer.readUint8(ptr + 19) as LogLevelVal
-                }
-                ptr += 20
-                if (!(yield* waitForData(payload.len))) return
+        const payload: PayloadBase = {
+            ts: buffer.readUint32LE(ptr),
+            eip: buffer.readUint32LE(ptr + 4),
+            pid: buffer.readInt32LE(ptr + 8),
+            pgid: buffer.readInt32LE(ptr + 12),
+            len: buffer.readUint16LE(ptr + 16)
+        }
+        const type = buffer.readUint8(ptr + 18) as TypeVal
+        const typeExt = buffer.readUint8(ptr + 19)
+        ptr += 20
+
+        if (!(yield* waitForData(payload.len))) {
+            return
+        }
+
+        const content = buffer.subarray(ptr, ptr + payload.len)
+        ptr += payload.len
+
+        switch (type) {
+            case Type.T_Log:
                 yield {
-                    payload,
-                    content: buffer.subarray(ptr, ptr + payload.len).toString()
+                    payload: {
+                        ...payload,
+                        type: Type.T_Log,
+                        logLevel: typeExt as LogLevelVal
+                    },
+                    content: content.toString()
                 }
-                ptr += payload.len
                 break
-            }
-            case Type.T_Syscall: {
-                const payload: Payload = {
-                    ts: buffer.readUint32LE(ptr),
-                    eip: buffer.readUint32LE(ptr + 4),
-                    pid: buffer.readInt32LE(ptr + 8),
-                    pgid: buffer.readUint16LE(ptr + 12),
-                    len: buffer.readUint16LE(ptr + 16),
-                    type: Type.T_Syscall,
-                    syscallRole: buffer.readUint8(ptr + 19) as SyscallRoleVal
-                }
-                ptr += 20
-                if (!(yield* waitForData(payload.len))) return
+            case Type.T_Syscall:
                 yield {
-                    payload,
+                    payload: {
+                        ...payload,
+                        type: Type.T_Syscall,
+                        syscallRole: typeExt as SyscallRoleVal
+                    },
                     content: {
-                        ret: buffer.readUint32LE(ptr),
-                        id: buffer.readUint32LE(ptr + 4),
+                        ret: content.readUint32LE(0),
+                        id: content.readUint32LE(4),
                         args: [
-                            buffer.readUint32LE(ptr + 8),
-                            buffer.readUint32LE(ptr + 12),
-                            buffer.readUint32LE(ptr + 16),
-                            buffer.readUint32LE(ptr + 20),
-                            buffer.readUint32LE(ptr + 24),
-                            buffer.readUint32LE(ptr + 28)
+                            content.readUint32LE(8),
+                            content.readUint32LE(12),
+                            content.readUint32LE(16),
+                            content.readUint32LE(20),
+                            content.readUint32LE(24),
+                            content.readUint32LE(28)
                         ]
                     }
                 }
-                ptr += payload.len
                 break
-            }
-            case Type.T_Exception: {
-                const payload: Payload = {
-                    ts: buffer.readUint32LE(ptr),
-                    eip: buffer.readUint32LE(ptr + 4),
-                    pid: buffer.readInt32LE(ptr + 8),
-                    pgid: buffer.readInt32LE(ptr + 12),
-                    len: buffer.readUint16LE(ptr + 16),
-                    type: Type.T_Exception
-                }
-                ptr += 20
-                if (!(yield* waitForData(payload.len))) return
+            case Type.T_Exception:
                 yield {
-                    payload,
+                    payload: {
+                        ...payload,
+                        type: Type.T_Exception
+                    },
                     content: {
-                        num: buffer.readUint32LE(ptr),
-                        errcode: buffer.readUint32LE(ptr + 4),
-                        cs: buffer.readUint32LE(ptr + 8),
-                        eip: buffer.readUint32LE(ptr + 12),
-                        cr2: buffer.readUint32LE(ptr + 16)
+                        num: content.readUint32LE(0),
+                        errcode: content.readUint32LE(4),
+                        cs: content.readUint32LE(8),
+                        eip: content.readUint32LE(12),
+                        cr2: content.readUint32LE(16)
                     }
                 }
-                ptr += payload.len
                 break
-            }
             case Type.T_Fatal:
-                const payload: Payload = {
-                    ts: buffer.readUint32LE(ptr),
-                    eip: buffer.readUint32LE(ptr + 4),
-                    pid: buffer.readInt32LE(ptr + 8),
-                    pgid: buffer.readInt32LE(ptr + 12),
-                    len: buffer.readUint16LE(ptr + 16),
-                    type: Type.T_Fatal
-                }
-                ptr += 20
                 yield {
-                    payload
+                    payload: {
+                        ...payload,
+                        type: Type.T_Fatal
+                    }
                 }
                 break
-            default: {
-                console.log('unknown type', buffer.readUint8(ptr + 18))
-                const len = buffer.readUint16LE(ptr + 12)
-                ptr += 20
-                if (!(yield* waitForData(len))) return
-                ptr += len
-                break
-            }
         }
     }
 }
