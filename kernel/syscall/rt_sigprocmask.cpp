@@ -1,9 +1,9 @@
 #include <nyan/syscall.h>
 #include <signal.h>
 
+#include "../task/mod.hpp"
 #include "../task/scheduler.hpp"
 #include "../task/tcb.hpp"
-#include "utils.hpp"
 
 namespace nyan::syscall {
 
@@ -11,9 +11,10 @@ int rt_sigprocmask(int how, const sigset_t* set, sigset_t* oldset, size_t sigset
     if (sigsetsize != 8) {
         return SYS_EINVAL;
     }
-    if (!utils::validateReadAuto(set, 1, true) || !utils::validateWriteAuto(oldset, 1, true)) {
-        return SYS_EFAULT;
-    }
+    __try
+        (task::checkR(set, 1, true));
+    __try
+        (task::checkW(oldset, 1, true));
 
     if (oldset) {
         oldset->__bits[0] = task::__scheduler->__current->__signal.__signal_mask & 0xFFFFFFFF;

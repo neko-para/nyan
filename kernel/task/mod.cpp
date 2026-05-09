@@ -166,4 +166,20 @@ Result<> checkAddr(const void* ptr, size_t size, uint32_t prot) noexcept {
     return {};
 }
 
+Result<std::string> checkString(const char* str) noexcept {
+    auto res = __scheduler->__current->vmSpace.validateReadonlyString(paging::VirtualAddress{str});
+    if (!res) {
+        return SYS_EFAULT;
+    }
+    return std::move(*res);
+}
+
+Result<std::vector<std::string>> checkArgv(char* const argv[]) noexcept {
+    auto res = __scheduler->__current->vmSpace.validateReadonlyStringArray(paging::VirtualAddress{argv});
+    if (!res) {
+        return SYS_EFAULT;
+    }
+    return std::move(*res);
+}
+
 }  // namespace nyan::task

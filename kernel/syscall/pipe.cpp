@@ -2,16 +2,15 @@
 #include <nyan/syscall.h>
 
 #include "../fs/pipe.hpp"
+#include "../task/mod.hpp"
 #include "../task/scheduler.hpp"
 #include "../task/tcb.hpp"
-#include "utils.hpp"
 
 namespace nyan::syscall {
 
 int pipe(int* fds) {
-    if (!utils::validateWriteAuto(fds, 2)) {
-        return SYS_EFAULT;
-    }
+    __try
+        (task::checkW(fds, 2));
 
     int readFd, writeFd;
 

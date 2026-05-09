@@ -1,16 +1,15 @@
 #include <nyan/syscall.h>
 
 #include "../gdt/load.hpp"
+#include "../task/mod.hpp"
 #include "../task/scheduler.hpp"
 #include "../task/signal.hpp"
 #include "../task/tcb.hpp"
-#include "utils.hpp"
 
 namespace nyan::syscall {
 
-void sigreturn(void* frame) {
-    interrupt::SyscallFrame* sysFrame = static_cast<interrupt::SyscallFrame*>(frame);
-    if (!utils::validateReadAuto(sysFrame)) {
+void sigreturn(interrupt::SyscallFrame* sysFrame) {
+    if (!task::checkR(sysFrame)) {
         task::__scheduler->exit(255, SIGSEGV);
     }
 
@@ -21,7 +20,7 @@ void sigreturn(void* frame) {
     auto userFrame = reinterpret_cast<interrupt::SyscallFrame*>(esp);
     *sysFrame = *userFrame;
 
-    if (sysFrame->eip >= 0xC0000000 || !utils::validateExec(sysFrame->eip)) {
+    if (sysFrame->eip >= 0xC0000000 || !task::checkE(sysFrame->eip)) {
         task::__scheduler->exit(255, SIGSEGV);
     }
 

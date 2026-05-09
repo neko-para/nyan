@@ -2,7 +2,6 @@
 
 #include "../fs/dentry.hpp"
 #include "../task/mod.hpp"
-#include "utils.hpp"
 
 namespace nyan::syscall {
 
@@ -10,9 +9,10 @@ char* getcwd(char* buf, size_t size) {
     if (size == 0) {
         return SYS_EINVAL;
     }
-    if (!utils::validateWrite(buf, size)) {
-        return SYS_EFAULT;
-    }
+
+    __try
+        (task::checkW(buf, size));
+
     auto cwd = task::getCwd()->asPath();
     if (size < cwd.size() + 1) {
         return SYS_ERANGE;

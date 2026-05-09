@@ -4,20 +4,17 @@
 #include "../fs/dentry.hpp"
 #include "../fs/mod.hpp"
 #include "../fs/vnode.hpp"
+#include "../task/mod.hpp"
 #include "../task/scheduler.hpp"
-#include "utils.hpp"
 
 namespace nyan::syscall {
 
-int execve(const char* pathname, char* const argv[], char* const envp[], interrupt::SyscallFrame* frame) {
-    auto path = utils::validateString(pathname);
-    auto args = utils::validateStringArray(argv);
-    auto envs = utils::validateStringArray(envp);
-    if (!args || !envs) {
-        return SYS_EFAULT;
-    }
+int execve(const char* __pathname, char* const __argv[], char* const __envp[], interrupt::SyscallFrame* frame) {
+    auto pathname = __try(task::checkString(__pathname));
+    auto argv = __try(task::checkArgv(__argv));
+    auto envp = __try(task::checkArgv(__envp));
 
-    auto dentry = __try(fs::resolve(*path));
+    auto dentry = __try(fs::resolve(pathname));
     auto vnode = dentry->effectiveVNode();
 
     struct stat info;
@@ -33,9 +30,9 @@ int execve(const char* pathname, char* const argv[], char* const envp[], interru
     __try
         (vnode->read(file.get(), info.st_size, 0));
 
-    arch::kprint("exec {}\n", *path);
-    task::__scheduler->execTask(std::span{file.get(), static_cast<size_t>(info.st_size)}, std::move(*args),
-                                std::move(*envs), frame);
+    arch::kprint("exec {}\n", pathname);
+    task::__scheduler->execTask(std::span{file.get(), static_cast<size_t>(info.st_size)}, std::move(argv),
+                                std::move(envp), frame);
     return 0;
 }
 

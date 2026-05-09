@@ -1,9 +1,9 @@
 
 #include <nyan/syscall.h>
 
+#include "../task/mod.hpp"
 #include "../task/scheduler.hpp"
 #include "../task/tcb.hpp"
-#include "utils.hpp"
 
 namespace nyan::syscall {
 
@@ -11,9 +11,10 @@ int rt_sigaction(int sig, const struct sigaction* act, struct sigaction* oldact,
     if (sigsetsize != 8) {
         return SYS_EINVAL;
     }
-    if (!utils::validateReadAuto(act, 1, true) || !utils::validateWriteAuto(oldact, 1, true)) {
-        return SYS_EFAULT;
-    }
+    __try
+        (task::checkR(act, 1, true));
+    __try
+        (task::checkW(oldact, 1, true));
 
     if (sig < 1 || sig >= NSIG || sig == SIGKILL || sig == SIGSTOP) {
         return SYS_EINVAL;
@@ -35,9 +36,8 @@ int rt_sigaction(int sig, const struct sigaction* act, struct sigaction* oldact,
         }
 
         if (act->sa_handler != SIG_DFL && act->sa_handler != SIG_IGN) {
-            if (!utils::validateExec(act->sa_handler)) {
-                return SYS_EFAULT;
-            }
+            __try
+                (task::checkE(act->sa_handler));
         }
     }
 

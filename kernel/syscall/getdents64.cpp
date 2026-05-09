@@ -3,14 +3,12 @@
 #include "../fs/fd.hpp"
 #include "../fs/vnode.hpp"
 #include "../task/mod.hpp"
-#include "utils.hpp"
 
 namespace nyan::syscall {
 
 int getdents64(int fd, struct dirent* dirents, unsigned count) {
-    if (!utils::validateRead(dirents, count)) {
-        return SYS_EFAULT;
-    }
+    __try
+        (task::checkAddr(dirents, count, PROT_WRITE));
 
     auto fdobj = __try(task::getFd(fd));
     auto vnode = fdobj->__file->getVNode();

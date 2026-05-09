@@ -2,16 +2,12 @@
 
 #include "../fs/mod.hpp"
 #include "../task/mod.hpp"
-#include "utils.hpp"
 
 namespace nyan::syscall {
 
-int chdir(const char* pathname) {
-    auto path = utils::validateString(pathname);
-    if (!path) {
-        return SYS_EFAULT;
-    }
-    auto dentry = __try(fs::resolve(*path));
+int chdir(const char* __pathname) {
+    auto pathname = __try(task::checkString(__pathname));
+    auto dentry = __try(fs::resolve(pathname));
     __try
         (task::setCwd(dentry));
     return 0;

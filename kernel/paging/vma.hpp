@@ -82,6 +82,7 @@ struct VMSpace : public RangeManager<0x00400000, 0xC0000000, VMA> {
         clear();
     }
 
+    // TODO: 其实这个也应该要支持跨VMA
     bool validate(VirtualAddress addr, size_t size, uint32_t prot) const noexcept {
         auto pos = this->__locate(addr);
         if (!pos->contains(addr, addr + size)) {

@@ -29,71 +29,53 @@ Result<std::tuple<pid_t, int>> waitpid(pid_t pid, int options) noexcept;
 Result<> kill(pid_t pid, int sig) noexcept;
 
 Result<> checkAddr(const void* ptr, size_t size, uint32_t prot) noexcept;
+Result<std::string> checkString(const char* str) noexcept;
+Result<std::vector<std::string>> checkArgv(char* const argv[]) noexcept;
 
 #pragma mark - check utils
 
-template <typename T, typename P>
-inline T* __to_ptr(P ptr) noexcept {
-    if constexpr (std::is_integral_v<P>) {
-        return reinterpret_cast<T*>(ptr);
-    } else {
-        return static_cast<T*>(ptr);
+template <typename T>
+inline constexpr size_t __size = sizeof(T);
+template <>
+inline constexpr size_t __size<void> = 1;
+
+template <typename T>
+inline Result<> checkR(const T* ptr, size_t cnt = 1, bool nullable = false) noexcept {
+    if (nullable && !ptr) {
+        return {};
     }
+    return checkAddr(ptr, __size<T> * cnt, PROT_READ);
 }
 
-template <typename T, typename P>
-inline Result<const T*> checkR(P ptr) noexcept {
-    auto p = __to_ptr<const T>(ptr);
+template <typename T, std::integral I>
+inline Result<const T*> checkR(I ptr) noexcept {
     __try
-        (checkAddr(p, sizeof(T), PROT_READ));
-    return p;
+        (checkAddr(reinterpret_cast<void*>(ptr), __size<T>, PROT_READ));
+    return reinterpret_cast<const T*>(ptr);
 }
 
-template <typename T, typename P>
-inline Result<std::span<const T>> checkR(P ptr, size_t cnt) noexcept {
-    auto p = __to_ptr<const T>(ptr);
-    __try
-        (checkAddr(p, sizeof(T) * cnt, PROT_READ));
-    return {p, cnt};
+template <typename T>
+inline Result<> checkW(T* ptr, size_t cnt = 1, bool nullable = false) noexcept {
+    if (nullable && !ptr) {
+        return {};
+    }
+    return checkAddr(ptr, __size<T> * cnt, PROT_WRITE);
 }
 
-template <typename T, typename P>
-inline Result<T*> checkW(P ptr) noexcept {
-    auto p = __to_ptr<T>(ptr);
+template <typename T, std::integral I>
+inline Result<T*> checkW(I ptr) noexcept {
     __try
-        (checkAddr(p, sizeof(T), PROT_WRITE));
-    return p;
+        (checkAddr(reinterpret_cast<void*>(ptr), __size<T>, PROT_WRITE));
+    return reinterpret_cast<T*>(ptr);
 }
 
-template <typename T, typename P>
-inline Result<std::span<T>> checkW(P ptr, size_t cnt) noexcept {
-    auto p = __to_ptr<T>(ptr);
-    __try
-        (checkAddr(p, sizeof(T) * cnt, PROT_WRITE));
-    return {p, cnt};
+inline Result<> checkE(void* ptr) noexcept {
+    return checkAddr(ptr, 1, PROT_EXEC);
 }
 
-template <typename T, typename P>
-inline Result<T*> checkRW(P ptr) noexcept {
-    auto p = __to_ptr<T>(ptr);
-    __try
-        (checkAddr(p, sizeof(T), PROT_READ | PROT_WRITE));
-    return p;
-}
-
-template <typename T, typename P>
-inline Result<std::span<T>> checkRW(P ptr, size_t cnt) noexcept {
-    auto p = __to_ptr<T>(ptr);
-    __try
-        (checkAddr(p, sizeof(T) * cnt, PROT_READ | PROT_WRITE));
-    return {p, cnt};
-}
-
-template <typename P>
-inline Result<void*> checkE(P ptr) noexcept {
-    __try
-        (checkAddr(__to_ptr(ptr), 1, PROT_EXEC));
-    return __to_ptr(ptr);
+template <typename I>
+inline Result<> checkE(I ptr) noexcept {
+    return checkAddr(reinterpret_cast<void*>(ptr), 1, PROT_EXEC);
 }
 
 }  // namespace nyan::task

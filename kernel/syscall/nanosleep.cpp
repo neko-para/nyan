@@ -1,14 +1,15 @@
 #include <nyan/syscall.h>
 
+#include "../task/mod.hpp"
 #include "../task/scheduler.hpp"
-#include "utils.hpp"
 
 namespace nyan::syscall {
 
 int nanosleep(const timespec* rqtp, timespec* rmtp) {
-    if (!utils::validateReadAuto(rqtp) || !utils::validateWriteAuto(rmtp, 1, true)) {
-        return SYS_EFAULT;
-    }
+    __try
+        (task::checkR(rqtp));
+    __try
+        (task::checkW(rmtp, 1, true));
 
     if (rqtp->tv_sec < 0 || rqtp->tv_nsec < 0 || rqtp->tv_nsec >= 1000000000L) {
         return SYS_EINVAL;
