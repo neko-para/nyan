@@ -159,4 +159,11 @@ Result<> kill(pid_t pid, int sig) noexcept {
     }
 }
 
+Result<> checkAddr(const void* ptr, size_t size, uint32_t prot) noexcept {
+    if (!__scheduler->__current->vmSpace.validate(paging::VirtualAddress{ptr}, size, prot)) {
+        return SYS_EFAULT;
+    }
+    return {};
+}
+
 }  // namespace nyan::task
