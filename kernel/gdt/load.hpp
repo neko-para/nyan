@@ -21,6 +21,6 @@ inline bool isRing3(size_t seg) noexcept {
 }
 
 void load();
-void setTls(const Segment& seg);
+extern "C" void setTls(const Segment& seg);
 
 }  // namespace nyan::gdt

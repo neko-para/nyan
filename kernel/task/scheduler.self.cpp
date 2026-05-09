@@ -51,11 +51,9 @@ void Scheduler::yield() noexcept {
         }
         switchToTask(next);
         __current->state = State::S_Running;
-        gdt::setTls(__current->tls);
     } else if (__current->state != State::S_Running) {
         switchToTask(__all_tasks[KP_Idle]);
         __current->state = State::S_Running;
-        gdt::setTls(__current->tls);
     }
 }
 

@@ -15,7 +15,6 @@ namespace nyan::task {
 
 void taskWrapper(int (*func)(void* param), void* param) noexcept {
     __scheduler->__current->state = State::S_Running;
-    gdt::setTls(__scheduler->__current->tls);
     arch::sti();
 
     auto code = func(param);

@@ -33,6 +33,11 @@ switchToTask:
     mov %eax, %cr3
 
 .done:
+    leal 12(%esi), %eax
+    pushl %eax
+    call setTls
+    addl $4, %esp
+
     popl %ebp
     popl %edi
     popl %esi

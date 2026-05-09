@@ -23,6 +23,8 @@ struct TaskControlBlockMetaInfo {
     uint32_t userEsp;
     paging::PhysicalAddress cr3;
     uint32_t kernelEsp;
+    gdt::Segment tls;
+
     State state;
     BlockReason blockReason;
     WakeReason wakeReason;
@@ -51,8 +53,6 @@ struct TaskControlBlock : public TaskControlBlockMetaInfo,
 
     TaskSignalInfo __signal;
     TaskFileInfo __file;
-
-    gdt::Segment tls;
 
     std::string name;
     paging::VirtualAddress brkBase;

@@ -123,6 +123,11 @@ int main() {
                     if (isBuiltin(cmd.__argv[0])) {
                         doBuiltin(cmd.__argv);
                     } else {
+                        for (size_t j = 0; j + 1 < cmds.size(); j++) {
+                            close(pipes[j][0]);
+                            close(pipes[j][1]);
+                        }
+
                         auto argv = toCArgv(cmd.__argv);
                         execvpe(argv[0], argv.data(), environ);
                         std::cout << "launch failed" << std::endl;
