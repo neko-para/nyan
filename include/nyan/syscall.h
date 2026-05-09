@@ -61,8 +61,17 @@ sighandler_t signal(int sig, sighandler_t handler);
 // 54
 int ioctl(int fd, uint32_t request, uint32_t param);
 
+// 57
+int setpgid(pid_t pid, pid_t pgid);
+
 // 63
 int dup2(int fd, int newFd);
+
+// 64
+pid_t getppid();
+
+// 65
+pid_t getpgrp();
 
 // 90 not impl yet
 void* mmap(void* addr, size_t length, int prot, int flags, int fd, off_t offset);
@@ -75,6 +84,9 @@ pid_t wait4(pid_t pid, int* stat_loc, int options, struct rusage* ru);
 
 // 119
 void sigreturn(void* frame);
+
+// 132
+pid_t getpgid(pid_t pid);
 
 // 145
 ssize_t readv(int fd, const struct iovec* iov, size_t iovcnt);

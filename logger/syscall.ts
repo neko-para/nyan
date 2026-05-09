@@ -179,6 +179,14 @@ export const syscallTable: Record<number, SyscallDef> = {
             { name: 'param', type: 'uint' }
         ]
     },
+    57: {
+        name: 'setpgid',
+        ret: 'int',
+        args: [
+            { name: 'pid', type: 'pid' },
+            { name: 'pgid', type: 'pid' }
+        ]
+    },
     63: {
         name: 'dup2',
         ret: 'fd',
@@ -187,6 +195,8 @@ export const syscallTable: Record<number, SyscallDef> = {
             { name: 'newFd', type: 'fd' }
         ]
     },
+    64: { name: 'getppid', ret: 'pid', args: [] },
+    65: { name: 'getpgrp', ret: 'pid', args: [] },
     91: {
         name: 'munmap',
         ret: 'int',
@@ -206,6 +216,11 @@ export const syscallTable: Record<number, SyscallDef> = {
         ]
     },
     119: { name: 'sigreturn', ret: 'int', args: [] },
+    132: {
+        name: 'getpgid',
+        ret: 'pid',
+        args: [{ name: 'pid', type: 'pid' }]
+    },
     145: {
         name: 'readv',
         ret: 'int',

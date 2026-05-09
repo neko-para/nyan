@@ -278,8 +278,17 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
         case 54:
             CALL(ioctl);
             break;
+        case 57:
+            CALL(setpgid);
+            break;
         case 63:
             CALL(dup2);
+            break;
+        case 64:
+            CALL(getppid);
+            break;
+        case 65:
+            CALL(getpgrp);
             break;
         // case 90:
         //     CALL(mmap);
@@ -292,6 +301,9 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             break;
         case 119:
             syscall::sigreturn(frame);
+            break;
+        case 132:
+            CALL(getpgid);
             break;
         case 145:
             CALL(readv);
