@@ -29,4 +29,8 @@ Result<> FdObj::ioctl(uint32_t req, uint32_t param) const noexcept {
     return __file->ioctl(req, param);
 }
 
+Result<off_t> FdObj::seek(off_t offset, int whence) const noexcept {
+    return __file->seek(offset, whence);
+}
+
 }  // namespace nyan::fs

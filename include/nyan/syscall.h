@@ -1,6 +1,7 @@
 #pragma once
 
 #include <dirent.h>
+#include <fcntl.h>
 #include <nyan/errno.h>
 #include <signal.h>
 #include <stdint.h>
@@ -87,6 +88,9 @@ void sigreturn(interrupt::SyscallFrame* frame);
 
 // 132
 pid_t getpgid(pid_t pid);
+
+// 140
+int llseek(int fd, uint32_t offset_high, uint32_t offset_low, loff_t* result, int whence);
 
 // 145
 ssize_t readv(int fd, const struct iovec* iov, size_t iovcnt);

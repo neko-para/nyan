@@ -117,6 +117,10 @@ Result<> PipeObj::ioctl(uint32_t, uint32_t) noexcept {
     return SYS_ENOTTY;
 }
 
+Result<off_t> PipeObj::seek(off_t, int) noexcept {
+    return SYS_ESPIPE;
+}
+
 void PipeObj::onFdClose() noexcept {
     switch (__mode & O_ACCMODE) {
         case O_RDONLY:

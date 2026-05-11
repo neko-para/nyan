@@ -31,6 +31,11 @@ void exceptionHandlerImpl(SyscallFrame* frame) {
 
         case E_GeneralProtectionFault:
             if (gdt::isRing3(frame->cs)) {
+                volatile int gpf_wait = 1;
+                while (gpf_wait) {
+                    asm volatile("pause");
+                }
+
                 task::__scheduler->raise(SIGSEGV);
                 break;
             }
@@ -304,6 +309,9 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             break;
         case 132:
             CALL(getpgid);
+            break;
+        case 140:
+            CALL(llseek);
             break;
         case 145:
             CALL(readv);

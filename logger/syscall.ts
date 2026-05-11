@@ -236,6 +236,17 @@ export const syscallTable: Record<number, SyscallDef> = {
         ret: 'pid',
         args: [{ name: 'pid', type: 'pid' }]
     },
+    140: {
+        name: 'llseek',
+        ret: 'int',
+        args: [
+            { name: 'fd', type: 'fd' },
+            { name: 'offset_high', type: 'uint' },
+            { name: 'offset_low', type: 'uint' },
+            { name: 'result', type: 'ptr' },
+            { name: 'whence', type: 'int' }
+        ]
+    },
     145: {
         name: 'readv',
         ret: 'int',
