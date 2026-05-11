@@ -12,6 +12,7 @@
 #include "../task/scheduler.hpp"
 #include "../task/tcb.hpp"
 #include "../timer/load.hpp"
+#include "dispatch.hpp"
 #include "load.hpp"
 
 namespace nyan::interrupt {
@@ -113,115 +114,6 @@ void exceptionHandlerImpl(SyscallFrame* frame) {
     }
 }
 
-template <typename T>
-static T castArg(uint32_t val) {
-    if constexpr (std::is_pointer_v<T>) {
-        return reinterpret_cast<T>(val);
-    } else {
-        return static_cast<T>(val);
-    }
-}
-
-template <typename T>
-static uint32_t castRet(T val) {
-    if constexpr (std::is_pointer_v<T>) {
-        return reinterpret_cast<uint32_t>(val);
-    } else {
-        return static_cast<uint32_t>(val);
-    }
-}
-
-template <typename Ret>
-static void call(SyscallFrame* frame, Ret (*func)()) {
-    if constexpr (std::same_as<Ret, void>) {
-        frame->eax = 0;
-        func();
-    } else {
-        frame->eax = castRet(func());
-    }
-}
-
-template <typename Ret, typename Arg1>
-static void call(SyscallFrame* frame, Ret (*func)(Arg1)) {
-    auto a1 = castArg<Arg1>(frame->ebx);
-    if constexpr (std::same_as<Ret, void>) {
-        frame->eax = 0;
-        func(a1);
-    } else {
-        frame->eax = castRet(func(a1));
-    }
-}
-
-template <typename Ret, typename Arg1, typename Arg2>
-static void call(SyscallFrame* frame, Ret (*func)(Arg1, Arg2)) {
-    auto a1 = castArg<Arg1>(frame->ebx);
-    auto a2 = castArg<Arg2>(frame->ecx);
-    if constexpr (std::same_as<Ret, void>) {
-        frame->eax = 0;
-        func(a1, a2);
-    } else {
-        frame->eax = castRet(func(a1, a2));
-    }
-}
-
-template <typename Ret, typename Arg1, typename Arg2, typename Arg3>
-static void call(SyscallFrame* frame, Ret (*func)(Arg1, Arg2, Arg3)) {
-    auto a1 = castArg<Arg1>(frame->ebx);
-    auto a2 = castArg<Arg2>(frame->ecx);
-    auto a3 = castArg<Arg3>(frame->edx);
-    if constexpr (std::same_as<Ret, void>) {
-        frame->eax = 0;
-        func(a1, a2, a3);
-    } else {
-        frame->eax = castRet(func(a1, a2, a3));
-    }
-}
-
-template <typename Ret, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
-static void call(SyscallFrame* frame, Ret (*func)(Arg1, Arg2, Arg3, Arg4)) {
-    auto a1 = castArg<Arg1>(frame->ebx);
-    auto a2 = castArg<Arg2>(frame->ecx);
-    auto a3 = castArg<Arg3>(frame->edx);
-    auto a4 = castArg<Arg4>(frame->esi);
-    if constexpr (std::same_as<Ret, void>) {
-        frame->eax = 0;
-        func(a1, a2, a3, a4);
-    } else {
-        frame->eax = castRet(func(a1, a2, a3, a4));
-    }
-}
-
-template <typename Ret, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
-static void call(SyscallFrame* frame, Ret (*func)(Arg1, Arg2, Arg3, Arg4, Arg5)) {
-    auto a1 = castArg<Arg1>(frame->ebx);
-    auto a2 = castArg<Arg2>(frame->ecx);
-    auto a3 = castArg<Arg3>(frame->edx);
-    auto a4 = castArg<Arg4>(frame->esi);
-    auto a5 = castArg<Arg5>(frame->edi);
-    if constexpr (std::same_as<Ret, void>) {
-        frame->eax = 0;
-        func(a1, a2, a3, a4, a5);
-    } else {
-        frame->eax = castRet(func(a1, a2, a3, a4, a5));
-    }
-}
-
-template <typename Ret, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
-static void call(SyscallFrame* frame, Ret (*func)(Arg1, Arg2, Arg3, Arg4, Arg5, Arg6)) {
-    auto a1 = castArg<Arg1>(frame->ebx);
-    auto a2 = castArg<Arg2>(frame->ecx);
-    auto a3 = castArg<Arg3>(frame->edx);
-    auto a4 = castArg<Arg4>(frame->esi);
-    auto a5 = castArg<Arg5>(frame->edi);
-    auto a6 = castArg<Arg6>(frame->ebp);
-    if constexpr (std::same_as<Ret, void>) {
-        frame->eax = 0;
-        func(a1, a2, a3, a4, a5, a6);
-    } else {
-        frame->eax = castRet(func(a1, a2, a3, a4, a5, a6));
-    }
-}
-
 #define CALL(func) call(frame, syscall::func);
 
 extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
@@ -238,7 +130,7 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             CALL(exit)
             break;
         case 2:
-            frame->eax = syscall::fork(frame);
+            CALL(fork);
             break;
         case 3:
             CALL(read)
@@ -256,8 +148,7 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             CALL(waitpid)
             break;
         case 11:
-            frame->eax = syscall::execve(castArg<const char*>(frame->ebx), castArg<char* const*>(frame->ecx),
-                                         castArg<char* const*>(frame->edx), frame);
+            CALL(execve);
             break;
         case 12:
             CALL(chdir);
@@ -305,7 +196,7 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             CALL(wait4);
             break;
         case 119:
-            syscall::sigreturn(frame);
+            CALL(sigreturn);
             break;
         case 132:
             CALL(getpgid);
