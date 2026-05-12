@@ -29,7 +29,7 @@ static void loadInitFs() {
     for (size_t i = 0; i < console::__tty_count; i++) {
         auto name = lib::format("tty{}", i);
 
-        dev->link(name, lib::makeRef<RamFSCharDevVNode>(console::__all_tty_devices[i], dev->__super_block, 0755)) |
+        dev->link(name, lib::makeRef<RamFSCharDevVNode>(console::__all_tty_devices[i], dev->__super_block, 0644)) |
             __ignore;
     }
 

@@ -4,8 +4,8 @@
 #include <fcntl.h>
 #include <nyan/errno.h>
 #include <nyan/signal.h>
-#include <signal.h>
 #include <stdint.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/uio.h>
 
@@ -107,6 +107,9 @@ char* getcwd(char* buf, size_t size);
 
 // 192
 void* mmap_pgoff(void* addr, size_t len, int prot, int flags, int fd, size_t pgoff);
+
+// 195
+int stat64(const char* filename, struct stat* statbuf);
 
 // 220
 int getdents64(int fd, struct dirent* dirent, size_t count);

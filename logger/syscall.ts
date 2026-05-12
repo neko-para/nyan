@@ -313,6 +313,14 @@ export const syscallTable: Record<number, SyscallDef> = {
             { name: 'pgoffset', type: 'uint' }
         ]
     },
+    195: {
+        name: 'stat64',
+        ret: 'int',
+        args: [
+            { name: 'path', type: 'str' },
+            { name: 'buf', type: 'ptr' }
+        ]
+    },
     220: {
         name: 'getdents64',
         ret: 'int',

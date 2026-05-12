@@ -19,8 +19,8 @@ const headerRows: string[] = [
 #include <fcntl.h>
 #include <nyan/errno.h>
 #include <nyan/signal.h>
-#include <signal.h>
 #include <stdint.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/uio.h>
 

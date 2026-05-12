@@ -219,6 +219,13 @@
         fd: int @fd
         pgoff: size_t
 
+195:
+    name: stat64
+    ret: int
+    args:
+        filename: const char*
+        statbuf: struct stat*
+
 220:
     name: getdents64
     ret: int

@@ -117,6 +117,11 @@ void exceptionHandlerImpl(SyscallFrame* frame) {
 #define CALL(func) call(frame, syscall::func)
 
 extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
+    if (frame->eax == 383) {  // statx
+        frame->eax = SYS_ENOSYS;
+        return;
+    }
+
     // 简单处理, syscall中不可重入中断
     arch::InterruptGuard guard;
 
@@ -219,6 +224,9 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             break;
         case 192:
             CALL(mmap_pgoff);
+            break;
+        case 195:
+            CALL(stat64);
             break;
         case 220:
             CALL(getdents64);
