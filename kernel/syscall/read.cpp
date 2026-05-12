@@ -5,7 +5,7 @@
 
 namespace nyan::syscall {
 
-ssize_t read(int fd, void* buf, size_t size) {
+ssize_t read(int fd, char* buf, size_t size) {
     if (size > INT_MAX) {
         return SYS_EINVAL;
     }

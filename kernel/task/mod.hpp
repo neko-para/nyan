@@ -30,7 +30,7 @@ Result<> kill(pid_t pid, int sig) noexcept;
 
 Result<> checkAddr(const void* ptr, size_t size, uint32_t prot) noexcept;
 Result<std::string> checkString(const char* str) noexcept;
-Result<std::vector<std::string>> checkArgv(char* const argv[]) noexcept;
+Result<std::vector<std::string>> checkArgv(const char* const* argv) noexcept;
 
 #pragma mark - check utils
 

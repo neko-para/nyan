@@ -6,7 +6,7 @@
 
 namespace nyan::syscall {
 
-void* mmap2(void* addr, size_t length, int prot, int flags, int, uint32_t) {
+void* mmap_pgoff(void* addr, size_t length, int prot, int flags, int, size_t) {
     if (flags & MAP_FILE) {
         return SYS_ENOSYS;
     }

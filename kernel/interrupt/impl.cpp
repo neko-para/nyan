@@ -114,7 +114,7 @@ void exceptionHandlerImpl(SyscallFrame* frame) {
     }
 }
 
-#define CALL(func) call(frame, syscall::func);
+#define CALL(func) call(frame, syscall::func)
 
 extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
     // 简单处理, syscall中不可重入中断
@@ -126,17 +126,18 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
     logger::emitSyscall(frame->eip, logger::SR_Enter, content);
 
     switch (frame->eax) {
+#pragma mark - BEGIN
         case 1:
-            CALL(exit)
+            CALL(exit);
             break;
         case 2:
             CALL(fork);
             break;
         case 3:
-            CALL(read)
+            CALL(read);
             break;
         case 4:
-            CALL(write)
+            CALL(write);
             break;
         case 5:
             CALL(open);
@@ -145,7 +146,7 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             CALL(close);
             break;
         case 7:
-            CALL(waitpid)
+            CALL(waitpid);
             break;
         case 11:
             CALL(execve);
@@ -154,10 +155,10 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             CALL(chdir);
             break;
         case 20:
-            CALL(getpid)
+            CALL(getpid);
             break;
         case 37:
-            CALL(kill)
+            CALL(kill);
             break;
         case 41:
             CALL(dup);
@@ -166,10 +167,7 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             CALL(pipe);
             break;
         case 45:
-            CALL(brk)
-            break;
-        case 48:
-            CALL(signal)
+            CALL(brk);
             break;
         case 54:
             CALL(ioctl);
@@ -186,9 +184,6 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
         case 65:
             CALL(getpgrp);
             break;
-        // case 90:
-        //     CALL(mmap);
-        //     break;
         case 91:
             CALL(munmap);
             break;
@@ -211,7 +206,7 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             CALL(writev);
             break;
         case 162:
-            CALL(nanosleep)
+            CALL(nanosleep);
             break;
         case 174:
             CALL(rt_sigaction);
@@ -223,7 +218,7 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             CALL(getcwd);
             break;
         case 192:
-            CALL(mmap2);
+            CALL(mmap_pgoff);
             break;
         case 220:
             CALL(getdents64);
@@ -249,6 +244,7 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
         case 512:
             CALL(spawn);
             break;
+#pragma mark - END
         default:
             arch::kprint("syscall eax={}(missing) from {} {}\n", frame->eax, task::__scheduler->__current->pid,
                          task::__scheduler->__current->name);

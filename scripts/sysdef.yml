@@ -1,0 +1,273 @@
+1:
+    name: exit
+    ret: never
+    args:
+        error_code: int
+
+2:
+    name: fork
+    ret: pid_t
+    args:
+        frame: frame
+
+3:
+    name: read
+    ret: ssize_t
+    args:
+        fd: int @fd
+        buf: char*
+        count: size_t
+
+4:
+    name: write
+    ret: ssize_t
+    args:
+        fd: int @fd
+        buf: const char*
+        count: size_t
+
+5:
+    name: open
+    ret: int @fd
+    args:
+        filename: const char*
+        flags: int
+        mode: mode_t
+
+6:
+    name: close
+    ret: int
+    args:
+        fd: int @fd
+
+7:
+    name: waitpid
+    ret: pid_t
+    args:
+        pid: pid_t
+        stat_addr: int*
+        options: int
+
+11:
+    name: execve
+    ret: int
+    args:
+        filename: const char*
+        argv: const char* const*
+        envp: const char* const*
+        frame: frame
+
+12:
+    name: chdir
+    ret: int
+    args:
+        filename: const char*
+
+20:
+    name: getpid
+    ret: pid_t
+
+37:
+    name: kill
+    ret: int
+    args:
+        pid: pid_t
+        sig: int @sig
+
+41:
+    name: dup
+    ret: int @fd
+    args:
+        fildes: int @fd
+
+42:
+    name: pipe
+    ret: int
+    args:
+        fildes: int*
+
+45:
+    name: brk
+    ret: void*
+    args:
+        brk: void*
+
+54:
+    name: ioctl
+    ret: int
+    args:
+        fd: int @fd
+        cmd: unsigned
+        arg: uint32_t
+
+57:
+    name: setpgid
+    ret: int
+    args:
+        pid: pid_t
+        pgid: pid_t
+
+63:
+    name: dup2
+    ret: int
+    args:
+        oldfd: int @fd
+        newfd: int @fd
+
+64:
+    name: getppid
+    ret: pid_t
+
+65:
+    name: getpgrp
+    ret: pid_t
+
+91:
+    name: munmap
+    ret: int
+    args:
+        addr: void*
+        len: size_t
+
+114:
+    name: wait4
+    ret: pid_t
+    args:
+        upid: pid_t
+        stat_addr: int*
+        options: int
+        ru: struct rusage*
+
+119:
+    name: sigreturn
+    ret: void
+    args:
+        frame: frame
+
+132:
+    name: getpgid
+    ret: pid_t
+    args:
+        pid: pid_t
+
+140:
+    name: llseek
+    ret: int
+    args:
+        fd: int @fd
+        offset_high: uint32_t
+        offset_low: uint32_t
+        result: loff_t*
+        whence: int
+
+145:
+    name: readv
+    ret: ssize_t
+    args:
+        fd: int @fd
+        vec: const struct iovec*
+        vlen: size_t
+
+146:
+    name: writev
+    ret: ssize_t
+    args:
+        fd: int @fd
+        vec: const struct iovec*
+        vlen: size_t
+
+162:
+    name: nanosleep
+    ret: int
+    args:
+        rqtp: const struct timespec*
+        rmtp: struct timespec*
+
+174:
+    name: rt_sigaction
+    ret: int
+    args:
+        sig: int @sig
+        act: const struct sigaction*
+        oact: struct sigaction*
+        sigsetsize: size_t
+
+175:
+    name: rt_sigprocmask
+    ret: int
+    args:
+        how: int
+        nset: const sigset_t*
+        oset: sigset_t*
+        sigsetsize: size_t
+
+183:
+    name: getcwd
+    ret: char*
+    args:
+        buf: char*
+        size: size_t
+
+192:
+    name: mmap_pgoff
+    ret: void*
+    args:
+        addr: void*
+        len: size_t
+        prot: int
+        flags: int
+        fd: int @fd
+        pgoff: size_t
+
+220:
+    name: getdents64
+    ret: int
+    args:
+        fd: int @fd
+        dirent: struct dirent*
+        count: size_t
+
+221:
+    name: fcntl64
+    ret: int
+    args:
+        fd: int @fd
+        cmd: unsigned
+        arg: uint32_t
+
+224:
+    name: gettid
+    ret: pid_t
+
+238:
+    name: tkill
+    ret: int
+    args:
+        pid: pid_t
+        sig: int @sig
+
+243:
+    name: set_thread_area
+    ret: int
+    args:
+        u_info: uint32_t*
+
+252:
+    name: exit_group
+    ret: never
+    args:
+        error_code: int
+
+258:
+    name: set_tid_address
+    ret: int
+    args:
+        tidptr: int*
+
+512:
+    name: spawn
+    ret: pid_t
+    args:
+        name: const char*
+        argv: const char* const*
+        envp: const char* const*

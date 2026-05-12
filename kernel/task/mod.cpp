@@ -174,7 +174,7 @@ Result<std::string> checkString(const char* str) noexcept {
     return std::move(*res);
 }
 
-Result<std::vector<std::string>> checkArgv(char* const argv[]) noexcept {
+Result<std::vector<std::string>> checkArgv(const char* const* argv) noexcept {
     auto res = __scheduler->__current->vmSpace.validateReadonlyStringArray(paging::VirtualAddress{argv});
     if (!res) {
         return SYS_EFAULT;

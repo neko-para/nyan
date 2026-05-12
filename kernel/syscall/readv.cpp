@@ -20,7 +20,7 @@ ssize_t readv(int fd, const iovec* iov, size_t iovcnt) {
         if (!vec.iov_len) {
             continue;
         }
-        auto ret = syscall::read(fd, vec.iov_base, vec.iov_len);
+        auto ret = syscall::read(fd, reinterpret_cast<char*>(vec.iov_base), vec.iov_len);
         if (ret < 0) {
             return result > 0 ? result : ret;
         } else {

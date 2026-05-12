@@ -9,7 +9,10 @@
 
 namespace nyan::syscall {
 
-int execve(const char* __pathname, char* const __argv[], char* const __envp[], interrupt::SyscallFrame* frame) {
+int execve(const char* __pathname,
+           const char* const* __argv,
+           const char* const* __envp,
+           interrupt::SyscallFrame* frame) {
     auto pathname = __try(task::checkString(__pathname));
     auto argv = __try(task::checkArgv(__argv));
     auto envp = __try(task::checkArgv(__envp));

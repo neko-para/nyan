@@ -63,7 +63,7 @@ static void parseUserDescFlags(uint32_t udFlags, uint8_t& access, uint8_t& flags
     }
 }
 
-int set_thread_area(uint32_t user_desc[4]) {
+int set_thread_area(uint32_t* user_desc) {
     __try
         (task::checkW(user_desc, 4));
 
