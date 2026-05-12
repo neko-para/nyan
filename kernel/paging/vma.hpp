@@ -40,7 +40,9 @@ struct VMA : public RangeEntryBase {
                 if (__protect & PROT_WRITE) {
                     attr |= PTE_ReadWrite;
                 }
-                table->alloc(page, attr);
+                auto pAddr = table->alloc(page, attr);
+                MapperGuard mapper(pAddr);
+                memset(mapper.as<void>(), 0, 4096);
             });
         }
     }
