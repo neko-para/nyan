@@ -6,8 +6,8 @@
 
 namespace nyan::syscall {
 
-int ioctl(int fd, uint32_t request, uint32_t param) {
-    return __try(task::getFd(fd))->ioctl(request, param).merge();
+int ioctl(int fd, unsigned cmd, uint32_t arg) {
+    return __try(task::getFd(fd))->ioctl(cmd, arg).merge();
 }
 
 }  // namespace nyan::syscall

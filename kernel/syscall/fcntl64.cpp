@@ -6,12 +6,12 @@
 
 namespace nyan::syscall {
 
-int fcntl64(int fd, uint32_t request, uint32_t param) {
+int fcntl64(int fd, unsigned cmd, uint32_t arg) {
     auto fdobj = __try(task::getFd(fd));
 
-    switch (request) {
+    switch (cmd) {
         case F_SETFD:
-            fdobj->__close_on_exec = param & FD_CLOEXEC;
+            fdobj->__close_on_exec = arg & FD_CLOEXEC;
             return 0;
         case F_GETFD:
             return fdobj->__close_on_exec ? FD_CLOEXEC : 0;

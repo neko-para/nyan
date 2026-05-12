@@ -7,14 +7,14 @@
 
 namespace nyan::syscall {
 
-int rt_sigaction(int sig, const struct sigaction* act, struct sigaction* oldact, size_t sigsetsize) {
+int rt_sigaction(int sig, const struct sigaction* act, struct sigaction* oact, size_t sigsetsize) {
     if (sigsetsize != 8) {
         return SYS_EINVAL;
     }
     __try
         (task::checkR(act, 1, true));
     __try
-        (task::checkW(oldact, 1, true));
+        (task::checkW(oact, 1, true));
 
     if (sig < 1 || sig >= NSIG || sig == SIGKILL || sig == SIGSTOP) {
         return SYS_EINVAL;
@@ -42,7 +42,7 @@ int rt_sigaction(int sig, const struct sigaction* act, struct sigaction* oldact,
     }
 
     if (!task::__scheduler->__current->__signal.__signal_actions) {
-        if (!act && !oldact) {
+        if (!act && !oact) {
             return 0;
         }
         task::__scheduler->__current->__signal.ensureActions();
@@ -51,15 +51,15 @@ int rt_sigaction(int sig, const struct sigaction* act, struct sigaction* oldact,
     auto& entry = task::__scheduler->__current->__signal.__signal_actions->operator[](sig);
 
     // 输出旧的 sigaction
-    if (oldact) {
+    if (oact) {
         sigset_t sigset{};
         sigset.__bits[0] = entry.__mask & 0xFFFFFFFF;
         sigset.__bits[1] = (entry.__mask >> 32) & 0xFFFFFFFF;
 
-        oldact->sa_handler = entry.__handler;
-        oldact->sa_mask = sigset;
-        oldact->sa_flags = entry.__flags;
-        oldact->sa_restorer = nullptr;
+        oact->sa_handler = entry.__handler;
+        oact->sa_mask = sigset;
+        oact->sa_flags = entry.__flags;
+        oact->sa_restorer = nullptr;
     }
 
     if (act) {

@@ -5,14 +5,14 @@
 
 namespace nyan::syscall {
 
-int munmap(void* addr, size_t length) {
+int munmap(void* addr, size_t len) {
     auto begin = paging::VirtualAddress{addr};
     if (begin.thisPage() != begin) {
         return SYS_EINVAL;
     }
-    length = (length + 0xFFF) & (~0xFFF);
+    len = (len + 0xFFF) & (~0xFFF);
     auto pageDir = paging::UserDirectory::from(task::__scheduler->__current->cr3);
-    if (task::__scheduler->__current->vmSpace.erase(paging::VirtualAddress{addr}, length, pageDir)) {
+    if (task::__scheduler->__current->vmSpace.erase(paging::VirtualAddress{addr}, len, pageDir)) {
         return 0;
     } else {
         return SYS_EINVAL;

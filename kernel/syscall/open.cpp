@@ -7,10 +7,10 @@
 
 namespace nyan::syscall {
 
-int open(const char* __pathname, int flags, mode_t mode) {
-    auto pathname = __try(task::checkString(__pathname));
+int open(const char* __filename, int flags, mode_t mode) {
+    auto filename = __try(task::checkString(__filename));
 
-    auto file = __try(fs::open(pathname, flags, mode));
+    auto file = __try(fs::open(filename, flags, mode));
 
     auto [fd, fdObj] = __try(task::installFile(file));
     if (flags & O_CLOEXEC) {

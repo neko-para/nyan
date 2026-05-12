@@ -5,7 +5,7 @@
 
 namespace nyan::syscall {
 
-ssize_t write(int fd, const char* buf, size_t size) {
+ssize_t write(int fd, const void* buf, size_t size) {
     if (size > INT_MAX) {
         return SYS_EINVAL;
     }

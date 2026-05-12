@@ -51,7 +51,7 @@ struct VNode : public lib::Shared {
 
     // General
     virtual Result<> stat(struct stat* buf) noexcept = 0;
-    virtual Result<> ioctl(uint32_t req, uint32_t param) noexcept { return SYS_ENOTTY; }
+    virtual Result<> ioctl(unsigned cmd, uint32_t arg) noexcept { return SYS_ENOTTY; }
     virtual Result<lib::Ref<VNodeFileObj>> open(lib::Ref<VNode> self, uint32_t mode) noexcept;
 };
 

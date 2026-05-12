@@ -20,8 +20,8 @@ Result<ssize_t> VNodeFileObj::write(const void* buf, size_t size) noexcept {
     return ret;
 }
 
-Result<> VNodeFileObj::ioctl(uint32_t req, uint32_t param) noexcept {
-    return __vnode->ioctl(req, param);
+Result<> VNodeFileObj::ioctl(unsigned cmd, uint32_t arg) noexcept {
+    return __vnode->ioctl(cmd, arg);
 }
 
 Result<off_t> VNodeFileObj::seek(off_t offset, int whence) noexcept {

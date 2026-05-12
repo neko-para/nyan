@@ -20,7 +20,7 @@ ssize_t writev(int fd, const struct iovec* iov, size_t iovcnt) {
         if (!vec.iov_len) {
             continue;
         }
-        auto ret = syscall::write(fd, reinterpret_cast<const char*>(vec.iov_base), vec.iov_len);
+        auto ret = syscall::write(fd, vec.iov_base, vec.iov_len);
         if (ret < 0) {
             return result > 0 ? result : ret;
         } else {

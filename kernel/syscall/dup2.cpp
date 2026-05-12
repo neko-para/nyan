@@ -4,14 +4,14 @@
 
 namespace nyan::syscall {
 
-int dup2(int fd, int newFd) {
-    auto oldFdObj = __try(task::getFd(fd));
-    if (fd == newFd) {
-        return fd;
+int dup2(int oldfd, int newfd) {
+    auto oldFdObj = __try(task::getFd(oldfd));
+    if (oldfd == newfd) {
+        return oldfd;
     }
     __try
-        (task::installFdTo(oldFdObj, newFd));
-    return newFd;
+        (task::installFdTo(oldFdObj, newfd));
+    return newfd;
 }
 
 }  // namespace nyan::syscall

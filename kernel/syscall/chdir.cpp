@@ -5,9 +5,9 @@
 
 namespace nyan::syscall {
 
-int chdir(const char* __pathname) {
-    auto pathname = __try(task::checkString(__pathname));
-    auto dentry = __try(fs::resolve(pathname));
+int chdir(const char* __filename) {
+    auto filename = __try(task::checkString(__filename));
+    auto dentry = __try(fs::resolve(filename));
     __try
         (task::setCwd(dentry));
     return 0;

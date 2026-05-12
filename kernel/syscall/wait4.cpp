@@ -2,8 +2,8 @@
 
 namespace nyan::syscall {
 
-pid_t wait4(pid_t pid, int* stat_loc, int options, struct rusage*) {
-    return waitpid(pid, stat_loc, options);
+pid_t wait4(pid_t pid, int* stat_addr, int options, struct rusage*) {
+    return waitpid(pid, stat_addr, options);
 }
 
 }  // namespace nyan::syscall

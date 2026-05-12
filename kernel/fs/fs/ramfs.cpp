@@ -176,8 +176,8 @@ Result<> RamFSCharDevVNode::stat(struct stat* buf) noexcept {
     return {};
 }
 
-Result<> RamFSCharDevVNode::ioctl(uint32_t req, uint32_t param) noexcept {
-    return __device->ioctl(req, param);
+Result<> RamFSCharDevVNode::ioctl(unsigned cmd, uint32_t arg) noexcept {
+    return __device->ioctl(cmd, arg);
 }
 
 lib::Ref<MountEntry> RamFS::mount(Device*, const char*) noexcept {

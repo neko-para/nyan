@@ -2,8 +2,8 @@
 
 namespace nyan::syscall {
 
-int tkill(pid_t tid, int sig) {
-    return kill(tid, sig);
+int tkill(pid_t pid, int sig) {
+    return kill(pid, sig);
 }
 
 }  // namespace nyan::syscall

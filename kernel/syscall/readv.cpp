@@ -4,23 +4,23 @@
 
 namespace nyan::syscall {
 
-ssize_t readv(int fd, const iovec* iov, size_t iovcnt) {
-    if (!iovcnt || iovcnt > 16) {
+ssize_t readv(int fd, const iovec* vec, size_t vlen) {
+    if (!vlen || vlen > 16) {
         return SYS_EINVAL;
     }
     __try
-        (task::checkR(iov, iovcnt));
+        (task::checkR(vec, vlen));
 
     std::vector<iovec> vecs;
-    vecs.resize(iovcnt);
-    std::copy_n(iov, iovcnt, vecs.data());
+    vecs.resize(vlen);
+    std::copy_n(vec, vlen, vecs.data());
 
     size_t result = 0;
     for (const auto& vec : vecs) {
         if (!vec.iov_len) {
             continue;
         }
-        auto ret = syscall::read(fd, reinterpret_cast<char*>(vec.iov_base), vec.iov_len);
+        auto ret = syscall::read(fd, vec.iov_base, vec.iov_len);
         if (ret < 0) {
             return result > 0 ? result : ret;
         } else {

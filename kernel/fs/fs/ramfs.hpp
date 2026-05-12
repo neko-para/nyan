@@ -70,7 +70,7 @@ struct RamFSCharDevVNode : public RamFSVNode {
     virtual Result<ssize_t> write(const void* buf, size_t size, off_t offset) noexcept override;
 
     virtual Result<> stat(struct stat* buf) noexcept override;
-    virtual Result<> ioctl(uint32_t req, uint32_t param) noexcept override;
+    virtual Result<> ioctl(unsigned cmd, uint32_t arg) noexcept override;
 };
 
 struct RamFS : public FileSystem {

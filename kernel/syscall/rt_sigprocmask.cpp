@@ -7,34 +7,34 @@
 
 namespace nyan::syscall {
 
-int rt_sigprocmask(int how, const sigset_t* set, sigset_t* oldset, size_t sigsetsize) {
+int rt_sigprocmask(int how, const sigset_t* nset, sigset_t* oset, size_t sigsetsize) {
     if (sigsetsize != 8) {
         return SYS_EINVAL;
     }
     __try
-        (task::checkR(set, 1, true));
+        (task::checkR(nset, 1, true));
     __try
-        (task::checkW(oldset, 1, true));
+        (task::checkW(oset, 1, true));
 
-    if (oldset) {
-        oldset->__bits[0] = task::__scheduler->__current->__signal.__signal_mask & 0xFFFFFFFF;
-        oldset->__bits[1] = (task::__scheduler->__current->__signal.__signal_mask >> 32) & 0xFFFFFFFF;
+    if (oset) {
+        oset->__bits[0] = task::__scheduler->__current->__signal.__signal_mask & 0xFFFFFFFF;
+        oset->__bits[1] = (task::__scheduler->__current->__signal.__signal_mask >> 32) & 0xFFFFFFFF;
     }
-    if (!set) {
+    if (!nset) {
         return 0;
     }
     switch (how) {
         case SIG_BLOCK:
-            task::__scheduler->__current->__signal.__signal_mask |= set->__bits[0];
-            task::__scheduler->__current->__signal.__signal_mask |= static_cast<uint64_t>(set->__bits[1]) << 32;
+            task::__scheduler->__current->__signal.__signal_mask |= nset->__bits[0];
+            task::__scheduler->__current->__signal.__signal_mask |= static_cast<uint64_t>(nset->__bits[1]) << 32;
             return 0;
         case SIG_UNBLOCK:
-            task::__scheduler->__current->__signal.__signal_mask &= ~set->__bits[0];
-            task::__scheduler->__current->__signal.__signal_mask &= static_cast<uint64_t>(~set->__bits[1]) << 32;
+            task::__scheduler->__current->__signal.__signal_mask &= ~nset->__bits[0];
+            task::__scheduler->__current->__signal.__signal_mask &= static_cast<uint64_t>(~nset->__bits[1]) << 32;
             return 0;
         case SIG_SETMASK:
             task::__scheduler->__current->__signal.__signal_mask =
-                static_cast<uint64_t>(set->__bits[0]) | (static_cast<uint64_t>(set->__bits[1]) << 32);
+                static_cast<uint64_t>(nset->__bits[0]) | (static_cast<uint64_t>(nset->__bits[1]) << 32);
             return 0;
         default:
             return SYS_EINVAL;

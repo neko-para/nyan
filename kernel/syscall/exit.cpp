@@ -4,8 +4,8 @@
 
 namespace nyan::syscall {
 
-void exit(int code) {
-    task::__scheduler->exit(code);
+void exit(int error_code) {
+    task::__scheduler->exit(error_code);
 }
 
 }  // namespace nyan::syscall

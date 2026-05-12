@@ -25,14 +25,14 @@ Result<ssize_t> TtyDevice::write(const void* buf, size_t size) noexcept {
     return size;
 }
 
-Result<> TtyDevice::ioctl(uint32_t req, uint32_t param) noexcept {
-    switch (req) {
+Result<> TtyDevice::ioctl(unsigned cmd, uint32_t arg) noexcept {
+    switch (cmd) {
         case TIOCGPGRP: {
-            *__try(task::checkW<pid_t>(param)) = __tty->__foreground_pgid;
+            *__try(task::checkW<pid_t>(arg)) = __tty->__foreground_pgid;
             return {};
         }
         case TIOCSPGRP: {
-            auto pgid = *__try(task::checkR<pid_t>(param));
+            auto pgid = *__try(task::checkR<pid_t>(arg));
             __try
                 (task::findTaskGroup(pgid));
             __tty->__foreground_pgid = pgid;
@@ -40,7 +40,7 @@ Result<> TtyDevice::ioctl(uint32_t req, uint32_t param) noexcept {
             return {};
         }
         case TIOCGWINSZ: {
-            winsize* ptr = __try(task::checkW<winsize>(param));
+            winsize* ptr = __try(task::checkW<winsize>(arg));
             ptr->ws_row = __height;
             ptr->ws_col = __width;
             ptr->ws_xpixel = 0;

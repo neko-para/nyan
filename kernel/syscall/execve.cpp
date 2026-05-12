@@ -9,15 +9,15 @@
 
 namespace nyan::syscall {
 
-int execve(const char* __pathname,
+int execve(const char* __filename,
            const char* const* __argv,
            const char* const* __envp,
            interrupt::SyscallFrame* frame) {
-    auto pathname = __try(task::checkString(__pathname));
+    auto filename = __try(task::checkString(__filename));
     auto argv = __try(task::checkArgv(__argv));
     auto envp = __try(task::checkArgv(__envp));
 
-    auto dentry = __try(fs::resolve(pathname));
+    auto dentry = __try(fs::resolve(filename));
     auto vnode = dentry->effectiveVNode();
 
     struct stat info;
@@ -33,7 +33,7 @@ int execve(const char* __pathname,
     __try
         (vnode->read(file.get(), info.st_size, 0));
 
-    arch::kprint("exec {}\n", pathname);
+    arch::kprint("exec {}\n", filename);
     task::__scheduler->execTask(std::span{file.get(), static_cast<size_t>(info.st_size)}, std::move(argv),
                                 std::move(envp), frame);
     return 0;

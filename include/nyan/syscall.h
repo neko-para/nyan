@@ -21,10 +21,10 @@ namespace nyan::syscall {
 pid_t fork(interrupt::SyscallFrame* frame);
 
 // 3
-ssize_t read(int fd, char* buf, size_t count);
+ssize_t read(int fd, void* buf, size_t count);
 
 // 4
-ssize_t write(int fd, const char* buf, size_t count);
+ssize_t write(int fd, const void* buf, size_t count);
 
 // 5
 int open(const char* filename, int flags, mode_t mode);

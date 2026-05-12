@@ -8,9 +8,9 @@
 
 namespace nyan::syscall {
 
-int pipe(int* fds) {
+int pipe(int* fildes) {
     __try
-        (task::checkW(fds, 2));
+        (task::checkW(fildes, 2));
 
     int readFd, writeFd;
 
@@ -23,8 +23,8 @@ int pipe(int* fds) {
     *readObjPtr = lib::makeRef<fs::FdObj>(pipeReadObj);
     *writeObjPtr = lib::makeRef<fs::FdObj>(pipeWriteObj);
 
-    fds[0] = readFd;
-    fds[1] = writeFd;
+    fildes[0] = readFd;
+    fildes[1] = writeFd;
     return 0;
 }
 

@@ -15,7 +15,7 @@
     ret: ssize_t
     args:
         fd: int @fd
-        buf: char*
+        buf: void*
         count: size_t
 
 4:
@@ -23,7 +23,7 @@
     ret: ssize_t
     args:
         fd: int @fd
-        buf: const char*
+        buf: const void*
         count: size_t
 
 5:
