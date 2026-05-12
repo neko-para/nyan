@@ -49,7 +49,7 @@ void Scheduler::sendSignal(TaskControlBlock* task, int sig) noexcept {
     } else {
         arch::kprint("send signal {} to pid {}\n", sig, task->pid);
     }
-    task->__signal.__pending_signals |= 1ull << sig;
+    task->__signal.__pending_signals |= 1ull << (sig - 1);
     if (task->__signal.isMasked(sig)) {
         arch::kprint("signal {} masked for pid {}\n", sig, task->pid);
         return;

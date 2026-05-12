@@ -3,6 +3,7 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <nyan/errno.h>
+#include <nyan/signal.h>
 #include <signal.h>
 #include <stdint.h>
 #include <sys/types.h>
@@ -96,10 +97,10 @@ ssize_t writev(int fd, const struct iovec* vec, size_t vlen);
 int nanosleep(const struct timespec* rqtp, struct timespec* rmtp);
 
 // 174
-int rt_sigaction(int sig, const struct sigaction* act, struct sigaction* oact, size_t sigsetsize);
+int rt_sigaction(int sig, const __nyan_sigaction* act, struct __nyan_sigaction* oact, size_t sigsetsize);
 
 // 175
-int rt_sigprocmask(int how, const sigset_t* nset, sigset_t* oset, size_t sigsetsize);
+int rt_sigprocmask(int how, const __nyan_sigset* nset, __nyan_sigset* oset, size_t sigsetsize);
 
 // 183
 char* getcwd(char* buf, size_t size);

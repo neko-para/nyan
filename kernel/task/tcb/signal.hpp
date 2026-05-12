@@ -1,23 +1,21 @@
 #pragma once
 
+#include <nyan/signal.h>
 #include <signal.h>
 #include <array>
 #include <memory>
 
-#include "../forward.hpp"
-#include "../signal.hpp"
-
 namespace nyan::task {
 
 struct TaskSignalInfo {
-    using SigData = std::array<SigAction, NSIG>;
+    using SigData = std::array<__nyan_sigaction, NSIG>;
 
-    SigSet __pending_signals{};
-    SigSet __signal_mask{};
+    __nyan_sigset __pending_signals{};
+    __nyan_sigset __signal_mask{};
     std::unique_ptr<SigData> __signal_actions;
 
-    bool isMasked(int sig) const noexcept { return __signal_mask & (1ull << sig); }
-    SigSet restSignals() const noexcept { return __pending_signals & (~__signal_mask); }
+    bool isMasked(int sig) const noexcept { return __signal_mask & (1ull << (sig - 1)); }
+    __nyan_sigset restSignals() const noexcept { return __pending_signals & (~__signal_mask); }
 
     void ensureActions() noexcept;
     void prepareForExec() noexcept;

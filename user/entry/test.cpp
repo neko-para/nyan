@@ -1,18 +1,23 @@
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 
+int coming_sig;
+volatile bool flag = false;
+
+void func(int sig) {
+    coming_sig = sig;
+    flag = true;
+}
+
 int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) {
-    if (argc > 1) {
-        auto file = fopen(argv[1], "wb");
-        if (!file) {
-            return 1;
-        }
-        fputs(argv[1], file);
-        fflush(file);
-        return 0;
-    } else {
-        return 1;
+    struct sigaction act{};
+    act.sa_handler = func;
+    sigaction(SIGINT, &act, 0);
+    while (!flag) {
+        sleep(5);
     }
+    printf("via sig %d\n", coming_sig);
+    return 0;
 }

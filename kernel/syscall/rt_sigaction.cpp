@@ -7,8 +7,8 @@
 
 namespace nyan::syscall {
 
-int rt_sigaction(int sig, const struct sigaction* act, struct sigaction* oact, size_t sigsetsize) {
-    if (sigsetsize != 8) {
+int rt_sigaction(int sig, const __nyan_sigaction* act, struct __nyan_sigaction* oact, size_t sigsetsize) {
+    if (sigsetsize != sizeof(__nyan_sigset)) {
         return SYS_EINVAL;
     }
     __try
@@ -20,24 +20,14 @@ int rt_sigaction(int sig, const struct sigaction* act, struct sigaction* oact, s
         return SYS_EINVAL;
     }
 
-    // 64暂时也放不下
-    if (sig == 64) {
-        return SYS_EINVAL;
-    }
-
-    // 如果要设置新动作, 先检查不支持的特性
     if (act) {
-        if (act->sa_flags & SA_SIGINFO) {
+        if (act->__flags & SA_SIGINFO) {
             return SYS_EINVAL;
         }
 
-        if (act->sa_flags & SA_RESTORER) {
-            return SYS_EINVAL;
-        }
-
-        if (act->sa_handler != SIG_DFL && act->sa_handler != SIG_IGN) {
+        if (act->__handler != SIG_DFL && act->__handler != SIG_IGN) {
             __try
-                (task::checkE(act->sa_handler));
+                (task::checkE(act->__handler));
         }
     }
 
@@ -50,27 +40,20 @@ int rt_sigaction(int sig, const struct sigaction* act, struct sigaction* oact, s
 
     auto& entry = task::__scheduler->__current->__signal.__signal_actions->operator[](sig);
 
-    // 输出旧的 sigaction
     if (oact) {
-        sigset_t sigset{};
-        sigset.__bits[0] = entry.__mask & 0xFFFFFFFF;
-        sigset.__bits[1] = (entry.__mask >> 32) & 0xFFFFFFFF;
-
-        oact->sa_handler = entry.__handler;
-        oact->sa_mask = sigset;
-        oact->sa_flags = entry.__flags;
-        oact->sa_restorer = nullptr;
+        *oact = entry;
     }
 
     if (act) {
-        uint64_t mask = act->sa_mask.__bits[0] | (static_cast<uint64_t>(act->sa_mask.__bits[1]) << 32);
-        if (!(act->sa_flags & SA_NODEFER)) {
-            mask |= 1ull << sig;
+        __nyan_sigset mask = act->__mask;
+        if (!(act->__flags & SA_NODEFER)) {
+            mask |= 1ull << (sig - 1);
         }
 
-        entry.__handler = act->sa_handler;
+        entry.__handler = act->__handler;
         entry.__mask = mask;
-        entry.__flags = act->sa_flags;
+        entry.__flags = act->__flags;
+        entry.__restorer = act->__restorer;
     }
 
     return 0;

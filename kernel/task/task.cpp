@@ -5,6 +5,7 @@
 
 #include "../fs/mod.hpp"
 #include "../gdt/load.hpp"
+#include "../interrupt/isr.hpp"
 #include "../paging/directory.hpp"
 #include "scheduler.hpp"
 #include "stack.hpp"

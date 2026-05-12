@@ -1,22 +1,17 @@
 #include <nyan/syscall.h>
 
 #include "../gdt/load.hpp"
+#include "../interrupt/isr.hpp"
 #include "../task/mod.hpp"
 #include "../task/scheduler.hpp"
-#include "../task/signal.hpp"
 #include "../task/tcb.hpp"
 
 namespace nyan::syscall {
 
 void sigreturn(interrupt::SyscallFrame* sysFrame) {
-    if (!task::checkR(sysFrame)) {
-        task::__scheduler->exit(255, SIGSEGV);
-    }
-
     auto esp = sysFrame->user_esp;
-    esp += 4;  // signum
-    task::__scheduler->__current->__signal.__signal_mask = *reinterpret_cast<task::SigSet*>(esp);
-    esp += sizeof(task::SigSet);  // sigmask
+    task::__scheduler->__current->__signal.__signal_mask = *reinterpret_cast<__nyan_sigset*>(esp);
+    esp += sizeof(__nyan_sigset);  // sigmask
     auto userFrame = reinterpret_cast<interrupt::SyscallFrame*>(esp);
     *sysFrame = *userFrame;
 

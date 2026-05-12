@@ -5,6 +5,7 @@
 #include "../arch/guard.hpp"
 #include "../elf/mod.hpp"
 #include "../gdt/load.hpp"
+#include "../interrupt/isr.hpp"
 #include "../paging/vma.hpp"
 #include "pid.hpp"
 #include "stack.hpp"

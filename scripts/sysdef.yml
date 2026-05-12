@@ -188,8 +188,8 @@
     ret: int
     args:
         sig: int @sig
-        act: const struct sigaction*
-        oact: struct sigaction*
+        act: const __nyan_sigaction*
+        oact: struct __nyan_sigaction*
         sigsetsize: size_t
 
 175:
@@ -197,8 +197,8 @@
     ret: int
     args:
         how: int
-        nset: const sigset_t*
-        oset: sigset_t*
+        nset: const __nyan_sigset*
+        oset: __nyan_sigset*
         sigsetsize: size_t
 
 183:

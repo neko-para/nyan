@@ -4,6 +4,7 @@
 #include "../gdt/load.hpp"
 #include "../timer/load.hpp"
 #include "pid.hpp"
+#include "signal.hpp"
 #include "switch.hpp"
 #include "task.hpp"
 #include "tcb.hpp"
@@ -99,12 +100,12 @@ static void defaultSignalLogic(int sig) {
 bool Scheduler::checkSignal(interrupt::SyscallFrame* frame) noexcept {
     // TODO: 假设一定来自用户态. 需要有个地方检查frame->cs
     arch::InterruptGuard guard;
-    SigSet sigs = __current->__signal.restSignals();
+    __nyan_sigset sigs = __current->__signal.restSignals();
     if (!sigs) {
         return false;
     }
-    auto sig = std::countr_zero(sigs);
-    __current->__signal.__pending_signals ^= 1ull << sig;
+    auto sig = std::countr_zero(sigs) + 1;
+    __current->__signal.__pending_signals ^= 1ull << (sig - 1);
     if (!__current->__signal.__signal_actions) {
         defaultSignalLogic(sig);
     } else {
@@ -121,7 +122,11 @@ bool Scheduler::checkSignal(interrupt::SyscallFrame* frame) noexcept {
             auto esp = frame->user_esp;
             esp -= sizeof(task::SignalFrame);
             auto userFrame = reinterpret_cast<task::SignalFrame*>(esp);
-            userFrame->retAddr = (0xFFFFF000_va + (sigreturn_trampoline - trampoline_start)).addr;
+            if (entry.__flags & SA_RESTORER) {
+                userFrame->retAddr = reinterpret_cast<uint32_t>(entry.__restorer);
+            } else {
+                userFrame->retAddr = (0xFFFFF000_va + (sigreturn_trampoline - trampoline_start)).addr;
+            }
             userFrame->signal = sig;
             userFrame->oldMask = mask;
             userFrame->frame = *frame;
@@ -134,10 +139,10 @@ bool Scheduler::checkSignal(interrupt::SyscallFrame* frame) noexcept {
 }
 
 bool Scheduler::isInterrupted() const noexcept {
-    SigSet sigs = __current->__signal.restSignals();
+    __nyan_sigset sigs = __current->__signal.restSignals();
     while (sigs) {
-        auto sig = std::countr_zero(sigs);
-        sigs ^= 1ull << sig;
+        auto sig = std::countr_zero(sigs) + 1;
+        sigs ^= 1ull << (sig - 1);
         if (__current->__signal.isInterrupted(sig)) {
             return true;
         }
