@@ -2,5 +2,6 @@
 
 .global __sigreturn_trampoline
 __sigreturn_trampoline:
-    movl $119, %eax       # SYS_SIGRETURN (你自己定义的号)
+    popl %eax
+    movl $119, %eax
     int $0x80
