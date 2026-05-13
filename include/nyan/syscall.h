@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <nyan/errno.h>
 #include <nyan/signal.h>
+#include <nyan/time.h>
 #include <stdint.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -94,10 +95,10 @@ ssize_t readv(int fd, const struct iovec* vec, size_t vlen);
 ssize_t writev(int fd, const struct iovec* vec, size_t vlen);
 
 // 162
-int nanosleep(const struct timespec* rqtp, struct timespec* rmtp);
+int nanosleep(const __nyan_timespec32* rqtp, __nyan_timespec32* rmtp);
 
 // 174
-int rt_sigaction(int sig, const __nyan_sigaction* act, struct __nyan_sigaction* oact, size_t sigsetsize);
+int rt_sigaction(int sig, const __nyan_sigaction* act, __nyan_sigaction* oact, size_t sigsetsize);
 
 // 175
 int rt_sigprocmask(int how, const __nyan_sigset* nset, __nyan_sigset* oset, size_t sigsetsize);

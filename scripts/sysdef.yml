@@ -180,8 +180,8 @@
     name: nanosleep
     ret: int
     args:
-        rqtp: const struct timespec*
-        rmtp: struct timespec*
+        rqtp: const __nyan_timespec32*
+        rmtp: __nyan_timespec32*
 
 174:
     name: rt_sigaction
@@ -189,7 +189,7 @@
     args:
         sig: int @sig
         act: const __nyan_sigaction*
-        oact: struct __nyan_sigaction*
+        oact: __nyan_sigaction*
         sigsetsize: size_t
 
 175:

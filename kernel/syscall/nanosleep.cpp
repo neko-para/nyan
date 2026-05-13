@@ -6,7 +6,7 @@
 
 namespace nyan::syscall {
 
-int nanosleep(const timespec* rqtp, timespec* rmtp) {
+int nanosleep(const __nyan_timespec32* rqtp, __nyan_timespec32* rmtp) {
     __try
         (task::checkR(rqtp));
     __try

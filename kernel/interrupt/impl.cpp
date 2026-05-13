@@ -242,6 +242,11 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             break;
 #pragma mark - END
         default:
+            if (frame->eax == 407) {
+                auto rqtp = reinterpret_cast<struct timespec*>(frame->edx);
+                arch::kprint("407 sec {#010x} nsec {#010x}", rqtp->tv_sec, rqtp->tv_nsec);
+            }
+
             arch::kprint("syscall eax={}(missing) from {} {}\n", frame->eax, task::__scheduler->__current->pid,
                          task::__scheduler->__current->name);
             frame->eax = SYS_ENOSYS;
