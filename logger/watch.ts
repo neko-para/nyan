@@ -104,7 +104,7 @@ function formatValue(val: number, type: [string] | [string, string]) {
     }
 
     if (type[1] === 'sig') {
-        final += signalMap[val] ?? `SIG(${val})`
+        final += `(${signalMap[val] ?? 'SIG'})`
     }
 
     return final

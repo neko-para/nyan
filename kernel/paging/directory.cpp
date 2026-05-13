@@ -79,7 +79,7 @@ void UserDirectory::freePage(VirtualAddress addr) noexcept {
 void UserDirectory::freePageTables() noexcept {
     for (uint16_t i = 0; i < 768; i++) {
         if (data()->isPresent(i)) {
-            with(i, [](Table* table) { table->freeDangling(); });
+            with(i, [i](Table* table) { table->freeDangling(i); });
             allocator::physicalFrameRelease(data()->at(i));
             data()->data[i] = 0;
         }

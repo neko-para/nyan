@@ -2,12 +2,14 @@
 
 #include <sys/mman.h>
 #include <sys/types.h>
-#include <span>
+#include <string>
 #include <tuple>
+#include <vector>
 
 #include "../fs/forward.hpp"
 #include "../lib/result.hpp"
 #include "../lib/shared.hpp"
+#include "../paging/address.hpp"
 
 namespace nyan::task {
 
@@ -27,6 +29,8 @@ Result<> setCwd(lib::Ref<fs::DEntry> dentry) noexcept;
 Result<std::tuple<pid_t, int>> waitpid(pid_t pid, int options) noexcept;
 
 Result<> kill(pid_t pid, int sig) noexcept;
+
+bool checkStack(paging::VirtualAddress targetAddr) noexcept;
 
 Result<> checkAddr(const void* ptr, size_t size, uint32_t prot) noexcept;
 Result<std::string> checkString(const char* str) noexcept;

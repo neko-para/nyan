@@ -9,6 +9,7 @@
 #include "../keyboard/mod.hpp"
 #include "../lib/format.hpp"
 #include "../paging/directory.hpp"
+#include "../task/mod.hpp"
 #include "../task/scheduler.hpp"
 #include "../task/tcb.hpp"
 #include "../timer/load.hpp"
@@ -64,21 +65,8 @@ void exceptionHandlerImpl(SyscallFrame* frame) {
             }
 
             if (gdt::isRing3(frame->cs)) {
-                bool checkStack = checkUserland                                //
-                                  && vma->bounds(*std::next(vma), targetAddr)  //
-                                  && (std::next(vma)->__flags & MAP_GROWSDOWN);
-
-                if (checkStack) {
-                    // TODO: 之后可以引入基于ESP的检查
-                    if (targetAddr >= task::__scheduler->__current->stackRange.first) {
-                        auto pageDir = paging::UserDirectory::from(task::__scheduler->__current->cr3);
-                        auto nextAddr = std::next(vma)->__begin;
-                        while (nextAddr > targetAddr) {
-                            nextAddr = nextAddr.prevPage();
-                            pageDir.alloc(nextAddr, true);
-                        }
-                        break;
-                    }
+                if (task::checkStack(targetAddr)) {
+                    break;
                 }
 
                 task::__scheduler->raise(SIGSEGV);

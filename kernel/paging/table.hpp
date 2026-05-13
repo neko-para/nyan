@@ -39,7 +39,7 @@ struct alignas(4096) Table {
     }
 
     PhysicalAddress alloc(VirtualAddress virtualAddr, uint16_t attr) noexcept;
-    void freeDangling() noexcept;
+    void freeDangling(uint16_t dir) noexcept;
     void freePage(VirtualAddress addr) noexcept;
 };
 
