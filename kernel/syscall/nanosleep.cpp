@@ -1,5 +1,6 @@
 #include <nyan/syscall.h>
 
+#include "../arch/print.hpp"
 #include "../task/mod.hpp"
 #include "../task/scheduler.hpp"
 
@@ -10,6 +11,8 @@ int nanosleep(const timespec* rqtp, timespec* rmtp) {
         (task::checkR(rqtp));
     __try
         (task::checkW(rmtp, 1, true));
+
+    arch::kprint("sec {#010x} nsec {#010x}", rqtp->tv_sec, rqtp->tv_nsec);
 
     if (rqtp->tv_sec < 0 || rqtp->tv_nsec < 0 || rqtp->tv_nsec >= 1000000000L) {
         return SYS_EINVAL;

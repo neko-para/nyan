@@ -35,3 +35,5 @@ foreach(user_subdir ${user_subdirs})
     endif()
   endif()
 endforeach()
+
+install(FILES busybox DESTINATION bin)

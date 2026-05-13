@@ -19,6 +19,8 @@ void Scheduler::exit(int code, int sig) noexcept {
         arch::kfatal("init task cannot exit!");
     }
 
+    __current->__file.__fd_table = {};
+
     __current->state = State::S_Exited;
     __current->exitInfo.stat = (code << 8) | sig;
     if (!__current->childTasks.empty()) {
