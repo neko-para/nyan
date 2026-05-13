@@ -31,8 +31,8 @@
     ret: int @fd
     args:
         filename: const char*
-        flags: int
-        mode: mode_t
+        flags: int @hex
+        mode: mode_t @oct
 
 6:
     name: close
@@ -46,7 +46,7 @@
     args:
         pid: pid_t
         stat_addr: int*
-        options: int
+        options: int @hex
 
 11:
     name: execve
@@ -135,7 +135,7 @@
     args:
         upid: pid_t
         stat_addr: int*
-        options: int
+        options: int @hex
         ru: struct rusage*
 
 119:
@@ -214,8 +214,8 @@
     args:
         addr: void*
         len: size_t
-        prot: int
-        flags: int
+        prot: int @hex
+        flags: int @hex
         fd: int @fd
         pgoff: size_t
 

@@ -1,12 +1,14 @@
 import chalk from 'chalk'
 import { existsSync, watch } from 'node:fs'
-import { open, stat } from 'node:fs/promises'
+import fs from 'node:fs/promises'
+import path from 'node:path'
+import { parse as parseYml } from 'yaml'
 
 import { queryAddr } from './addr.ts'
 import { errnoMap, getErrno, isError } from './errno.ts'
 import { parse } from './parser.ts'
 import { signalMap } from './signal.ts'
-import { type ArgDecl, type ArgType, syscallTable } from './syscall.ts'
+import { all_parsers } from './syscall/flags.ts'
 import {
     type Entry,
     type Payload,
@@ -18,6 +20,46 @@ import {
     isLogEntry,
     isSyscallEntry
 } from './types.ts'
+
+type ArgDecl = {
+    name: string
+    type: [string] | [string, string]
+    parse?: (val: number) => string
+}
+
+async function buildSyscallTable() {
+    const table = parseYml(
+        await fs.readFile(path.join(import.meta.dirname, '../scripts/sysdef.yml'), 'utf8')
+    ) as {
+        [id: number]: {
+            name: string
+            ret: string
+            args?: {
+                [name: string]: string
+            }
+        }
+    }
+    return Object.fromEntries(
+        Object.entries(table).map(([id, info]) => {
+            return [
+                id,
+                {
+                    name: info.name,
+                    ret: info.ret.split('@').map(s => s.trim()) as [string] | [string, string],
+                    args: Object.entries(info.args ?? {}).map(([name, type]) => {
+                        return {
+                            name,
+                            type: type.split('@').map(s => s.trim()) as [string] | [string, string],
+                            parse: all_parsers[`parse_${info.name}_${name}`]
+                        }
+                    })
+                }
+            ]
+        })
+    )
+}
+
+const syscallTable = await buildSyscallTable()
 
 function pad(num: number, len: number, fill = '0') {
     return num.toString().padStart(len, fill)
@@ -31,31 +73,44 @@ function entryPrefix(payload: Payload) {
     return `[${pad(hour, 2)}:${pad(min, 2)}:${pad(sec, 2)}.${pad(msec, 3)} ${pad(payload.pid, 3, ' ')}:${pad(payload.pgid, 3, ' ')}]`
 }
 
-function formatValue(val: number, type: ArgType) {
-    switch (type) {
-        case 'int':
-            return (val | 0).toString()
-        case 'uint':
-            return val.toString()
-        case 'pid':
-            return (val | 0).toString()
-        case 'fd':
-            return (val | 0).toString()
-        case 'ptr':
-            return '0x' + val.toString(16).padStart(8, '0')
-        case 'size':
-            return val.toString()
-        case 'str':
-            return '0x' + val.toString(16).padStart(8, '0')
-        case 'flags':
-            return '0x' + val.toString(16)
-        case 'signo':
-            return signalMap[val] ?? `SIG(${val})`
+function formatValue(val: number, type: [string] | [string, string]) {
+    let numFmt: 'dec' | 'hex' | 'oct' = 'dec'
+    if (type[1] === 'hex' || type[1] == 'oct') {
+        numFmt = type[1]
+    } else if (type[0].endsWith('*')) {
+        numFmt = 'hex'
     }
-    return `${type}(${val})`
+
+    let sign = false
+    if (['int', 'pid_t', 'ssize_t'].includes(type[0])) {
+        sign = true
+    }
+
+    let final = ''
+    switch (numFmt) {
+        case 'dec':
+            if (sign) {
+                final += (val | 0).toString()
+            } else {
+                final += val.toString()
+            }
+            break
+        case 'hex':
+            final += '0x' + val.toString(16).padStart(8, '0')
+            break
+        case 'oct':
+            final += '0o' + val.toString(8)
+            break
+    }
+
+    if (type[1] === 'sig') {
+        final += signalMap[val] ?? `SIG(${val})`
+    }
+
+    return final
 }
 
-function formatReturn(val: number, type: ArgType) {
+function formatReturn(val: number, type: [string] | [string, string]) {
     if (isError(val)) {
         return errnoMap[getErrno(val)]
     }
@@ -65,6 +120,9 @@ function formatReturn(val: number, type: ArgType) {
 function buildCall(args: ArgDecl[], content: SyscallContent) {
     const result: string[] = []
     args.forEach((decl, idx) => {
+        if (decl.type[0] === 'frame') {
+            return
+        }
         let seg = chalk.dim(`${decl.name}=`) + `${formatValue(content.args[idx], decl.type)}`
         if (decl.parse) {
             seg += `(${decl.parse(content.args[idx])})`
@@ -97,7 +155,7 @@ async function handleEntry(entry: Entry) {
             return
         }
         if (entry.payload.syscallRole === SyscallRole.SR_Enter) {
-            if (def.noret) {
+            if (def.ret[0] === 'never') {
                 console.log(`${prefix} ${def.name}(${buildCall(def.args, entry.content)})`)
             } else {
                 pendingSyscall.set(entry.payload.pid, {
@@ -132,7 +190,7 @@ async function handleEntry(entry: Entry) {
                 const { errcode: sel, eip } = entry.content
                 // GPF
                 console.log(
-                    `${prefix} ${chalk.bold('#GPF')} sel=${formatValue(sel, 'flags')} eip=${formatValue(eip, 'ptr')}`
+                    `${prefix} ${chalk.bold('#GPF')} sel=${formatValue(sel, ['int', 'hex'])} eip=${formatValue(eip, ['void*'])}`
                 )
                 break
             }
@@ -150,13 +208,13 @@ async function handleEntry(entry: Entry) {
                     type += 'U'
                 }
                 console.log(
-                    `${prefix} ${chalk.bold('#PF')} <${type.trim()}> addr=${formatValue(cr2, 'ptr')} eip=${formatValue(eip, 'ptr')}`
+                    `${prefix} ${chalk.bold('#PF')} <${type.trim()}> addr=${formatValue(cr2, ['void*'])} eip=${formatValue(eip, ['void*'])}`
                 )
                 break
             }
             default:
                 console.log(
-                    `${prefix} ${chalk.bold(`#${entry.content.num}`)} eip=${formatValue(entry.content.eip, 'ptr')}`
+                    `${prefix} ${chalk.bold(`#${entry.content.num}`)} eip=${formatValue(entry.content.eip, ['void*'])}`
                 )
         }
     } else if (isFatalEntry(entry)) {
@@ -188,7 +246,7 @@ async function drain(gen: ReturnType<typeof parse>, data?: Buffer | null) {
 }
 
 async function watchFile(path: string): Promise<void> {
-    const fd = await open(path, 'r')
+    const fd = await fs.open(path, 'r')
     let offset = 0
     let reading = false
 
@@ -204,7 +262,7 @@ async function watchFile(path: string): Promise<void> {
                 if (!existsSync(path)) {
                     break
                 }
-                const { size } = await stat(path)
+                const { size } = await fs.stat(path)
                 if (size <= offset) return
 
                 const readLen = size - offset
