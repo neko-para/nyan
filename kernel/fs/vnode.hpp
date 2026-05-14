@@ -4,6 +4,7 @@
 #include <nyan/errno.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <string>
 #include <string_view>
 
 #include "../lib/shared.hpp"
@@ -48,6 +49,10 @@ struct VNode : public lib::Shared {
     virtual Result<> create(std::string_view name, uint32_t mode) noexcept { return SYS_ENOTDIR; }
     virtual Result<> link(std::string_view name, lib::Ref<VNode> target) noexcept { return SYS_ENOTDIR; }
     virtual Result<> unlink(std::string_view name) noexcept { return SYS_ENOTDIR; }
+    virtual Result<> symlink(std::string_view name, std::string_view target) noexcept { return SYS_ENOTDIR; }
+
+    // Symlink
+    virtual Result<std::string> readlink() noexcept { return SYS_EINVAL; }
 
     // General
     virtual Result<> stat(struct stat* buf) noexcept = 0;

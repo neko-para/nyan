@@ -177,6 +177,9 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
         case 65:
             CALL(getpgrp);
             break;
+        case 85:
+            CALL(readlink);
+            break;
         case 91:
             CALL(munmap);
             break;
@@ -215,6 +218,9 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             break;
         case 195:
             CALL(stat64);
+            break;
+        case 196:
+            CALL(lstat64);
             break;
         case 220:
             CALL(getdents64);

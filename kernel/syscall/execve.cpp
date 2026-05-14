@@ -17,7 +17,7 @@ int execve(const char* __filename,
     auto argv = __try(task::checkArgv(__argv));
     auto envp = __try(task::checkArgv(__envp));
 
-    auto dentry = __try(fs::resolve(filename));
+    auto dentry = __try(fs::resolve({filename}, {}));
     auto vnode = dentry->effectiveVNode();
 
     struct stat info;

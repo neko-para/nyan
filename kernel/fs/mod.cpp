@@ -2,7 +2,6 @@
 
 #include <fcntl.h>
 #include <nyan/errno.h>
-#include <ranges>
 
 #include "../arch/guard.hpp"
 #include "../task/mod.hpp"
@@ -13,18 +12,35 @@
 
 namespace nyan::fs {
 
-Result<lib::Ref<FileObj>> open(std::string_view path, uint32_t flags, uint32_t mode) {
+Result<lib::Ref<FileObj>> open(std::string_view __path, uint32_t flags, uint32_t mode) {
     arch::InterruptGuard guard;
 
-    lib::Ref<DEntry> parent;
-    std::string name;
-    auto entry = __try(resolveParent(path, &parent, &name));
-    lib::Ref<fs::VNode> vnode;
+    Path path{__path};
+    if (path.__invalid) {
+        return SYS_ENOENT;
+    }
+
+    if (path.__portions.empty()) {  // '.' or '/'
+        auto entry = __try(resolve(path, {}));
+        if (flags & O_CREAT) {
+            return SYS_EEXIST;
+        }
+        auto vnode = entry->effectiveVNode();
+        return __try(vnode->open(vnode, flags & O_ACCMODE));
+    }
+
+    Path upper = path.parent();
+
+    auto parentEntry = __try(resolve(upper, {}));
+    if (!parentEntry) {
+        return SYS_ENOENT;
+    }
+
+    auto entry = parentEntry->effectiveVNode()->lookup(path.last());
     if (!entry) {
-        if ((flags & O_CREAT) && parent && !name.empty()) {
+        if ((flags & O_CREAT) && !path.__trailing_slash) {
             __try
-                (parent->effectiveVNode()->create(name, mode));
-            vnode = __try(parent->effectiveVNode()->lookup(name));
+                (parentEntry->effectiveVNode()->create(path.last(), mode));
         } else {
             return SYS_ENOENT;
         }
@@ -32,9 +48,11 @@ Result<lib::Ref<FileObj>> open(std::string_view path, uint32_t flags, uint32_t m
         if ((flags & (O_CREAT | O_EXCL)) == (O_CREAT | O_EXCL)) {
             return SYS_EEXIST;
         }
-        vnode = entry->effectiveVNode();
     }
-    if ((flags & O_DIRECTORY) && !vnode->isDirectory()) {
+
+    auto vnode = __try(parentEntry->effectiveVNode()->lookup(path.last()));
+
+    if (((flags & O_DIRECTORY) || path.__trailing_slash) && !vnode->isDirectory()) {
         return SYS_ENOTDIR;
     }
     if ((flags & O_ACCMODE) != O_RDONLY && flags & O_TRUNC && vnode->isRegular()) {
@@ -44,80 +62,51 @@ Result<lib::Ref<FileObj>> open(std::string_view path, uint32_t flags, uint32_t m
     return __try(vnode->open(vnode, flags & (O_ACCMODE | O_APPEND)));
 }
 
-template <bool CreateMode>
-static Result<lib::Ref<DEntry>> __resolveImpl(std::string_view path, lib::Ref<DEntry>* parent, std::string* lastName) {
-    arch::InterruptGuard guard;
+Result<lib::Ref<DEntry>> resolve(const Path& path, ResolveConfig config, int loop) {
+    if (loop >= 10) {
+        return SYS_ELOOP;
+    }
 
-    if (path.empty()) {
+    if (path.__invalid) {
         return SYS_ENOENT;
     }
 
-    auto current = rootEntry()->__mount_point;
-    if (path[0] != '/') {
-        current = task::getCwd();
+    lib::Ref<DEntry> current;
+    if (path.__relative) {
+        if (config.__from) {
+            current = config.__from;
+        } else {
+            current = task::getCwd();
+        }
         if (!current) {
             return SYS_ENOENT;
         }
+    } else {
+        current = (*mountPoints)[0]->__mount_point;
     }
 
-    std::vector<std::string_view> portions;
-    for (const auto& item : path | std::views::split('/')) {
-        portions.push_back({item.begin(), item.end()});
-    }
+    for (auto it = path.__portions.begin(); it != path.__portions.end(); it++) {
+        const auto& portion = *it;
+        bool last = std::next(it) == path.__portions.end();
 
-    for (auto it = portions.begin(); it != portions.end(); it++) {
-        auto portion = *it;
-        if (portion.empty()) {
-            continue;
-        } else if (portion == ".") {
-            continue;
-        } else if (portion == "..") {
+        if (portion == "..") {
             if (current->__parent) {
                 current = current->__parent;
             }
         } else {
-            if constexpr (CreateMode) {
-                auto next = dentryCacheManager->lookup(current, portion);
-                if (!next) {
-                    if (next == SYS_ENOENT) {
-                        bool isLast = std::next(it) == portions.end();
-                        if (isLast) {
-                            if (parent) {
-                                *parent = current;
-                            }
-                            if (lastName) {
-                                *lastName = std::string{portion};
-                            }
-                        }
-                        return {};
-                    } else {
-                        return next.error();
-                    }
+            auto next = __try(dentryCacheManager->lookup(current, portion));
+            if ((config.__follow || !last) && next->effectiveVNode()->isSymlink()) {
+                auto target = __try(next->effectiveVNode()->readlink());
+                auto resolvedNext = __try(resolve({target}, {true, current}, loop + 1));
+                if (!resolvedNext) {
+                    return SYS_ENOENT;
                 }
-                current = *next;
-            } else {
-                auto next = __try(dentryCacheManager->lookup(current, portion));
-                current = next;
+                next = resolvedNext;
             }
-        }
-    }
-    if constexpr (CreateMode) {
-        if (parent) {
-            *parent = current->__parent;
-        }
-        if (lastName) {
-            *lastName = std::string{portions.back()};
+            current = next;
         }
     }
     return current;
-}
-
-Result<lib::Ref<DEntry>> resolve(std::string_view path) {
-    return __resolveImpl<false>(path, nullptr, nullptr);
-}
-
-Result<lib::Ref<DEntry>> resolveParent(std::string_view path, lib::Ref<DEntry>* parent, std::string* lastName) {
-    return __resolveImpl<true>(path, parent, lastName);
 }
 
 }  // namespace nyan::fs

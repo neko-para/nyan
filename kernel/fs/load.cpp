@@ -13,7 +13,7 @@ std::vector<lib::Ref<MountEntry>>* mountPoints;
 RamFS* ramFS;
 
 static void loadInitFs() {
-    auto entry = rootEntry();
+    auto entry = (*mountPoints)[0];
 
     entry->__root_node->mkdir("bin", 0755) | __ignore;
     auto bin = entry->__root_node->lookup("bin") | __unwrap;
@@ -23,6 +23,7 @@ static void loadInitFs() {
         auto file = bin->lookup(prog.name) | __unwrap;
         file->write(prog.data, prog.size, 0) | __ignore;
     }
+    bin->symlink("ash", "busybox") | __ignore;
 
     entry->__root_node->mkdir("dev", 0755) | __ignore;
     auto dev = entry->__root_node->lookup("dev") | __unwrap;

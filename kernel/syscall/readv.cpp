@@ -16,16 +16,16 @@ ssize_t readv(int fd, const iovec* vec, size_t vlen) {
     std::copy_n(vec, vlen, vecs.data());
 
     size_t result = 0;
-    for (const auto& vec : vecs) {
-        if (!vec.iov_len) {
+    for (const auto& v : vecs) {
+        if (!v.iov_len) {
             continue;
         }
-        auto ret = syscall::read(fd, vec.iov_base, vec.iov_len);
+        auto ret = syscall::read(fd, v.iov_base, v.iov_len);
         if (ret < 0) {
             return result > 0 ? result : ret;
         } else {
             result += ret;
-            if (static_cast<size_t>(ret) < vec.iov_len) {
+            if (static_cast<size_t>(ret) < v.iov_len) {
                 return result;
             }
         }

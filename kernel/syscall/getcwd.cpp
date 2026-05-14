@@ -5,7 +5,7 @@
 
 namespace nyan::syscall {
 
-char* getcwd(char* buf, size_t size) {
+ssize_t getcwd(char* buf, size_t size) {
     if (size == 0) {
         return SYS_EINVAL;
     }
@@ -18,7 +18,7 @@ char* getcwd(char* buf, size_t size) {
         return SYS_ERANGE;
     }
     memcpy(buf, cwd.c_str(), cwd.size() + 1);
-    return buf;
+    return cwd.size() + 1;
 }
 
 }  // namespace nyan::syscall

@@ -73,6 +73,9 @@ pid_t getppid();
 // 65
 pid_t getpgrp();
 
+// 85
+ssize_t readlink(const char* path, char* buf, size_t size);
+
 // 91
 int munmap(void* addr, size_t len);
 
@@ -104,13 +107,16 @@ int rt_sigaction(int sig, const __nyan_sigaction* act, __nyan_sigaction* oact, s
 int rt_sigprocmask(int how, const __nyan_sigset* nset, __nyan_sigset* oset, size_t sigsetsize);
 
 // 183
-char* getcwd(char* buf, size_t size);
+ssize_t getcwd(char* buf, size_t size);
 
 // 192
 void* mmap_pgoff(void* addr, size_t len, int prot, int flags, int fd, size_t pgoff);
 
 // 195
 int stat64(const char* filename, struct stat* statbuf);
+
+// 196
+int lstat64(const char* filename, struct stat* statbuf);
 
 // 220
 int getdents64(int fd, struct dirent* dirent, size_t count);

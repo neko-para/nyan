@@ -104,6 +104,17 @@ Result<> RamFSDirectoryVNode::unlink(std::string_view name) noexcept {
     }
 }
 
+Result<> RamFSDirectoryVNode::symlink(std::string_view name, std::string_view target) noexcept {
+    if (__exists(name)) {
+        return SYS_EEXIST;
+    }
+    __entries.push_back({
+        name,
+        lib::makeRef<RamFSSymlinkVNode>(std::string{target}, __super_block, 0777),
+    });
+    return {};
+}
+
 Result<> RamFSDirectoryVNode::stat(struct stat* buf) noexcept {
     memset(buf, 0, sizeof(struct stat));
     buf->st_dev = 1;
@@ -152,6 +163,21 @@ Result<> RamFSFileVNode::stat(struct stat* buf) noexcept {
     buf->st_mode = S_IFREG | __mode;
     buf->st_nlink = __ref_count;
     buf->st_size = __data.size();
+    buf->st_blksize = 4096;
+    buf->st_ino = __inode;
+    return {};
+}
+
+Result<std::string> RamFSSymlinkVNode::readlink() noexcept {
+    return __target;
+}
+
+Result<> RamFSSymlinkVNode::stat(struct stat* buf) noexcept {
+    memset(buf, 0, sizeof(struct stat));
+    buf->st_dev = 1;
+    buf->st_mode = S_IFLNK | __mode;
+    buf->st_nlink = __ref_count;
+    buf->st_size = __target.size();
     buf->st_blksize = 4096;
     buf->st_ino = __inode;
     return {};

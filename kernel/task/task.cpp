@@ -52,7 +52,7 @@ TaskControlBlock* createTask(int (*func)(void* param), void* param) noexcept {
     tcb->stackRange = {0xC0000000_va - 0x800000, 0xC0000000_va};
     tcb->pages.push_back(stack.userBase.addr);
 
-    tcb->cwd = fs::rootEntry()->__mount_point;
+    tcb->cwd = fs::resolve(fs::Path{"/"}, {}) | __unwrap;
 
     __scheduler->__current->childTasks.push_back(tcb);
 

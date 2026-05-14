@@ -44,6 +44,7 @@ struct RamFSDirectoryVNode : public RamFSVNode {
     virtual Result<> create(std::string_view name, uint32_t mode) noexcept override;
     virtual Result<> link(std::string_view name, lib::Ref<VNode> target) noexcept override;
     virtual Result<> unlink(std::string_view name) noexcept override;
+    virtual Result<> symlink(std::string_view name, std::string_view target) noexcept override;
 
     virtual Result<> stat(struct stat* buf) noexcept override;
 };
@@ -56,6 +57,17 @@ struct RamFSFileVNode : public RamFSVNode {
     virtual Result<ssize_t> read(void* buf, size_t size, off_t offset) noexcept override;
     virtual Result<ssize_t> write(const void* buf, size_t size, off_t offset) noexcept override;
     virtual Result<> truncate(off_t length) noexcept override;
+
+    virtual Result<> stat(struct stat* buf) noexcept override;
+};
+
+struct RamFSSymlinkVNode : public RamFSVNode {
+    std::string __target;
+
+    RamFSSymlinkVNode(std::string target, lib::Ref<SuperBlock> super_block, uint32_t mode)
+        : RamFSVNode(VNT_Symlink, super_block, mode), __target(std::move(target)) {}
+
+    virtual Result<std::string> readlink() noexcept override;
 
     virtual Result<> stat(struct stat* buf) noexcept override;
 };

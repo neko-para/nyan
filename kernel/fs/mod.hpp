@@ -6,6 +6,7 @@
 #include "../lib/result.hpp"
 #include "../lib/shared.hpp"
 #include "forward.hpp"
+#include "path.hpp"
 
 namespace nyan::fs {
 
@@ -16,11 +17,11 @@ void load();
 
 Result<lib::Ref<FileObj>> open(std::string_view path, uint32_t flags, uint32_t mode = 0644);
 
-Result<lib::Ref<DEntry>> resolve(std::string_view path);
-Result<lib::Ref<DEntry>> resolveParent(std::string_view path, lib::Ref<DEntry>* parent, std::string* lastName);
+struct ResolveConfig {
+    bool __follow{true};
+    lib::Ref<DEntry> __from{};
+};
 
-inline auto rootEntry() {
-    return (*mountPoints)[0];
-}
+Result<lib::Ref<DEntry>> resolve(const Path& path, ResolveConfig config, int loop = 0);
 
 }  // namespace nyan::fs

@@ -122,6 +122,14 @@
     name: getpgrp
     ret: pid_t
 
+85:
+    name: readlink
+    ret: ssize_t
+    args:
+        path: const char*
+        buf: char*
+        size: size_t
+
 91:
     name: munmap
     ret: int
@@ -203,7 +211,7 @@
 
 183:
     name: getcwd
-    ret: char*
+    ret: ssize_t
     args:
         buf: char*
         size: size_t
@@ -221,6 +229,13 @@
 
 195:
     name: stat64
+    ret: int
+    args:
+        filename: const char*
+        statbuf: struct stat*
+
+196:
+    name: lstat64
     ret: int
     args:
         filename: const char*
