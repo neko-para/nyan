@@ -152,6 +152,12 @@
     args:
         frame: frame
 
+122:
+    name: newuname
+    ret: int
+    args:
+        name: utsname *
+
 132:
     name: getpgid
     ret: pid_t

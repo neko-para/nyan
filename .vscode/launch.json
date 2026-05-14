@@ -6,7 +6,8 @@
             "name": "Attach",
             "targetCreateCommands": [
                 "target create ${workspaceFolder}/build/kernel_install/kernel",
-                "command script import ${workspaceFolder}/scripts/lldb_nyan.py"
+                "command script import ${workspaceFolder}/scripts/lldb_nyan.py",
+                "target modules add ${workspaceFolder}/user/entry/busybox_unstripped"
             ],
             "processCreateCommands": ["gdb-remote localhost:1234"]
         }

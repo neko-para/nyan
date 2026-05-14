@@ -43,6 +43,7 @@ export function parse_open_flags(flags: number) {
 export function parse_ioctl_cmd(cmd: number) {
     return (
         {
+            0x5401: 'TCGETS',
             0x540f: 'TIOCGPGRP',
             0x5410: 'TIOCSPGRP',
             0x5413: 'TIOCGWINSZ'
@@ -53,8 +54,10 @@ export function parse_ioctl_cmd(cmd: number) {
 export function parse_fcntl64_cmd(cmd: number) {
     return (
         {
+            0: 'F_DUPFD',
             1: 'F_GETFD',
-            2: 'F_SETFD'
+            2: 'F_SETFD',
+            1030: 'F_DUPFD_CLOEXEC'
         }[cmd] ?? ''
     )
 }

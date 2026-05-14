@@ -1,3 +1,4 @@
 *.a filter=lfs diff=lfs merge=lfs -text
 *.o filter=lfs diff=lfs merge=lfs -text
 user/entry/busybox filter=lfs diff=lfs merge=lfs -text
+user/entry/busybox_unstripped filter=lfs diff=lfs merge=lfs -text

@@ -24,6 +24,7 @@ const headerRows: string[] = [
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/uio.h>
+#include <sys/utsname.h>
 
 namespace nyan::interrupt {
 struct SyscallFrame;

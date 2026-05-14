@@ -71,6 +71,13 @@ size_t strlen(const char* str) {
     return len;
 }
 
+char* strcpy(char* dst, const char* src) {
+    auto ptr = dst;
+    while ((*dst++ = *src++)) {
+    }
+    return ptr;
+}
+
 extern uintptr_t __preinit_array_start[];
 extern uintptr_t __preinit_array_end[];
 extern uintptr_t __init_array_start[];

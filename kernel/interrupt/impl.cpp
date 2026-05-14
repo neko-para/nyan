@@ -189,6 +189,9 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
         case 119:
             CALL(sigreturn);
             break;
+        case 122:
+            CALL(newuname);
+            break;
         case 132:
             CALL(getpgid);
             break;

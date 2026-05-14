@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/uio.h>
+#include <sys/utsname.h>
 
 namespace nyan::interrupt {
 struct SyscallFrame;
@@ -84,6 +85,9 @@ pid_t wait4(pid_t upid, int* stat_addr, int options, struct rusage* ru);
 
 // 119
 void sigreturn(interrupt::SyscallFrame* frame);
+
+// 122
+int newuname(utsname * name);
 
 // 132
 pid_t getpgid(pid_t pid);
