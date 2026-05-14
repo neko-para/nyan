@@ -241,6 +241,22 @@
         filename: const char*
         statbuf: struct stat*
 
+199:
+    name: getuid
+    ret: uid_t
+
+200:
+    name: getgid
+    ret: gid_t
+
+201:
+    name: geteuid
+    ret: uid_t
+
+202:
+    name: getegid
+    ret: gid_t
+
 220:
     name: getdents64
     ret: int

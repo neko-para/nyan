@@ -118,6 +118,18 @@ int stat64(const char* filename, struct stat* statbuf);
 // 196
 int lstat64(const char* filename, struct stat* statbuf);
 
+// 199
+uid_t getuid();
+
+// 200
+gid_t getgid();
+
+// 201
+uid_t geteuid();
+
+// 202
+gid_t getegid();
+
 // 220
 int getdents64(int fd, struct dirent* dirent, size_t count);
 

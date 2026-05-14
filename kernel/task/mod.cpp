@@ -40,16 +40,18 @@ Result<lib::Ref<fs::FdObj>> installFileTo(lib::Ref<fs::FileObj> file, int fd) no
     return *fdObjPtr;
 }
 
-Result<int> installFd(lib::Ref<fs::FdObj> fdobj) noexcept {
+Result<int> installFd(lib::Ref<fs::FdObj> fdobj, int hint, bool close_on_exec) noexcept {
     int fd;
-    auto fdObjPtr = __try(__scheduler->__current->__file.findFileSlot(fd));
-    *fdObjPtr = fdobj;
+    auto fdObjPtr = __try(__scheduler->__current->__file.findFileSlot(fd, hint));
+    auto newObj = lib::makeRef<fs::FdObj>(fdobj->__file);
+    newObj->__close_on_exec = close_on_exec;
+    *fdObjPtr = newObj;
     return fd;
 }
 
 Result<> installFdTo(lib::Ref<fs::FdObj> fdobj, int fd) noexcept {
     auto fdObjPtr = __try(__scheduler->__current->__file.getFileSlot(fd));
-    *fdObjPtr = fdobj;
+    *fdObjPtr = lib::makeRef<fs::FdObj>(fdobj->__file);
     return {};
 }
 

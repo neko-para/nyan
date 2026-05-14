@@ -23,7 +23,22 @@ static void loadInitFs() {
         auto file = bin->lookup(prog.name) | __unwrap;
         file->write(prog.data, prog.size, 0) | __ignore;
     }
-    bin->symlink("ash", "busybox") | __ignore;
+    for (auto target : {
+             "ash",
+             "cat",
+             "echo",
+             "env",
+             "false",
+             "kill",
+             "ls",
+             "pwd",
+             "sh",
+             "sleep",
+             "test",
+             "true",
+         }) {
+        bin->symlink(target, "busybox") | __ignore;
+    }
 
     entry->__root_node->mkdir("dev", 0755) | __ignore;
     auto dev = entry->__root_node->lookup("dev") | __unwrap;
@@ -33,6 +48,8 @@ static void loadInitFs() {
         dev->link(name, lib::makeRef<RamFSCharDevVNode>(console::__all_tty_devices[i], dev->__super_block, 0644)) |
             __ignore;
     }
+    // TODO: dynamic link
+    dev->symlink("tty", "tty1") | __ignore;
 
     entry->__root_node->create("hello", 0755) | __ignore;
     auto hello = entry->__root_node->lookup("hello") | __unwrap;

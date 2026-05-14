@@ -1,5 +1,6 @@
 #include <nyan/syscall.h>
 
+#include "../arch/print.hpp"
 #include "../fs/dentry.hpp"
 #include "../fs/mod.hpp"
 #include "../fs/vnode.hpp"
@@ -11,6 +12,8 @@ int stat64(const char* __filename, struct stat* statbuf) {
     auto filename = __try(task::checkString(__filename));
     __try
         (task::checkW(statbuf));
+
+    arch::kprint("stat64 {}", filename);
 
     auto dentry = __try(fs::resolve({filename}, {}));
     __try

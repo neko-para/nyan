@@ -222,6 +222,18 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
         case 196:
             CALL(lstat64);
             break;
+        case 199:
+            CALL(getuid);
+            break;
+        case 200:
+            CALL(getgid);
+            break;
+        case 201:
+            CALL(geteuid);
+            break;
+        case 202:
+            CALL(getegid);
+            break;
         case 220:
             CALL(getdents64);
             break;

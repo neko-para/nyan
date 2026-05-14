@@ -20,7 +20,7 @@ Result<lib::Ref<fs::FdObj>> getFd(int fd) noexcept;
 lib::Ref<fs::FdObj> makeFd(lib::Ref<fs::FileObj> file) noexcept;
 Result<std::tuple<int, lib::Ref<fs::FdObj>>> installFile(lib::Ref<fs::FileObj> file) noexcept;
 Result<lib::Ref<fs::FdObj>> installFileTo(lib::Ref<fs::FileObj> file, int fd) noexcept;
-Result<int> installFd(lib::Ref<fs::FdObj> fdobj) noexcept;
+Result<int> installFd(lib::Ref<fs::FdObj> fdobj, int hint = 0, bool close_on_exec = false) noexcept;
 Result<> installFdTo(lib::Ref<fs::FdObj> fdobj, int fd) noexcept;
 
 lib::Ref<fs::DEntry> getCwd() noexcept;

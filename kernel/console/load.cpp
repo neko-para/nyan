@@ -4,6 +4,7 @@
 
 #include "../fs/mod.hpp"
 #include "../task/mod.hpp"
+#include "../task/pid.hpp"
 #include "../task/scheduler.hpp"
 #include "../task/task.hpp"
 #include "../task/tcb.hpp"
@@ -31,10 +32,11 @@ static int consoleDeamon(void* param) {
     task::installFileTo(writeFile, 2) | __ignore;
 
     while (true) {
-        const char* argv[] = {"sh", 0};
+        const char* argv[] = {"/bin/sh", 0};
         const char* envp[] = {"PATH=/bin", "SHELL=/bin/sh", 0};
-        auto pid = syscall::spawn("sh", argv, envp);
+        auto pid = syscall::spawn("busybox", argv, envp);
         tty->__foreground_pgid = pid;
+        task::findTask(pid)->groupPid = pid;
 
         arch::kprint("tty {} shell started, pid {}\n", id, pid);
 
