@@ -28,6 +28,7 @@ static void loadInitFs() {
     for (auto target : {
              "ash",
              "cat",
+             "clear",
              "echo",
              "env",
              "false",
