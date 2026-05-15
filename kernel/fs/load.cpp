@@ -2,6 +2,8 @@
 #include "../console/mod.hpp"
 #include "../data/embed.hpp"
 #include "../lib/format.hpp"
+#include "../task/scheduler.hpp"
+#include "../task/tcb.hpp"
 #include "dentry.hpp"
 #include "fs/ramfs.hpp"
 #include "mod.hpp"
@@ -49,7 +51,19 @@ static void loadInitFs() {
             __ignore;
     }
     // TODO: dynamic link
-    dev->symlink("tty", "tty1") | __ignore;
+    // dev->symlink("tty", "tty1") | __ignore;
+    dev->link("tty", lib::makeRef<RamFSSymlinkVNode>(
+                         []() -> Result<std::string> {
+                             auto tty = task::__scheduler->__current->__file.__ctty;
+                             if (!tty) {
+                                 return SYS_ENXIO;
+                             }
+                             auto id = std::find(std::begin(console::__all_ttys), std::end(console::__all_ttys), tty) -
+                                       std::begin(console::__all_ttys);
+                             return lib::format("/dev/tty{}", id);
+                         },
+                         dev->__super_block, 0666)) |
+        __ignore;
 
     entry->__root_node->create("hello", 0755) | __ignore;
     auto hello = entry->__root_node->lookup("hello") | __unwrap;

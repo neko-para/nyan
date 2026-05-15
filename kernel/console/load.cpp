@@ -23,9 +23,10 @@ static int consoleDeamon(void* param) {
     auto id = std::find(std::begin(__all_ttys), std::end(__all_ttys), tty) - std::begin(__all_ttys);
     arch::kprint("tty {} deamon entered, pid {}\n", id, task::__scheduler->__current->pid);
 
-    auto path = lib::format("/dev/tty{}", id);
-    auto readFile = fs::open(path, O_RDONLY) | __unwrap;
-    auto writeFile = fs::open(path, O_WRONLY) | __unwrap;
+    task::__scheduler->__current->__file.__ctty = tty;
+
+    auto readFile = fs::open("/dev/tty", O_RDONLY) | __unwrap;
+    auto writeFile = fs::open("/dev/tty", O_WRONLY) | __unwrap;
 
     task::installFileTo(readFile, 0) | __ignore;
     task::installFileTo(writeFile, 1) | __ignore;

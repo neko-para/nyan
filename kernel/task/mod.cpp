@@ -68,7 +68,8 @@ Result<> setCwd(lib::Ref<fs::DEntry> dentry) noexcept {
 }
 
 Result<std::tuple<pid_t, int>> waitpid(pid_t pid, int options) noexcept {
-    if ((options & WNOHANG) != options) {
+    // TODO: WUNTRACED 暂不支持
+    if ((options & (WNOHANG | WUNTRACED)) != options) {
         return SYS_EINVAL;
     }
 

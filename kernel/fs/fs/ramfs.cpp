@@ -169,7 +169,11 @@ Result<> RamFSFileVNode::stat(struct stat* buf) noexcept {
 }
 
 Result<std::string> RamFSSymlinkVNode::readlink() noexcept {
-    return __target;
+    if (__dynamic_target) {
+        return __dynamic_target();
+    } else {
+        return __target;
+    }
 }
 
 Result<> RamFSSymlinkVNode::stat(struct stat* buf) noexcept {

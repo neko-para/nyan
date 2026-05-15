@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+#include "../../lib/function.hpp"
 #include "../device.hpp"
 #include "../filesystem.hpp"
 #include "../super_block.hpp"
@@ -63,9 +64,14 @@ struct RamFSFileVNode : public RamFSVNode {
 
 struct RamFSSymlinkVNode : public RamFSVNode {
     std::string __target;
+    lib::function<Result<std::string>()> __dynamic_target;
 
     RamFSSymlinkVNode(std::string target, lib::Ref<SuperBlock> super_block, uint32_t mode)
         : RamFSVNode(VNT_Symlink, super_block, mode), __target(std::move(target)) {}
+    RamFSSymlinkVNode(lib::function<Result<std::string>()> dynamic_target,
+                      lib::Ref<SuperBlock> super_block,
+                      uint32_t mode)
+        : RamFSVNode(VNT_Symlink, super_block, mode), __dynamic_target(std::move(dynamic_target)) {}
 
     virtual Result<std::string> readlink() noexcept override;
 
