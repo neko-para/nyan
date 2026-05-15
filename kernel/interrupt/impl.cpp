@@ -141,6 +141,12 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
         case 7:
             CALL(waitpid);
             break;
+        case 9:
+            CALL(link);
+            break;
+        case 10:
+            CALL(unlink);
+            break;
         case 11:
             CALL(execve);
             break;
@@ -176,6 +182,9 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             break;
         case 65:
             CALL(getpgrp);
+            break;
+        case 83:
+            CALL(symlink);
             break;
         case 85:
             CALL(readlink);
@@ -224,6 +233,9 @@ extern "C" void syscallHandlerImpl(SyscallFrame* frame) {
             break;
         case 196:
             CALL(lstat64);
+            break;
+        case 197:
+            CALL(fstat64);
             break;
         case 199:
             CALL(getuid);

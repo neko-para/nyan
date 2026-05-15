@@ -38,6 +38,12 @@ int close(int fd);
 // 7
 pid_t waitpid(pid_t pid, int* stat_addr, int options);
 
+// 9
+int link(const char* oldname, const char* newname);
+
+// 10
+int unlink(const char* pathname);
+
 // 11
 int execve(const char* filename, const char* const* argv, const char* const* envp, interrupt::SyscallFrame* frame);
 
@@ -73,6 +79,9 @@ pid_t getppid();
 
 // 65
 pid_t getpgrp();
+
+// 83
+int symlink(const char* oldname, const char* newname);
 
 // 85
 ssize_t readlink(const char* path, char* buf, size_t size);
@@ -121,6 +130,9 @@ int stat64(const char* filename, struct stat* statbuf);
 
 // 196
 int lstat64(const char* filename, struct stat* statbuf);
+
+// 197
+int fstat64(int fd, struct stat* statbuf);
 
 // 199
 uid_t getuid();

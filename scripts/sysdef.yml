@@ -48,6 +48,19 @@
         stat_addr: int*
         options: int @hex
 
+9:
+    name: link
+    ret: int
+    args:
+        oldname: const char*
+        newname: const char*
+
+10:
+    name: unlink
+    ret: int
+    args:
+        pathname: const char*
+
 11:
     name: execve
     ret: int
@@ -121,6 +134,13 @@
 65:
     name: getpgrp
     ret: pid_t
+
+83:
+    name: symlink
+    ret: int
+    args:
+        oldname: const char*
+        newname: const char*
 
 85:
     name: readlink
@@ -245,6 +265,13 @@
     ret: int
     args:
         filename: const char*
+        statbuf: struct stat*
+
+197:
+    name: fstat64
+    ret: int
+    args:
+        fd: int @fd
         statbuf: struct stat*
 
 199:

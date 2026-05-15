@@ -20,6 +20,10 @@ Result<ssize_t> VNodeFileObj::write(const void* buf, size_t size) noexcept {
     return ret;
 }
 
+Result<> VNodeFileObj::stat(struct stat* buf) noexcept {
+    return __vnode->stat(buf);
+}
+
 Result<> VNodeFileObj::ioctl(unsigned cmd, uint32_t arg) noexcept {
     return __vnode->ioctl(cmd, arg);
 }

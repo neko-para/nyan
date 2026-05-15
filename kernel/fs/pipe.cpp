@@ -4,6 +4,7 @@
 #include <nyan/errno.h>
 #include <signal.h>
 #include <string.h>
+#include <sys/stat.h>
 
 #include "../arch/print.hpp"
 #include "../task/scheduler.hpp"
@@ -111,6 +112,12 @@ Result<ssize_t> PipeObj::read(void* buf, size_t size) noexcept {
 
 Result<ssize_t> PipeObj::write(const void* buf, size_t size) noexcept {
     return __state->write(buf, size);
+}
+
+Result<> PipeObj::stat(struct stat* buf) noexcept {
+    memset(buf, 0, sizeof(struct stat));
+    buf->st_mode = S_IFIFO | 0600;
+    return {};
 }
 
 Result<> PipeObj::ioctl(unsigned, uint32_t) noexcept {

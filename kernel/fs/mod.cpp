@@ -32,12 +32,12 @@ Result<lib::Ref<FileObj>> open(std::string_view __path, uint32_t flags, uint32_t
     Path upper = path.parent();
 
     auto parentEntry = __try(resolve(upper, {}));
-    if (!parentEntry) {
-        return SYS_ENOENT;
-    }
 
     auto entry = parentEntry->effectiveVNode()->lookup(path.last());
     if (!entry) {
+        if (entry != SYS_ENOENT) {
+            return entry.error();
+        }
         if ((flags & O_CREAT) && !path.__trailing_slash) {
             __try
                 (parentEntry->effectiveVNode()->create(path.last(), mode));
