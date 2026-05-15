@@ -51,6 +51,11 @@ Result<lib::Ref<FileObj>> open(std::string_view __path, uint32_t flags, uint32_t
     }
 
     auto vnode = __try(parentEntry->effectiveVNode()->lookup(path.last()));
+    if (vnode->isSymlink() && !(flags & O_NOFOLLOW)) {
+        auto target = __try(vnode->readlink());
+        auto newEntry = __try(resolve(Path{target}, {}));
+        vnode = newEntry->effectiveVNode();
+    }
 
     if (((flags & O_DIRECTORY) || path.__trailing_slash) && !vnode->isDirectory()) {
         return SYS_ENOTDIR;
