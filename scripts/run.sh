@@ -14,4 +14,24 @@ fi
 touch $LOG_FILE
 
 node $PROJ_ROOT/logger/watch.ts "$LOG_FILE" "$KERNEL_FILE" &
-qemu-system-i386 -kernel "$KERNEL_FILE" -debugcon "file:$LOG_FILE" -m 2G $@
+NODE_PID=$!
+qemu-system-i386 -kernel "$KERNEL_FILE" -debugcon "file:$LOG_FILE" -m 2G -display cocoa,zoom-to-fit=on $@ &
+QEMU_PID=$!
+
+sleep 1
+
+# 先绕过下
+# https://gitlab.com/qemu-project/qemu/-/work_items/3434
+osascript <<EOF
+tell application "System Events"
+    tell process "qemu-system-i386"
+        set frontmost to true
+        tell window 1
+            set size to {640, 412}
+        end tell
+    end tell
+end tell
+EOF
+
+wait $QEMU_PID
+kill -9 $NODE_PID
