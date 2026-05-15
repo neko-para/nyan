@@ -15,14 +15,15 @@ touch $LOG_FILE
 
 node $PROJ_ROOT/logger/watch.ts "$LOG_FILE" "$KERNEL_FILE" &
 NODE_PID=$!
-qemu-system-i386 -kernel "$KERNEL_FILE" -debugcon "file:$LOG_FILE" -m 2G -display cocoa,zoom-to-fit=on $@ &
-QEMU_PID=$!
+if [[ `uname` != 'Linux' ]]; then
+    qemu-system-i386 -kernel "$KERNEL_FILE" -debugcon "file:$LOG_FILE" -m 2G -display cocoa,zoom-to-fit=on $@ &
+    QEMU_PID=$!
 
-sleep 1
+    sleep 1
 
 # 先绕过下
 # https://gitlab.com/qemu-project/qemu/-/work_items/3434
-osascript <<EOF
+    osascript <<EOF
 tell application "System Events"
     tell process "qemu-system-i386"
         set frontmost to true
@@ -32,6 +33,9 @@ tell application "System Events"
     end tell
 end tell
 EOF
+    wait $QEMU_PID
+else
+    qemu-system-i386 -kernel "$KERNEL_FILE" -debugcon "file:$LOG_FILE" -m 2G $@
+fi
 
-wait $QEMU_PID
 kill -9 $NODE_PID
