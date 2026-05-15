@@ -1,5 +1,7 @@
 #pragma once
 
+#include <termios.h>
+
 #include "../lib/format.hpp"
 #include "../vga/buffer.hpp"
 #include "../vga/entry.hpp"
@@ -30,6 +32,26 @@ struct ScreenBuffer {
     int __col_ptr = 0;
     uint8_t __current_attr = vga::makeAttr(vga::C_LightGray, vga::C_Black);
     uint8_t __flags = F_ShowCursor | F_Canonical | F_Echo;
+
+    termios __config = {
+        ICRNL,
+        OPOST | ONLCR,
+        0,
+        ICANON | ECHO | ECHOE | ISIG,
+        0,
+        {
+            [VINTR] = 0x03,
+            [VQUIT] = 0x1c,
+            [VERASE] = 0x7f,
+            [VKILL] = 0x15,
+            [VEOF] = 0x04,
+            [VSUSP] = 0x1a,
+            [VMIN] = 1,
+            [VTIME] = 0,
+        },
+        0,
+        0,
+    };
 
     VTState __vtstate = VTS_Idle;
     int __vtarg{};

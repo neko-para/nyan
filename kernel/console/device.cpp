@@ -27,10 +27,15 @@ Result<ssize_t> TtyDevice::write(const void* buf, size_t size) noexcept {
 
 Result<> TtyDevice::ioctl(unsigned cmd, uint32_t arg) noexcept {
     switch (cmd) {
-        case TIOCGPGRP: {
+        case TCGETS:
+            *__try(task::checkW<termios>(arg)) = __tty->__config;
+            return {};
+        case TCSETS:
+            __tty->__config = *__try(task::checkR<termios>(arg));
+            return {};
+        case TIOCGPGRP:
             *__try(task::checkW<pid_t>(arg)) = __tty->__foreground_pgid;
             return {};
-        }
         case TIOCSPGRP: {
             auto pgid = *__try(task::checkR<pid_t>(arg));
             __try

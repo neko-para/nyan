@@ -10,7 +10,8 @@ add_compile_options(
   -Wtype-limits
   -Wsign-compare
   -Wcast-align
-  -Wnull-dereference)
+  -Wnull-dereference
+  -Wno-c99-designator)
 
 if(NOT CMAKE_BUILD_TYPE OR CMAKE_BUILD_TYPE STREQUAL "Debug")
   add_compile_options(-g)
