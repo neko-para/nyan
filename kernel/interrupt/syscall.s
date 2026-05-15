@@ -33,6 +33,19 @@ exception_stub_\num:
     pushw %gs
     .cfi_adjust_cfa_offset 2
 
+    movl 52(%esp), %eax # cs
+    testl $3, %eax
+    jz 1f
+    movl 60(%esp), %eax
+    jmp 2f
+1:
+    leal 60(%esp), %eax
+2:
+
+    pushl %eax
+    .cfi_adjust_cfa_offset 4
+    .cfi_offset esp, -52
+
     movw $0x10, %ax
     movw %ax, %ds
     movw %ax, %es
@@ -45,8 +58,8 @@ exception_stub_\num:
     call exceptionHandlerImpl
     .cfi_adjust_cfa_offset 0
 
-    addl $4, %esp
-    .cfi_adjust_cfa_offset -4
+    addl $8, %esp
+    .cfi_adjust_cfa_offset -8
 
     popw %gs
     .cfi_adjust_cfa_offset -2
@@ -68,13 +81,47 @@ exception_stub_\num:
 .global exception_stub_\num
 .type exception_stub_\num, @function
 exception_stub_\num:
-    pushl $\num
+    .cfi_startproc simple
+    .cfi_signal_frame
 
+    .cfi_def_cfa esp, 4
+    .cfi_offset eip, 0
+    .cfi_offset esp, 12
+
+    pushl $\num
+    .cfi_adjust_cfa_offset 4
     pushal
+    .cfi_adjust_cfa_offset 32
+
+    .cfi_offset edi, -40
+    .cfi_offset esi, -36
+    .cfi_offset ebp, -32
+    .cfi_offset ebx, -24
+    .cfi_offset edx, -20
+    .cfi_offset ecx, -16
+    .cfi_offset eax, -12
+
     pushw %ds
+    .cfi_adjust_cfa_offset 2
     pushw %es
+    .cfi_adjust_cfa_offset 2
     pushw %fs
+    .cfi_adjust_cfa_offset 2
     pushw %gs
+    .cfi_adjust_cfa_offset 2
+
+    movl 52(%esp), %eax # cs
+    testl $3, %eax
+    jz 1f
+    movl 60(%esp), %eax
+    jmp 2f
+1:
+    leal 60(%esp), %eax
+2:
+
+    pushl %eax
+    .cfi_adjust_cfa_offset 4
+    .cfi_offset esp, -52
 
     movw $0x10, %ax
     movw %ax, %ds
@@ -83,16 +130,28 @@ exception_stub_\num:
     movw %ax, %gs
 
     pushl %esp
+    .cfi_adjust_cfa_offset 4
+
     call exceptionHandlerImpl
-    addl $4, %esp
+    .cfi_adjust_cfa_offset 0
+
+    addl $8, %esp
+    .cfi_adjust_cfa_offset -8
 
     popw %gs
+    .cfi_adjust_cfa_offset -2
     popw %fs
+    .cfi_adjust_cfa_offset -2
     popw %es
+    .cfi_adjust_cfa_offset -2
     popw %ds
+    .cfi_adjust_cfa_offset -2
     popal
+    .cfi_adjust_cfa_offset -32
     addl $8, %esp
+    .cfi_adjust_cfa_offset -8
     iret
+    .cfi_endproc
 .endm
 
 EXCEPTION_NOERRCODE 0      # Division Error

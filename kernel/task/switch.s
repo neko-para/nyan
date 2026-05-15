@@ -50,6 +50,8 @@ switchToTask:
 syscallReturn:
     movl 4(%esp), %esp
 
+    addl $4, %esp
+
     popw %gs
     popw %fs
     popw %es

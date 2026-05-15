@@ -8,6 +8,8 @@ namespace nyan::interrupt {
 struct Entry;
 
 struct SyscallFrame {
+    uint32_t effective_esp;
+
     uint16_t user_gs;
     uint16_t user_fs;
     uint16_t user_es;
