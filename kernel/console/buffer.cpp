@@ -67,8 +67,8 @@ void ScreenBuffer::renderChar(char ch) noexcept {
     }
 
     if (++__col_ptr == __width) {
-    putLF:
         __col_ptr = 0;
+    putLF:
         if (++__row_ptr == __height) {
             scroll(1);
             __row_ptr = __height - 1;
@@ -83,6 +83,14 @@ void ScreenBuffer::putcImpl(char ch) noexcept {
             if (ch == '\e') {
                 __vtstate = VTS_Esc;
             } else {
+                if (__config.c_oflag & OPOST) {
+                    if ((__config.c_oflag & ONLCR) && ch == '\n') {
+                        renderChar('\r');
+                    }
+                    if ((__config.c_oflag & OCRNL) && ch == '\r') {
+                        ch = '\n';
+                    }
+                }
                 renderChar(ch);
             }
             break;
@@ -126,6 +134,13 @@ void ScreenBuffer::puts(const char* str) noexcept {
 void ScreenBuffer::puts(const char* str, size_t len) noexcept {
     while (len-- > 0) {
         putcImpl(*str++);
+    }
+    flushCursor();
+}
+
+void ScreenBuffer::puts(std::string_view str) noexcept {
+    for (auto ch : str) {
+        putcImpl(ch);
     }
     flushCursor();
 }

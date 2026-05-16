@@ -3,8 +3,8 @@
 namespace nyan::keyboard {
 
 static const char SC_to_char[] =
-    "\0\0\0\0001!2@3#4$5%6^7&8*9(0)-_=+\b\b"
-    "\t\tqQwWeErRtTyYuUiIoOpP[{]}\n\n"
+    "\0\0\0\0001!2@3#4$5%6^7&8*9(0)-_=+\x7f\x7f"
+    "\t\tqQwWeErRtTyYuUiIoOpP[{]}\r\r"
     "\0\0aAsSdDfFgGhHjJkKlL;:'\"`~\0\0\\|"
     "zZxXcCvVbBnNmM,<.>/?\0\0**"
     "\0\0  \0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
@@ -30,6 +30,14 @@ Message merge(uint16_t scan) noexcept {
         }
     } else if (scan < sizeof(SC_to_char) / 2) {
         msg.ch = SC_to_char[(scan << 1) | ((__flags & F_Shift) ? 1 : 0)];
+    }
+
+    if (__flags & F_Ctrl) {
+        if ((msg.ch >= 'a' && msg.ch <= 'z') || (msg.ch >= '@' && msg.ch <= '_')) {
+            msg.ch &= 0x1f;
+        } else if (msg.ch == '?') {
+            msg.ch = 0x7f;
+        }
     }
 
     uint8_t mod = 0;

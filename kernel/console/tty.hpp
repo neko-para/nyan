@@ -27,6 +27,12 @@ struct Tty : public ScreenBuffer {
 
     bool inputEmpty() noexcept;
     Result<arch::InterruptGuard> syncWaitInput() noexcept;
+
+    std::string translateMsg(const keyboard::Message& msg) noexcept;
+    void processKey(char ch) noexcept;
+
+    void echoCtrl(char ch) noexcept;
+    void echoChar(char ch) noexcept;
 };
 
 }  // namespace nyan::console

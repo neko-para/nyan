@@ -15,8 +15,6 @@ constexpr size_t __height = vga::height;
 enum Flags {
     F_Active = 1 << 0,
     F_ShowCursor = 1 << 1,
-    F_Canonical = 1 << 2,
-    F_Echo = 1 << 4,
 };
 
 enum VTState {
@@ -31,7 +29,7 @@ struct ScreenBuffer {
     int __row_ptr = 0;
     int __col_ptr = 0;
     uint8_t __current_attr = vga::makeAttr(vga::C_LightGray, vga::C_Black);
-    uint8_t __flags = F_ShowCursor | F_Canonical | F_Echo;
+    uint8_t __flags = F_ShowCursor;
 
     termios __config = {
         ICRNL,
@@ -68,6 +66,7 @@ struct ScreenBuffer {
     void putc(char ch) noexcept;
     void puts(const char* str) noexcept;
     void puts(const char* str, size_t len) noexcept;
+    void puts(std::string_view str) noexcept;
 
     void flushCSI(char cmd) noexcept;
 

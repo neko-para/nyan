@@ -22,97 +22,26 @@ void Tty::input(const keyboard::Message& msg) noexcept {
         return;
     }
 
-    if (((msg.flag & keyboard::F_Modifiers) == keyboard::F_Ctrl) && msg.code == keyboard::SC_C) {
-        if (__flags & F_Echo) {
-            puts("^C\n", 3);
-        }
-        __line_buffer.clear();
-        task::kill(-__foreground_pgid, SIGINT) | __ignore;
+    switch (msg.code) {
+        case keyboard::SC_LCTRL:
+        case keyboard::SC_RCTRL:
+        case keyboard::SC_LSHIFT:
+        case keyboard::SC_RSHIFT:
+        case keyboard::SC_LALT:
+        case keyboard::SC_RALT:
+        case keyboard::SC_CAPLOCKS:
+        case keyboard::SC_NUMLOCK:
+        case keyboard::SC_SCROLLLOCK:
+            return;
+    }
+
+    auto keys = translateMsg(msg);
+    if (keys.empty()) {
         return;
     }
 
-    arch::InterruptGuard guard;
-    if (__flags & F_Canonical) {
-        switch (msg.code) {
-            case keyboard::SC_UP:
-            case keyboard::SC_DOWN:
-            case keyboard::SC_LEFT:
-            case keyboard::SC_RIGHT:
-            case keyboard::SC_DELETE:
-            case keyboard::SC_HOME:
-            case keyboard::SC_END:
-                break;
-            default:
-                if (msg.ch) {
-                    if (msg.ch == '\b') {
-                        if (__line_buffer.length() > 0) {
-                            __line_buffer.pop_back();
-                            if (__flags & F_Echo) {
-                                // 做的有点丑, 将就用下
-                                putcImpl('\b');
-                                putcImpl(' ');
-                                putc('\b');
-                            }
-                        }
-                    } else if (msg.ch == '\n') {
-                        __line_buffer.push_back('\n');
-                        __input_buffer.append(__line_buffer);
-                        __line_buffer.clear();
-                        if (__flags & F_Echo) {
-                            putc('\n');
-                        }
-                    } else {
-                        if (msg.flag & keyboard::F_Ctrl) {
-                            if (msg.code == keyboard::SC_D) {
-                                __input_buffer.append(__line_buffer);
-                                __line_buffer.clear();
-                                __pending_eof = true;
-                            }
-                        } else {
-                            __line_buffer.push_back(msg.ch);
-                            if (__flags & F_Echo) {
-                                putc(msg.ch);
-                            }
-                            // TODO: 不要wake
-                        }
-                    }
-                }
-        }
-    } else {
-        switch (msg.code) {
-            case keyboard::SC_UP:
-                __input_buffer.append("\x1B[A", 3);
-                break;
-            case keyboard::SC_DOWN:
-                __input_buffer.append("\x1B[B", 3);
-                break;
-            case keyboard::SC_LEFT:
-                __input_buffer.append("\x1B[D", 3);
-                break;
-            case keyboard::SC_RIGHT:
-                __input_buffer.append("\x1B[C", 3);
-                break;
-            case keyboard::SC_DELETE:
-                __input_buffer.append("\x1B[3~", 4);
-                break;
-            case keyboard::SC_HOME:
-                __input_buffer.append("\x1B[H", 3);
-                break;
-            case keyboard::SC_END:
-                __input_buffer.append("\x1B[F", 3);
-                break;
-            default:
-                if (msg.ch) {
-                    if (msg.flag & keyboard::F_Ctrl) {
-                        __input_buffer.push_back(msg.ch & 0x1F);
-                    } else {
-                        __input_buffer.push_back(msg.ch);
-                        if (__flags & F_Echo) {
-                            putc(msg.ch);
-                        }
-                    }
-                }
-        }
+    for (auto ch : keys) {
+        processKey(ch);
     }
 
     __wait_list.wakeOne(task::WakeReason::WR_Normal);
@@ -137,6 +66,125 @@ Result<arch::InterruptGuard> Tty::syncWaitInput() noexcept {
             return SYS_EINTR;
         }
     }
+}
+
+std::string Tty::translateMsg(const keyboard::Message& msg) noexcept {
+    switch (msg.code) {
+        case keyboard::SC_UP:
+            return "\x1B[A";
+        case keyboard::SC_DOWN:
+            return "\x1B[B";
+        case keyboard::SC_LEFT:
+            return "\x1B[D";
+        case keyboard::SC_RIGHT:
+            return "\x1B[C";
+        case keyboard::SC_HOME:
+            return "\x1B[H";
+        case keyboard::SC_END:
+            return "\x1B[F";
+        case keyboard::SC_DELETE:
+            return "\x1B[3~";
+        case keyboard::SC_INSERT:
+            return "\x1B[2~";
+        case keyboard::SC_PAGEUP:
+            return "\x1B[5~";
+        case keyboard::SC_PAGEDOWN:
+            return "\x1B[6~";
+        case keyboard::SC_F1:
+            return "\x1BOP";
+        case keyboard::SC_F2:
+            return "\x1BOQ";
+        case keyboard::SC_F3:
+            return "\x1BOR";
+        case keyboard::SC_F4:
+            return "\x1BOS";
+    }
+
+    if (!msg.ch) {
+        return "";
+    }
+
+    if (msg.flag & keyboard::F_Alt) {
+        return {'\x1B', msg.ch};
+    } else {
+        return {msg.ch};
+    }
+}
+
+void Tty::processKey(char ch) noexcept {
+    if ((__config.c_iflag & ICRNL) && ch == '\r') {
+        ch = '\n';
+    }
+
+    if (__config.c_lflag & ISIG) {
+        if (ch == __config.c_cc[VINTR]) {
+            echoCtrl(ch);
+            __line_buffer.clear();
+            task::kill(-__foreground_pgid, SIGINT) | __ignore;
+            return;
+        } else if (ch == __config.c_cc[VSUSP]) {
+            echoCtrl(ch);
+            __line_buffer.clear();
+            task::kill(-__foreground_pgid, SIGTSTP) | __ignore;
+            return;
+        } else if (ch == __config.c_cc[VQUIT]) {
+            echoCtrl(ch);
+            __line_buffer.clear();
+            task::kill(-__foreground_pgid, SIGQUIT) | __ignore;
+            return;
+        }
+    }
+
+    if (__config.c_lflag & ICANON) {
+        if (ch == __config.c_cc[VERASE]) {
+            if (!__line_buffer.empty()) {
+                if (__config.c_lflag & ECHOE) {
+                    puts("\b \b", 3);
+                }
+                __line_buffer.pop_back();
+            }
+            return;
+        } else if (ch == __config.c_cc[VEOF]) {
+            __input_buffer.append(__line_buffer);
+            __line_buffer.clear();
+            __pending_eof = true;
+            return;
+        } else if (ch == '\n') {
+            if (__config.c_lflag & (ECHO | ECHONL)) {
+                putc('\n');
+            }
+            __line_buffer.push_back('\n');
+            __input_buffer.append(__line_buffer);
+            __line_buffer.clear();
+            return;
+        }
+
+        echoChar(ch);
+        __line_buffer.push_back(ch);
+    } else {
+        echoChar(ch);
+        __input_buffer.push_back(ch);
+    }
+}
+
+void Tty::echoCtrl(char ch) noexcept {
+    if (__config.c_lflag & ECHO) {
+        putcImpl('^');
+        putcImpl(ch + '@');
+        putc('\n');
+    }
+}
+
+void Tty::echoChar(char ch) noexcept {
+    if (__config.c_lflag & ECHO) {
+        if ((__config.c_lflag & ECHOCTL) && static_cast<uint8_t>(ch) < 0x20 && ch != '\n' && ch != '\t') {
+            putcImpl('^');
+            putc(ch + '@');
+        } else {
+            putc(ch);
+        }
+    }
+    // 不需要检查 ECHONL, 该选项需要 ICANON
 }
 
 }  // namespace nyan::console
