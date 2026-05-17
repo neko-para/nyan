@@ -42,6 +42,11 @@ void Scheduler::exit(int code, int sig) noexcept {
 }
 
 void Scheduler::yield() noexcept {
+    if (!yieldEnabled()) {
+        __need_yield = true;
+        return;
+    }
+
     arch::InterruptGuard guard;
     if (!__pending.empty()) {
         auto next = __pending.front();
@@ -60,7 +65,18 @@ void Scheduler::yield() noexcept {
     }
 }
 
+void Scheduler::enableYield() noexcept {
+    if (--__disable_yield_counter == 0 && __need_yield) {
+        __need_yield = false;
+        yield();
+    }
+}
+
 WakeReason Scheduler::block(BlockReason reason) noexcept {
+    if (!yieldEnabled()) {
+        arch::kfatal("block during yield disabled");
+    }
+
     arch::InterruptGuard guard;
     __current->state = State::S_Blocked;
     __current->blockReason = reason;
@@ -72,6 +88,10 @@ WakeReason Scheduler::block(BlockReason reason) noexcept {
 }
 
 WakeReason Scheduler::sleep(uint64_t ms, uint64_t* rest) noexcept {
+    if (!yieldEnabled()) {
+        arch::kfatal("sleep during yield disabled");
+    }
+
     auto currTs = timer::msSinceBoot + ms;
 
     arch::InterruptGuard guard;
